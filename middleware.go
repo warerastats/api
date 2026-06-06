@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"net"
 	"net/http"
 	"os"
@@ -12,6 +13,16 @@ import (
 
 	"github.com/warerastats/api/graph"
 )
+
+// writeGraphQLError responds with a GraphQL-shaped JSON error body so GraphQL
+// clients can parse it instead of choking on plain text.
+func writeGraphQLError(w http.ResponseWriter, status int, msg string) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	_ = json.NewEncoder(w).Encode(map[string]any{
+		"errors": []map[string]any{{"message": msg}},
+	})
+}
 
 // splitEnv reads a comma-separated environment variable into a trimmed,
 // non-empty slice of values.
@@ -48,7 +59,7 @@ func apiKeyAuth(next http.Handler) http.Handler {
 			return
 		}
 		if _, ok := keys[bearerToken(r)]; !ok {
-			http.Error(w, "unauthorized", http.StatusUnauthorized)
+			writeGraphQLError(w, http.StatusUnauthorized, "unauthorized")
 			return
 		}
 		next.ServeHTTP(w, r)
@@ -161,7 +172,7 @@ func (l *ipRateLimiter) middleware(next http.Handler) http.Handler {
 			return
 		}
 		if !l.allow(clientIP(r)) {
-			http.Error(w, "rate limit exceeded: try again later", http.StatusTooManyRequests)
+			writeGraphQLError(w, http.StatusTooManyRequests, "rate limit exceeded: try again later")
 			return
 		}
 		next.ServeHTTP(w, r)
