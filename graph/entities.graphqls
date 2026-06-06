@@ -1,0 +1,302 @@
+# warerastats GraphQL: tracker entities and their edges.
+
+type User {
+  id: ID!
+  username: String!
+  level: Int!
+  avatarUrl: String!
+  militaryRank: Int!
+  lastDate: Time!
+  lastSeen: Time!
+  wealth: [FloatEntry!]!
+  skills: [IntEntry!]!
+
+  # forward edges
+  country: Country
+  company: Company
+  party: Party
+  mu: Mu
+
+  # reverse edges
+  transactions(first: Int = 20, after: ID): ActivityConnection!
+  damages(battleId: ID!): [Damage!]!
+  allDamages(first: Int = 20, after: ID): [Damage!]!
+  items(first: Int = 20, after: ID): [Item!]!
+  ownedCompanies: [Company!]!
+  employment: Employee
+  tradeOffers(first: Int = 20, after: ID, itemCode: String, side: TradeSide): [TradeOffer!]!
+  latestSkills: Skill
+  skillSnapshots(first: Int = 20, after: ID): [Skill!]!
+
+  # history edges
+  nameHistory(first: Int = 20, after: ID): [UserNameChange!]!
+  countryHistory(first: Int = 20, after: ID): [UserCountryChange!]!
+  partyHistory(first: Int = 20, after: ID): [UserPartyChange!]!
+  companyHistory(first: Int = 20, after: ID): [UserCompanyChange!]!
+  muHistory(first: Int = 20, after: ID): [UserMuChange!]!
+  skillChangeHistory(first: Int = 20, after: ID): [UserSkillChange!]!
+  wageHistory(first: Int = 20, after: ID): [EmployeeWageChange!]!
+
+  # derived edges
+  financeReports(from: Time!, to: Time!): [UserFinanceReport!]!
+  flipEvents(from: Time!, to: Time!, first: Int = 50, after: ID): [UserFlipEvent!]!
+  flipState: UserFlipState
+  inventory: UserInventory
+  battleParticipation: UserBattleParticipation
+}
+
+type Country {
+  id: ID!
+  name: String!
+  code: String!
+  money: Float!
+  taxes: Taxes!
+  specialisation: String
+
+  # forward
+  rulingParty: Party
+
+  # reverse
+  users(first: Int = 20, after: ID): [User!]!
+  userCount: Int!
+  parties(first: Int = 20, after: ID): [Party!]!
+  regions: [Region!]!
+  battles(first: Int = 20, after: ID): [Battle!]!
+
+  # history
+  rulingPartyHistory(first: Int = 20, after: ID): [CountryRulingPartyChange!]!
+  specialisationHistory(first: Int = 20, after: ID): [CountrySpecialisationChange!]!
+
+  # derived
+  taxFlows(from: Time!, to: Time!): [CountryTaxFlow!]!
+  flipEvents(from: Time!, to: Time!, first: Int = 50, after: ID): [CountryFlipEvent!]!
+  flipState: CountryFlipState
+  inventory: CountryInventory
+  wealthReports(from: Time!, to: Time!): [EntityWealthReport!]!
+}
+
+type Taxes {
+  income: Float!
+  market: Float!
+  selfWork: Float!
+}
+
+type Region {
+  id: ID!
+  name: String!
+  isCapital: Boolean!
+  isLinkedToCapital: Boolean!
+  resistance: Float!
+  maxResistance: Float!
+
+  # forward
+  country: Country
+  initialCountry: Country
+  neighbors: [Region!]!
+
+  # reverse
+  parties: [Party!]!
+  mus: [Mu!]!
+  companies(first: Int = 20, after: ID): [Company!]!
+
+  # history
+  ownerHistory(first: Int = 20, after: ID): [RegionOwnerChange!]!
+  deposits(first: Int = 20, after: ID): [RegionDeposit!]!
+  strategicResources(first: Int = 20, after: ID): [RegionStrategicResource!]!
+}
+
+type Party {
+  id: ID!
+  name: String!
+  description: String!
+  avatarUrl: String!
+  ethics: Ethics!
+  lastUpdated: Time!
+
+  # forward
+  country: Country
+  region: Region
+  leader: User
+
+  # reverse
+  members: [User!]!
+  rulesCountries: [Country!]!
+
+  # history
+  nameHistory(first: Int = 20, after: ID): [PartyNameChange!]!
+  leaderHistory(first: Int = 20, after: ID): [PartyLeaderChange!]!
+  descriptionHistory(first: Int = 20, after: ID): [PartyDescriptionChange!]!
+  ethicsHistory(first: Int = 20, after: ID): [PartyEthicsChange!]!
+
+  # derived
+  wealthReports(from: Time!, to: Time!): [EntityWealthReport!]!
+}
+
+type Ethics {
+  militarism: Int!
+  isolationism: Int!
+  imperialism: Int!
+  industrialism: Int!
+}
+
+type Mu {
+  id: ID!
+  name: String!
+  avatarUrl: String!
+  level: Int!
+  hq: Int!
+  dorms: Int!
+  mercRep: Float!
+
+  # forward
+  owner: User
+  region: Region
+
+  # reverse
+  members: [User!]!
+  battles(first: Int = 20, after: ID): [Battle!]!
+
+  # history
+  nameHistory(first: Int = 20, after: ID): [MuNameChange!]!
+  ownerHistory(first: Int = 20, after: ID): [MuOwnerChange!]!
+  mercReputationHistory(first: Int = 20, after: ID): [MuMercenaryReputationChange!]!
+
+  # derived
+  wealthReports(from: Time!, to: Time!): [EntityWealthReport!]!
+}
+
+type Battle {
+  id: ID!
+  attackerDamages: Int!
+  defenderDamages: Int!
+  winnerSide: String
+  isActive: Boolean!
+  endedAt: Time
+  lastUpdated: Time!
+
+  # forward
+  attackerCountry: Country
+  defenderCountry: Country
+  attackerRegion: Region
+  defenderRegion: Region
+
+  # reverse
+  damages(first: Int = 50, after: ID, side: String, userId: ID): [Damage!]!
+  mus: [Mu!]!
+  orderChanges(first: Int = 20, after: ID): [BattleOrderChange!]!
+
+  # derived
+  damageReports(from: Time!, to: Time!): [BattleDamageReport!]!
+}
+
+type Item {
+  id: ID!
+  itemCode: String!
+  state: Int!
+  status: String!
+  skills: [FloatEntry!]!
+
+  # forward
+  owner: User
+
+  # reverse
+  marketTransactions(first: Int = 20, after: ID): [MarketTransaction!]!
+}
+
+type Damage {
+  id: ID!
+  side: String!
+  militaryRank: Int!
+  damages: Int!
+  at: Time!
+  ammo: String
+
+  # forward
+  battle: Battle
+  user: User
+  country: Country
+  mu: Mu
+  party: Party
+  skill: Skill
+  weapon: Item
+  helmet: Item
+  chest: Item
+  pants: Item
+  boots: Item
+  gloves: Item
+}
+
+type Skill {
+  id: ID!
+  since: Time!
+  set: SkillSet!
+
+  # forward
+  user: User
+}
+
+type SkillSet {
+  energy: Int!
+  health: Int!
+  hunger: Int!
+  attack: Int!
+  companies: Int!
+  entrepreneurship: Int!
+  production: Int!
+  criticalChance: Int!
+  criticalDamages: Int!
+  armor: Int!
+  precision: Int!
+  dodge: Int!
+  lootChance: Int!
+  management: Int!
+}
+
+type Company {
+  id: ID!
+  name: String!
+  itemCode: String!
+
+  # forward
+  owner: User
+  region: Region
+
+  # reverse
+  employees: [Employee!]!
+
+  # history
+  regionHistory(first: Int = 20, after: ID): [CompanyRegionChange!]!
+  itemCodeHistory(first: Int = 20, after: ID): [CompanyItemCodeChange!]!
+}
+
+type Employee {
+  id: ID!
+  wage: Float!
+  fidelity: Int!
+  joinedAt: Time!
+  lastFidelityIncreaseAt: Time!
+
+  # forward
+  user: User
+  company: Company
+  employer: User
+
+  # history
+  wageHistory(first: Int = 20, after: ID): [EmployeeWageChange!]!
+}
+
+type TradeOffer {
+  id: ID!
+  itemCode: String!
+  side: String!
+  quantity: Int!
+  fulfilled: Int!
+  cancelled: Boolean!
+  price: Float!
+  since: Time!
+
+  # forward
+  user: User
+  country: Country
+  mu: Mu
+}

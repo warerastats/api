@@ -1,0 +1,73 @@
+# warerastats GraphQL: transactions (the Activity union) and the user feed.
+
+union Activity =
+    MarketTransaction
+  | WageTransaction
+  | CaseTransaction
+  | TradeTransaction
+  | CraftTransaction
+  | DismantleTransaction
+  | LootTransaction
+
+type ActivityConnection {
+  edges: [Activity!]!
+  endCursor: ID
+  hasNextPage: Boolean!
+}
+
+type MarketTransaction {
+  id: ID!
+  money: Float!
+  seller: User!
+  buyer: User!
+  item: Item
+}
+
+type WageTransaction {
+  id: ID!
+  money: Float!
+  productionPoints: Int!
+  employee: User!
+  employer: User!
+}
+
+type CaseTransaction {
+  id: ID!
+  case: String!
+  user: User!
+  item: Item
+}
+
+type TradeTransaction {
+  id: ID!
+  itemCode: String!
+  money: Float!
+  quantity: Int!
+  timeTillSale: Int64!
+  seller: User!
+  buyer: User!
+  sellerMu: Mu
+  buyerMu: Mu
+  sellerCountry: Country
+  buyerCountry: Country
+}
+
+type CraftTransaction {
+  id: ID!
+  scrapsCost: Int!
+  user: User!
+  item: Item
+}
+
+type DismantleTransaction {
+  id: ID!
+  scrapsReceived: Int!
+  user: User!
+  item: Item
+}
+
+type LootTransaction {
+  id: ID!
+  user: User!
+  item: Item
+}

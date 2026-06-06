@@ -1,0 +1,296 @@
+# warerastats GraphQL: derived / processed analytics output types.
+
+# ---- user ----
+
+type UserFinanceReport {
+  id: ID!
+  dayStart: Time!
+  wagesPaid: Float!
+  wagesEarned: Float!
+  itemsBought: Float!
+  itemsSold: Float!
+  equipBought: Float!
+  equipSold: Float!
+  valueDismantled: Float!
+  casesOpened: Int!
+  casesNet: Float!
+  user: User!
+}
+
+type UserFlipEvent {
+  id: ID!
+  itemCode: String!
+  quantity: Int!
+  buyCost: Float!
+  sellRevenue: Float!
+  profit: Float!
+  heldMs: Int64!
+  at: Time!
+  user: User!
+}
+
+type FlipLot {
+  tradeId: ID!
+  quantity: Int!
+  unitPrice: Float!
+  boughtAt: Time!
+}
+
+type FlipLotGroup {
+  itemCode: String!
+  lots: [FlipLot!]!
+}
+
+type UserFlipState {
+  totalFlips: Int!
+  totalProfit: Float!
+  updatedAt: Time!
+  openLots: [FlipLotGroup!]!
+  user: User!
+}
+
+type UserInventory {
+  updatedAt: Time!
+  items: [IntEntry!]!
+  user: User!
+}
+
+type UserBattleParticipation {
+  totalDamage: Int64!
+  battlesParticipated: Int!
+  negativeDamage: Int64!
+  ownCountryBattles: Int!
+  ownCountryParticipated: Int!
+  muOrderBattles: Int!
+  muOrderParticipated: Int!
+  updatedAt: Time!
+  user: User!
+}
+
+# ---- country ----
+
+type TaxHijack {
+  amount: Float!
+  country: Country
+}
+
+type TaxSource {
+  total: Float!
+  hijacked: Float!
+  corePct: Float!
+  country: Country
+}
+
+type CountryTaxFlow {
+  id: ID!
+  hourStart: Time!
+  totalTax: Float!
+  hijackedIn: Float!
+  coreEarned: Float!
+  nonCoreEarned: Float!
+  hijackedOut: Float!
+  hijackers: [TaxHijack!]!
+  sources: [TaxSource!]!
+  country: Country!
+}
+
+type CountryFlipEvent {
+  id: ID!
+  itemCode: String!
+  quantity: Int!
+  buyCost: Float!
+  sellRevenue: Float!
+  profit: Float!
+  at: Time!
+  country: Country!
+}
+
+type CountryFlipState {
+  totalTrades: Int!
+  profitable: Int!
+  totalProfit: Float!
+  updatedAt: Time!
+  country: Country!
+}
+
+type InventoryLot {
+  tradeId: ID!
+  quantity: Int!
+  unitPrice: Float!
+  boughtAt: Time!
+}
+
+type InventoryLotGroup {
+  itemCode: String!
+  lots: [InventoryLot!]!
+}
+
+type CountryInventory {
+  updatedAt: Time!
+  lots: [InventoryLotGroup!]!
+  country: Country!
+}
+
+# ---- entity / battle ----
+
+type EntityWealthReport {
+  id: ID!
+  dayStart: Time!
+  memberCount: Int!
+  totalDamage: Int64!
+  totalWealth: Float!
+  wagesPaid: Float!
+  wagesEarned: Float!
+  entity: Entity
+}
+
+type EquipmentUsage {
+  itemCode: String!
+  count: Float!
+  value: Float!
+}
+
+type BattleDamageReport {
+  id: ID!
+  intervalStart: Time!
+  side: String!
+  damage: Int64!
+  damagePct: Float!
+  equipment: [EquipmentUsage!]!
+  battle: Battle!
+  entity: Entity
+}
+
+# ---- market / items ----
+
+type ItemCandle {
+  id: ID!
+  itemCode: String!
+  bucketStart: Time!
+  open: Float!
+  high: Float!
+  low: Float!
+  close: Float!
+  avg: Float!
+  volume: Int!
+  money: Float!
+  count: Int!
+}
+
+type WageCandle {
+  id: ID!
+  bucketStart: Time!
+  open: Float!
+  high: Float!
+  low: Float!
+  close: Float!
+  avg: Float!
+  volume: Int!
+  money: Float!
+  count: Int!
+}
+
+type OrderbookLevel {
+  price: Float!
+  quantity: Int!
+}
+
+type EffectivePrice {
+  size: Int!
+  avgPrice: Float!
+}
+
+type ItemMarketReport {
+  itemCode: String!
+  volume24h: Int!
+  avgWeighted24h: Float!
+  pctChange24h: Float!
+  low24h: Float!
+  high24h: Float!
+  spread: Float!
+  bids: [OrderbookLevel!]!
+  asks: [OrderbookLevel!]!
+  effectiveBuy: [EffectivePrice!]!
+  effectiveSell: [EffectivePrice!]!
+  updatedAt: Time!
+}
+
+type EquipmentWindowPrice {
+  weightedAvg: Float!
+  volume: Int!
+  count: Int!
+  updatedAt: Time!
+}
+
+type EquipmentSkillPrice {
+  skillKey: String!
+  skills: [FloatEntry!]!
+  min: Float!
+  max: Float!
+  avg: Float!
+  volume: Int!
+  updatedAt: Time!
+}
+
+type EquipmentPricing {
+  itemCode: String!
+  windowDays: Int!
+  window: EquipmentWindowPrice
+  skills: [EquipmentSkillPrice!]!
+}
+
+type MarketState {
+  at: Time!
+  avgWage24h: Float!
+  wageVolume24h: Int!
+  marketVolume24h: Float!
+  wageMin: Float!
+  wageMax: Float!
+  wageAvgWeighted: Float!
+}
+
+type WagePaidUser {
+  totalPaid: Float!
+  user: User!
+}
+
+type WageMarketState {
+  at: Time!
+  avgWeighted14d: Float!
+  min14d: Float!
+  max14d: Float!
+  totalPaid14d: Float!
+  top10Least24h: [WagePaidUser!]!
+  top10Most24h: [WagePaidUser!]!
+}
+
+type InflationPoint {
+  id: ID!
+  dayStart: Time!
+  indexValue: Float!
+  pctChange24h: Float!
+  perItem: [FloatEntry!]!
+}
+
+type DismantleReport {
+  id: ID!
+  hourStart: Time!
+  count: Int!
+  stateBuckets: [IntEntry!]!
+}
+
+type CaseItemStat {
+  itemCode: String!
+  avgWeighted14d: Float!
+  totalDrops: Int!
+  perSkillRoll: [IntEntry!]!
+}
+
+type CasesReport {
+  case: String!
+  totalOpened: Int!
+  uniqueItemCodes: [String!]!
+  expectedValue14d: Float!
+  perItem: [CaseItemStat!]!
+  updatedAt: Time!
+}

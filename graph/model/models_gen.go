@@ -2,25 +2,124 @@
 
 package model
 
-type Mutation struct {
-}
-
-type NewTodo struct {
-	Text   string `json:"text"`
-	UserID string `json:"userId"`
-}
+import (
+	"bytes"
+	"fmt"
+	"io"
+	"strconv"
+)
 
 type Query struct {
 }
 
-type Todo struct {
-	ID   string `json:"id"`
-	Text string `json:"text"`
-	Done bool   `json:"done"`
-	User *User  `json:"user"`
+type BattleFilter string
+
+const (
+	BattleFilterAll       BattleFilter = "ALL"
+	BattleFilterActive    BattleFilter = "ACTIVE"
+	BattleFilterFinalized BattleFilter = "FINALIZED"
+)
+
+var AllBattleFilter = []BattleFilter{
+	BattleFilterAll,
+	BattleFilterActive,
+	BattleFilterFinalized,
 }
 
-type User struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+func (e BattleFilter) IsValid() bool {
+	switch e {
+	case BattleFilterAll, BattleFilterActive, BattleFilterFinalized:
+		return true
+	}
+	return false
+}
+
+func (e BattleFilter) String() string {
+	return string(e)
+}
+
+func (e *BattleFilter) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = BattleFilter(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid BattleFilter", str)
+	}
+	return nil
+}
+
+func (e BattleFilter) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *BattleFilter) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e BattleFilter) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+type TradeSide string
+
+const (
+	TradeSideBuy  TradeSide = "BUY"
+	TradeSideSell TradeSide = "SELL"
+)
+
+var AllTradeSide = []TradeSide{
+	TradeSideBuy,
+	TradeSideSell,
+}
+
+func (e TradeSide) IsValid() bool {
+	switch e {
+	case TradeSideBuy, TradeSideSell:
+		return true
+	}
+	return false
+}
+
+func (e TradeSide) String() string {
+	return string(e)
+}
+
+func (e *TradeSide) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = TradeSide(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid TradeSide", str)
+	}
+	return nil
+}
+
+func (e TradeSide) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *TradeSide) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e TradeSide) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
 }

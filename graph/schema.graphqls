@@ -1,28 +1,104 @@
-# GraphQL schema example
+# warerastats GraphQL: root schema (scalars, enums, unions, Query).
 #
-# https://gqlgen.com/getting-started/
+# Pagination: homogeneous lists take (first, after) and return a plain array;
+# page by passing the last element's `id` back as `after` (the _id is the
+# time-ordered cursor). The Activity feed uses a small Connection wrapper since
+# it is a union. Time-windowed derived data takes (from, to).
 
-type Todo {
-  id: ID!
-  text: String!
-  done: Boolean!
-  user: User!
+scalar Time
+scalar Int64
+
+enum BattleFilter {
+  ALL
+  ACTIVE
+  FINALIZED
 }
 
-type User {
-  id: ID!
-  name: String!
+enum TradeSide {
+  BUY
+  SELL
 }
+
+# A search hit across the named entity families.
+union SearchResult = User | Party | Country | Mu
+
+# A polymorphic entity reference used by wealth and battle-damage reports.
+union Entity = User | Country | Party | Mu
 
 type Query {
-  todos: [Todo!]!
+  # --- get by id ---
+  user(id: ID!): User
+  country(id: ID!): Country
+  party(id: ID!): Party
+  mu(id: ID!): Mu
+  region(id: ID!): Region
+  battle(id: ID!): Battle
+  item(id: ID!): Item
+  company(id: ID!): Company
+  tradeOffer(id: ID!): TradeOffer
+
+  # --- search ---
+  search(term: String!, limit: Int = 10): [SearchResult!]!
+
+  # --- root lists ---
+  battles(first: Int = 20, after: ID, filter: BattleFilter = ALL): [Battle!]!
+  countries: [Country!]!
+  regions: [Region!]!
+  parties(first: Int = 20, after: ID, activeOnly: Boolean = true): [Party!]!
+  mus(first: Int = 20, after: ID, activeOnly: Boolean = true): [Mu!]!
+  orderBook(itemCode: String!): OrderBook!
+
+  # --- time-series / derived roots ---
+  itemCandles(itemCode: String!, from: Time!, to: Time!): [ItemCandle!]!
+  wageCandles(from: Time!, to: Time!): [WageCandle!]!
+  marketStates(from: Time!, to: Time!): [MarketState!]!
+  latestMarketState: MarketState
+  wageMarketStates(from: Time!, to: Time!): [WageMarketState!]!
+  latestWageMarketState: WageMarketState
+  inflation(from: Time!, to: Time!): [InflationPoint!]!
+  dismantleReports(from: Time!, to: Time!): [DismantleReport!]!
+  itemMarketReport(itemCode: String!): ItemMarketReport
+  casesReports: [CasesReport!]!
+  equipmentPricing(itemCode: String!, windowDays: Int!): EquipmentPricing
+
+  # --- leaderboards ---
+  topDamage(from: Time!, to: Time!, limit: Int = 10): [DamageRanking!]!
+  topWageEarners(from: Time!, to: Time!, limit: Int = 10): [WageRanking!]!
+  topWagePayers(from: Time!, to: Time!, limit: Int = 10): [WageRanking!]!
+  topFlippers(limit: Int = 10): [UserFlipState!]!
 }
 
-input NewTodo {
-  text: String!
-  userId: String!
+# --- shared leaf types ---
+
+type FloatEntry {
+  key: String!
+  value: Float!
 }
 
-type Mutation {
-  createTodo(input: NewTodo!): Todo!
+type IntEntry {
+  key: String!
+  value: Int!
+}
+
+type DamageRanking {
+  user: User!
+  totalDamage: Int64!
+  battleCount: Int!
+}
+
+type WageRanking {
+  user: User!
+  total: Float!
+  count: Int!
+}
+
+type OrderBookLevel {
+  price: Float!
+  remaining: Int!
+}
+
+type OrderBook {
+  itemCode: String!
+  bids: [OrderBookLevel!]!
+  asks: [OrderBookLevel!]!
 }
