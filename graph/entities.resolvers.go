@@ -94,6 +94,9 @@ func (r *battleResolver) OrderChanges(ctx context.Context, obj *model.Battle, fi
 }
 
 func (r *battleResolver) DamageReports(ctx context.Context, obj *model.Battle, from time.Time, to time.Time) ([]*model.BattleDamageReport, error) {
+	if err := enforceTimeWindow(ctx, from, to, reportTimeWindowDays); err != nil {
+		return nil, err
+	}
 	bid, err := oidOf(obj.ID)
 	if err != nil {
 		return nil, err
@@ -271,6 +274,9 @@ func (r *countryResolver) SpecialisationHistory(ctx context.Context, obj *model.
 }
 
 func (r *countryResolver) TaxFlows(ctx context.Context, obj *model.Country, from time.Time, to time.Time) ([]*model.CountryTaxFlow, error) {
+	if err := enforceTimeWindow(ctx, from, to, reportTimeWindowDays); err != nil {
+		return nil, err
+	}
 	cid, err := oidOf(obj.ID)
 	if err != nil {
 		return nil, err
@@ -283,6 +289,9 @@ func (r *countryResolver) TaxFlows(ctx context.Context, obj *model.Country, from
 }
 
 func (r *countryResolver) FlipEvents(ctx context.Context, obj *model.Country, from time.Time, to time.Time, first *int32, after *string) ([]*model.CountryFlipEvent, error) {
+	if err := enforceTimeWindow(ctx, from, to, rawTimeWindowDays); err != nil {
+		return nil, err
+	}
 	cid, err := oidOf(obj.ID)
 	if err != nil {
 		return nil, err
@@ -323,6 +332,9 @@ func (r *countryResolver) Inventory(ctx context.Context, obj *model.Country) (*m
 }
 
 func (r *countryResolver) WealthReports(ctx context.Context, obj *model.Country, from time.Time, to time.Time) ([]*model.EntityWealthReport, error) {
+	if err := enforceTimeWindow(ctx, from, to, reportTimeWindowDays); err != nil {
+		return nil, err
+	}
 	cid, err := oidOf(obj.ID)
 	if err != nil {
 		return nil, err
@@ -531,6 +543,9 @@ func (r *muResolver) MercReputationHistory(ctx context.Context, obj *model.Mu, f
 }
 
 func (r *muResolver) WealthReports(ctx context.Context, obj *model.Mu, from time.Time, to time.Time) ([]*model.EntityWealthReport, error) {
+	if err := enforceTimeWindow(ctx, from, to, reportTimeWindowDays); err != nil {
+		return nil, err
+	}
 	mid, err := oidOf(obj.ID)
 	if err != nil {
 		return nil, err
@@ -637,6 +652,9 @@ func (r *partyResolver) EthicsHistory(ctx context.Context, obj *model.Party, fir
 }
 
 func (r *partyResolver) WealthReports(ctx context.Context, obj *model.Party, from time.Time, to time.Time) ([]*model.EntityWealthReport, error) {
+	if err := enforceTimeWindow(ctx, from, to, reportTimeWindowDays); err != nil {
+		return nil, err
+	}
 	pid, err := oidOf(obj.ID)
 	if err != nil {
 		return nil, err
@@ -1101,6 +1119,9 @@ func (r *userResolver) WageHistory(ctx context.Context, obj *model.User, first *
 }
 
 func (r *userResolver) FinanceReports(ctx context.Context, obj *model.User, from time.Time, to time.Time) ([]*model.UserFinanceReport, error) {
+	if err := enforceTimeWindow(ctx, from, to, reportTimeWindowDays); err != nil {
+		return nil, err
+	}
 	uid, err := oidOf(obj.ID)
 	if err != nil {
 		return nil, err
@@ -1113,6 +1134,9 @@ func (r *userResolver) FinanceReports(ctx context.Context, obj *model.User, from
 }
 
 func (r *userResolver) FlipEvents(ctx context.Context, obj *model.User, from time.Time, to time.Time, first *int32, after *string) ([]*model.UserFlipEvent, error) {
+	if err := enforceTimeWindow(ctx, from, to, rawTimeWindowDays); err != nil {
+		return nil, err
+	}
 	uid, err := oidOf(obj.ID)
 	if err != nil {
 		return nil, err

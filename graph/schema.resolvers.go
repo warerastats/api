@@ -193,6 +193,9 @@ func (r *queryResolver) OrderBook(ctx context.Context, itemCode string) (*model.
 // ---------------- Query: time-series / derived ----------------
 
 func (r *queryResolver) ItemCandles(ctx context.Context, itemCode string, from time.Time, to time.Time) ([]*model.ItemCandle, error) {
+	if err := enforceTimeWindow(ctx, from, to, reportTimeWindowDays); err != nil {
+		return nil, err
+	}
 	rows, err := r.Colls.Processed.Candles.ItemCandle.GetRange(ctx, itemCode, from, to)
 	if err != nil {
 		return nil, err
@@ -201,6 +204,9 @@ func (r *queryResolver) ItemCandles(ctx context.Context, itemCode string, from t
 }
 
 func (r *queryResolver) WageCandles(ctx context.Context, from time.Time, to time.Time) ([]*model.WageCandle, error) {
+	if err := enforceTimeWindow(ctx, from, to, reportTimeWindowDays); err != nil {
+		return nil, err
+	}
 	rows, err := r.Colls.Processed.Candles.WageCandle.GetRange(ctx, from, to)
 	if err != nil {
 		return nil, err
@@ -209,6 +215,9 @@ func (r *queryResolver) WageCandles(ctx context.Context, from time.Time, to time
 }
 
 func (r *queryResolver) MarketStates(ctx context.Context, from time.Time, to time.Time) ([]*model.MarketState, error) {
+	if err := enforceTimeWindow(ctx, from, to, reportTimeWindowDays); err != nil {
+		return nil, err
+	}
 	rows, err := r.Colls.Processed.Reports.MarketState.GetRange(ctx, from, to)
 	if err != nil {
 		return nil, err
@@ -225,6 +234,9 @@ func (r *queryResolver) LatestMarketState(ctx context.Context) (*model.MarketSta
 }
 
 func (r *queryResolver) WageMarketStates(ctx context.Context, from time.Time, to time.Time) ([]*model.WageMarketState, error) {
+	if err := enforceTimeWindow(ctx, from, to, reportTimeWindowDays); err != nil {
+		return nil, err
+	}
 	rows, err := r.Colls.Processed.Reports.WageMarketState.GetRange(ctx, from, to)
 	if err != nil {
 		return nil, err
@@ -241,6 +253,9 @@ func (r *queryResolver) LatestWageMarketState(ctx context.Context) (*model.WageM
 }
 
 func (r *queryResolver) Inflation(ctx context.Context, from time.Time, to time.Time) ([]*model.InflationPoint, error) {
+	if err := enforceTimeWindow(ctx, from, to, reportTimeWindowDays); err != nil {
+		return nil, err
+	}
 	rows, err := r.Colls.Processed.Estimators.Inflation.GetRange(ctx, from, to)
 	if err != nil {
 		return nil, err
@@ -249,6 +264,9 @@ func (r *queryResolver) Inflation(ctx context.Context, from time.Time, to time.T
 }
 
 func (r *queryResolver) DismantleReports(ctx context.Context, from time.Time, to time.Time) ([]*model.DismantleReport, error) {
+	if err := enforceTimeWindow(ctx, from, to, reportTimeWindowDays); err != nil {
+		return nil, err
+	}
 	rows, err := r.Colls.Processed.Reports.DismantleReport.GetRange(ctx, from, to)
 	if err != nil {
 		return nil, err
@@ -301,6 +319,9 @@ func (r *queryResolver) EquipmentPricing(ctx context.Context, itemCode string, w
 // ---------------- Query: leaderboards ----------------
 
 func (r *queryResolver) TopDamage(ctx context.Context, from time.Time, to time.Time, limit *int32) ([]*model.DamageRanking, error) {
+	if err := enforceTimeWindow(ctx, from, to, reportTimeWindowDays); err != nil {
+		return nil, err
+	}
 	n := limitOf(limit, 10)
 	rows, err := r.Colls.Trackers.Damage.AggregateUserDamage(ctx, from, to)
 	if err != nil {
@@ -318,6 +339,9 @@ func (r *queryResolver) TopDamage(ctx context.Context, from time.Time, to time.T
 }
 
 func (r *queryResolver) TopWageEarners(ctx context.Context, from time.Time, to time.Time, limit *int32) ([]*model.WageRanking, error) {
+	if err := enforceTimeWindow(ctx, from, to, reportTimeWindowDays); err != nil {
+		return nil, err
+	}
 	rows, err := r.Colls.Transactions.WageTransaction.TopPaidEmployees(ctx, from, to, limitOf(limit, 10), false)
 	if err != nil {
 		return nil, err
@@ -330,6 +354,9 @@ func (r *queryResolver) TopWageEarners(ctx context.Context, from time.Time, to t
 }
 
 func (r *queryResolver) TopWagePayers(ctx context.Context, from time.Time, to time.Time, limit *int32) ([]*model.WageRanking, error) {
+	if err := enforceTimeWindow(ctx, from, to, reportTimeWindowDays); err != nil {
+		return nil, err
+	}
 	n := limitOf(limit, 10)
 	rows, err := r.Colls.Transactions.WageTransaction.PaidByEmployer(ctx, from, to)
 	if err != nil {
