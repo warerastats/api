@@ -196,3 +196,12 @@ models:
   DateTime:
     model:
       - github.com/99designs/gqlgen/graphql.Time
+  ItemStatus:
+    model:
+      - github.com/warerastats/models/models/enums.ItemStatus
+  Side:
+    model:
+      - github.com/warerastats/models/models/enums.Side
+  TradeSide:
+    model:
+      - github.com/warerastats/models/models/enums.TradeSide

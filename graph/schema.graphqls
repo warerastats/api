@@ -19,6 +19,19 @@ enum TradeSide {
   SELL
 }
 
+enum ItemStatus {
+  PERFECT
+  ONSALE
+  USED
+  BROKEN
+  DISMANTLED
+}
+
+enum Side {
+  ATTACKER
+  DEFENDER
+}
+
 # A search hit across the named entity families.
 union SearchResult = User | Party | Country | Mu
 

@@ -18,6 +18,7 @@ import (
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/warerastats/api/graph/model"
+	"github.com/warerastats/models/models/enums"
 )
 
 // region    ************************** generated!.gotpl **************************
@@ -107,7 +108,7 @@ type ComplexityRoot struct {
 		AttackerDamages func(childComplexity int) int
 		AttackerRegion  func(childComplexity int) int
 		DamageReports   func(childComplexity int, from time.Time, to time.Time) int
-		Damages         func(childComplexity int, first *int32, after *string, side *string, userID *string) int
+		Damages         func(childComplexity int, first *int32, after *string, side *enums.Side, userID *string) int
 		DefenderCountry func(childComplexity int) int
 		DefenderDamages func(childComplexity int) int
 		DefenderRegion  func(childComplexity int) int
@@ -763,7 +764,7 @@ type ComplexityRoot struct {
 		FlipState           func(childComplexity int) int
 		ID                  func(childComplexity int) int
 		Inventory           func(childComplexity int) int
-		Items               func(childComplexity int, first *int32, after *string) int
+		Items               func(childComplexity int, first *int32, after *string, status *enums.ItemStatus) int
 		LastDate            func(childComplexity int) int
 		LastSeen            func(childComplexity int) int
 		LatestSkills        func(childComplexity int) int
@@ -778,7 +779,7 @@ type ComplexityRoot struct {
 		SkillChangeHistory  func(childComplexity int, first *int32, after *string) int
 		SkillSnapshots      func(childComplexity int, first *int32, after *string) int
 		Skills              func(childComplexity int) int
-		TradeOffers         func(childComplexity int, first *int32, after *string, itemCode *string, side *model.TradeSide) int
+		TradeOffers         func(childComplexity int, first *int32, after *string, itemCode *string, side *enums.TradeSide) int
 		Transactions        func(childComplexity int, first *int32, after *string) int
 		Username            func(childComplexity int) int
 		WageHistory         func(childComplexity int, first *int32, after *string) int
@@ -928,7 +929,7 @@ type BattleResolver interface {
 	DefenderCountry(ctx context.Context, obj *model.Battle) (*model.Country, error)
 	AttackerRegion(ctx context.Context, obj *model.Battle) (*model.Region, error)
 	DefenderRegion(ctx context.Context, obj *model.Battle) (*model.Region, error)
-	Damages(ctx context.Context, obj *model.Battle, first *int32, after *string, side *string, userID *string) ([]*model.Damage, error)
+	Damages(ctx context.Context, obj *model.Battle, first *int32, after *string, side *enums.Side, userID *string) ([]*model.Damage, error)
 	TopDamage(ctx context.Context, obj *model.Battle, limit *int32) ([]*model.DamageRanking, error)
 	Mus(ctx context.Context, obj *model.Battle) ([]*model.Mu, error)
 	OrderChanges(ctx context.Context, obj *model.Battle, first *int32, after *string) ([]*model.BattleOrderChange, error)
@@ -1189,10 +1190,10 @@ type UserResolver interface {
 	Transactions(ctx context.Context, obj *model.User, first *int32, after *string) (*model.ActivityConnection, error)
 	Damages(ctx context.Context, obj *model.User, battleID string) ([]*model.Damage, error)
 	AllDamages(ctx context.Context, obj *model.User, first *int32, after *string) ([]*model.Damage, error)
-	Items(ctx context.Context, obj *model.User, first *int32, after *string) ([]*model.Item, error)
+	Items(ctx context.Context, obj *model.User, first *int32, after *string, status *enums.ItemStatus) ([]*model.Item, error)
 	OwnedCompanies(ctx context.Context, obj *model.User) ([]*model.Company, error)
 	Employment(ctx context.Context, obj *model.User) (*model.Employee, error)
-	TradeOffers(ctx context.Context, obj *model.User, first *int32, after *string, itemCode *string, side *model.TradeSide) ([]*model.TradeOffer, error)
+	TradeOffers(ctx context.Context, obj *model.User, first *int32, after *string, itemCode *string, side *enums.TradeSide) ([]*model.TradeOffer, error)
 	LatestSkills(ctx context.Context, obj *model.User) (*model.Skill, error)
 	SkillSnapshots(ctx context.Context, obj *model.User, first *int32, after *string) ([]*model.Skill, error)
 	NameHistory(ctx context.Context, obj *model.User, first *int32, after *string) ([]*model.UserNameChange, error)
@@ -1331,7 +1332,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.ComplexityRoot.Battle.Damages(childComplexity, args["first"].(*int32), args["after"].(*string), args["side"].(*string), args["userId"].(*string)), true
+		return e.ComplexityRoot.Battle.Damages(childComplexity, args["first"].(*int32), args["after"].(*string), args["side"].(*enums.Side), args["userId"].(*string)), true
 	case "Battle.defenderCountry":
 		if e.ComplexityRoot.Battle.DefenderCountry == nil {
 			break
@@ -4427,7 +4428,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.ComplexityRoot.User.Items(childComplexity, args["first"].(*int32), args["after"].(*string)), true
+		return e.ComplexityRoot.User.Items(childComplexity, args["first"].(*int32), args["after"].(*string), args["status"].(*enums.ItemStatus)), true
 	case "User.lastDate":
 		if e.ComplexityRoot.User.LastDate == nil {
 			break
@@ -4547,7 +4548,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.ComplexityRoot.User.TradeOffers(childComplexity, args["first"].(*int32), args["after"].(*string), args["itemCode"].(*string), args["side"].(*model.TradeSide)), true
+		return e.ComplexityRoot.User.TradeOffers(childComplexity, args["first"].(*int32), args["after"].(*string), args["itemCode"].(*string), args["side"].(*enums.TradeSide)), true
 	case "User.transactions":
 		if e.ComplexityRoot.User.Transactions == nil {
 			break
@@ -6867,8 +6868,8 @@ func (ec *executionContext) field_Battle_damages_args(ctx context.Context, rawAr
 	}
 	args["after"] = arg1
 	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "side",
-		func(ctx context.Context, v any) (*string, error) {
-			return ec.unmarshalOString2ᚖstring(ctx, v)
+		func(ctx context.Context, v any) (*enums.Side, error) {
+			return ec.unmarshalOSide2ᚖgithubᚗcomᚋwarerastatsᚋmodelsᚋmodelsᚋenumsᚐSide(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -8282,6 +8283,14 @@ func (ec *executionContext) field_User_items_args(ctx context.Context, rawArgs m
 		return nil, err
 	}
 	args["after"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "status",
+		func(ctx context.Context, v any) (*enums.ItemStatus, error) {
+			return ec.unmarshalOItemStatus2ᚖgithubᚗcomᚋwarerastatsᚋmodelsᚋmodelsᚋenumsᚐItemStatus(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["status"] = arg2
 	return args, nil
 }
 
@@ -8423,8 +8432,8 @@ func (ec *executionContext) field_User_tradeOffers_args(ctx context.Context, raw
 	}
 	args["itemCode"] = arg2
 	arg3, err := graphql.ProcessArgField(ctx, rawArgs, "side",
-		func(ctx context.Context, v any) (*model.TradeSide, error) {
-			return ec.unmarshalOTradeSide2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐTradeSide(ctx, v)
+		func(ctx context.Context, v any) (*enums.TradeSide, error) {
+			return ec.unmarshalOTradeSide2ᚖgithubᚗcomᚋwarerastatsᚋmodelsᚋmodelsᚋenumsᚐTradeSide(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -8691,15 +8700,15 @@ func (ec *executionContext) _Battle_winnerSide(ctx context.Context, field graphq
 			return obj.WinnerSide, nil
 		},
 		nil,
-		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
-			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		func(ctx context.Context, selections ast.SelectionSet, v *enums.Side) graphql.Marshaler {
+			return ec.marshalOSide2ᚖgithubᚗcomᚋwarerastatsᚋmodelsᚋmodelsᚋenumsᚐSide(ctx, selections, v)
 		},
 		true,
 		false,
 	)
 }
 func (ec *executionContext) fieldContext_Battle_winnerSide(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("Battle", field, false, false, errors.New("field of type String does not have child fields"))
+	return graphql.NewScalarFieldContext("Battle", field, false, false, errors.New("field of type Side does not have child fields"))
 }
 
 func (ec *executionContext) _Battle_isActive(ctx context.Context, field graphql.CollectedField, obj *model.Battle) (ret graphql.Marshaler) {
@@ -8909,7 +8918,7 @@ func (ec *executionContext) _Battle_damages(ctx context.Context, field graphql.C
 		},
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.Resolvers.Battle().Damages(ctx, obj, fc.Args["first"].(*int32), fc.Args["after"].(*string), fc.Args["side"].(*string), fc.Args["userId"].(*string))
+			return ec.Resolvers.Battle().Damages(ctx, obj, fc.Args["first"].(*int32), fc.Args["after"].(*string), fc.Args["side"].(*enums.Side), fc.Args["userId"].(*string))
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []*model.Damage) graphql.Marshaler {
@@ -11968,15 +11977,15 @@ func (ec *executionContext) _Damage_side(ctx context.Context, field graphql.Coll
 			return obj.Side, nil
 		},
 		nil,
-		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
-			return ec.marshalNString2string(ctx, selections, v)
+		func(ctx context.Context, selections ast.SelectionSet, v enums.Side) graphql.Marshaler {
+			return ec.marshalNSide2githubᚗcomᚋwarerastatsᚋmodelsᚋmodelsᚋenumsᚐSide(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_Damage_side(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("Damage", field, false, false, errors.New("field of type String does not have child fields"))
+	return graphql.NewScalarFieldContext("Damage", field, false, false, errors.New("field of type Side does not have child fields"))
 }
 
 func (ec *executionContext) _Damage_militaryRank(ctx context.Context, field graphql.CollectedField, obj *model.Damage) (ret graphql.Marshaler) {
@@ -14486,15 +14495,15 @@ func (ec *executionContext) _Item_status(ctx context.Context, field graphql.Coll
 			return obj.Status, nil
 		},
 		nil,
-		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
-			return ec.marshalNString2string(ctx, selections, v)
+		func(ctx context.Context, selections ast.SelectionSet, v enums.ItemStatus) graphql.Marshaler {
+			return ec.marshalNItemStatus2githubᚗcomᚋwarerastatsᚋmodelsᚋmodelsᚋenumsᚐItemStatus(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_Item_status(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("Item", field, false, false, errors.New("field of type String does not have child fields"))
+	return graphql.NewScalarFieldContext("Item", field, false, false, errors.New("field of type ItemStatus does not have child fields"))
 }
 
 func (ec *executionContext) _Item_skills(ctx context.Context, field graphql.CollectedField, obj *model.Item) (ret graphql.Marshaler) {
@@ -20657,15 +20666,15 @@ func (ec *executionContext) _TradeOffer_side(ctx context.Context, field graphql.
 			return obj.Side, nil
 		},
 		nil,
-		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
-			return ec.marshalNString2string(ctx, selections, v)
+		func(ctx context.Context, selections ast.SelectionSet, v enums.TradeSide) graphql.Marshaler {
+			return ec.marshalNTradeSide2githubᚗcomᚋwarerastatsᚋmodelsᚋmodelsᚋenumsᚐTradeSide(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_TradeOffer_side(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("TradeOffer", field, false, false, errors.New("field of type String does not have child fields"))
+	return graphql.NewScalarFieldContext("TradeOffer", field, false, false, errors.New("field of type TradeSide does not have child fields"))
 }
 
 func (ec *executionContext) _TradeOffer_quantity(ctx context.Context, field graphql.CollectedField, obj *model.TradeOffer) (ret graphql.Marshaler) {
@@ -21681,7 +21690,7 @@ func (ec *executionContext) _User_items(ctx context.Context, field graphql.Colle
 		},
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.Resolvers.User().Items(ctx, obj, fc.Args["first"].(*int32), fc.Args["after"].(*string))
+			return ec.Resolvers.User().Items(ctx, obj, fc.Args["first"].(*int32), fc.Args["after"].(*string), fc.Args["status"].(*enums.ItemStatus))
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []*model.Item) graphql.Marshaler {
@@ -21789,7 +21798,7 @@ func (ec *executionContext) _User_tradeOffers(ctx context.Context, field graphql
 		},
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.Resolvers.User().TradeOffers(ctx, obj, fc.Args["first"].(*int32), fc.Args["after"].(*string), fc.Args["itemCode"].(*string), fc.Args["side"].(*model.TradeSide))
+			return ec.Resolvers.User().TradeOffers(ctx, obj, fc.Args["first"].(*int32), fc.Args["after"].(*string), fc.Args["itemCode"].(*string), fc.Args["side"].(*enums.TradeSide))
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []*model.TradeOffer) graphql.Marshaler {
@@ -38921,6 +38930,23 @@ func (ec *executionContext) marshalNItemCandle2ᚖgithubᚗcomᚋwarerastatsᚋa
 	return ec._ItemCandle(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNItemStatus2githubᚗcomᚋwarerastatsᚋmodelsᚋmodelsᚋenumsᚐItemStatus(ctx context.Context, v any) (enums.ItemStatus, error) {
+	tmp, err := graphql.UnmarshalString(v)
+	res := enums.ItemStatus(tmp)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNItemStatus2githubᚗcomᚋwarerastatsᚋmodelsᚋmodelsᚋenumsᚐItemStatus(ctx context.Context, sel ast.SelectionSet, v enums.ItemStatus) graphql.Marshaler {
+	_ = sel
+	res := graphql.MarshalString(string(v))
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
 func (ec *executionContext) marshalNMarketState2ᚕᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐMarketStateᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.MarketState) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
@@ -39415,6 +39441,23 @@ func (ec *executionContext) marshalNSearchResult2ᚕgithubᚗcomᚋwarerastats�
 	return ret
 }
 
+func (ec *executionContext) unmarshalNSide2githubᚗcomᚋwarerastatsᚋmodelsᚋmodelsᚋenumsᚐSide(ctx context.Context, v any) (enums.Side, error) {
+	tmp, err := graphql.UnmarshalString(v)
+	res := enums.Side(tmp)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNSide2githubᚗcomᚋwarerastatsᚋmodelsᚋmodelsᚋenumsᚐSide(ctx context.Context, sel ast.SelectionSet, v enums.Side) graphql.Marshaler {
+	_ = sel
+	res := graphql.MarshalString(string(v))
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
 func (ec *executionContext) marshalNSkill2ᚕᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐSkillᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Skill) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
@@ -39583,6 +39626,23 @@ func (ec *executionContext) marshalNTradeOffer2ᚖgithubᚗcomᚋwarerastatsᚋa
 		return graphql.Null
 	}
 	return ec._TradeOffer(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNTradeSide2githubᚗcomᚋwarerastatsᚋmodelsᚋmodelsᚋenumsᚐTradeSide(ctx context.Context, v any) (enums.TradeSide, error) {
+	tmp, err := graphql.UnmarshalString(v)
+	res := enums.TradeSide(tmp)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNTradeSide2githubᚗcomᚋwarerastatsᚋmodelsᚋmodelsᚋenumsᚐTradeSide(ctx context.Context, sel ast.SelectionSet, v enums.TradeSide) graphql.Marshaler {
+	_ = sel
+	res := graphql.MarshalString(string(v))
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
 }
 
 func (ec *executionContext) marshalNUser2githubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v model.User) graphql.Marshaler {
@@ -40288,6 +40348,25 @@ func (ec *executionContext) marshalOItemMarketReport2ᚖgithubᚗcomᚋwarerasta
 	return ec._ItemMarketReport(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalOItemStatus2ᚖgithubᚗcomᚋwarerastatsᚋmodelsᚋmodelsᚋenumsᚐItemStatus(ctx context.Context, v any) (*enums.ItemStatus, error) {
+	if v == nil {
+		return nil, nil
+	}
+	tmp, err := graphql.UnmarshalString(v)
+	res := enums.ItemStatus(tmp)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOItemStatus2ᚖgithubᚗcomᚋwarerastatsᚋmodelsᚋmodelsᚋenumsᚐItemStatus(ctx context.Context, sel ast.SelectionSet, v *enums.ItemStatus) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	_ = sel
+	_ = ctx
+	res := graphql.MarshalString(string(*v))
+	return res
+}
+
 func (ec *executionContext) marshalOMarketState2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐMarketState(ctx context.Context, sel ast.SelectionSet, v *model.MarketState) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -40323,6 +40402,25 @@ func (ec *executionContext) marshalORegion2ᚖgithubᚗcomᚋwarerastatsᚋapi�
 	return ec._Region(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalOSide2ᚖgithubᚗcomᚋwarerastatsᚋmodelsᚋmodelsᚋenumsᚐSide(ctx context.Context, v any) (*enums.Side, error) {
+	if v == nil {
+		return nil, nil
+	}
+	tmp, err := graphql.UnmarshalString(v)
+	res := enums.Side(tmp)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOSide2ᚖgithubᚗcomᚋwarerastatsᚋmodelsᚋmodelsᚋenumsᚐSide(ctx context.Context, sel ast.SelectionSet, v *enums.Side) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	_ = sel
+	_ = ctx
+	res := graphql.MarshalString(string(*v))
+	return res
+}
+
 func (ec *executionContext) marshalOSkill2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐSkill(ctx context.Context, sel ast.SelectionSet, v *model.Skill) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -40355,20 +40453,23 @@ func (ec *executionContext) marshalOTradeOffer2ᚖgithubᚗcomᚋwarerastatsᚋa
 	return ec._TradeOffer(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOTradeSide2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐTradeSide(ctx context.Context, v any) (*model.TradeSide, error) {
+func (ec *executionContext) unmarshalOTradeSide2ᚖgithubᚗcomᚋwarerastatsᚋmodelsᚋmodelsᚋenumsᚐTradeSide(ctx context.Context, v any) (*enums.TradeSide, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var res = new(model.TradeSide)
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
+	tmp, err := graphql.UnmarshalString(v)
+	res := enums.TradeSide(tmp)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOTradeSide2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐTradeSide(ctx context.Context, sel ast.SelectionSet, v *model.TradeSide) graphql.Marshaler {
+func (ec *executionContext) marshalOTradeSide2ᚖgithubᚗcomᚋwarerastatsᚋmodelsᚋmodelsᚋenumsᚐTradeSide(ctx context.Context, sel ast.SelectionSet, v *enums.TradeSide) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
-	return v
+	_ = sel
+	_ = ctx
+	res := graphql.MarshalString(string(*v))
+	return res
 }
 
 func (ec *executionContext) marshalOUser2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *model.User) graphql.Marshaler {

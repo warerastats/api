@@ -21,7 +21,7 @@ type User {
   transactions(first: Int = 20, after: ID): ActivityConnection!
   damages(battleId: ID!): [Damage!]!
   allDamages(first: Int = 20, after: ID): [Damage!]!
-  items(first: Int = 20, after: ID): [Item!]!
+  items(first: Int = 20, after: ID, status: ItemStatus): [Item!]!
   ownedCompanies: [Company!]!
   employment: Employee
   tradeOffers(first: Int = 20, after: ID, itemCode: String, side: TradeSide): [TradeOffer!]!
@@ -180,7 +180,7 @@ type Battle {
   id: ID!
   attackerDamages: Int!
   defenderDamages: Int!
-  winnerSide: String
+  winnerSide: Side
   isActive: Boolean!
   endedAt: DateTime
   lastUpdated: DateTime!
@@ -192,7 +192,7 @@ type Battle {
   defenderRegion: Region
 
   # reverse
-  damages(first: Int = 50, after: ID, side: String, userId: ID): [Damage!]!
+  damages(first: Int = 50, after: ID, side: Side, userId: ID): [Damage!]!
   topDamage(limit: Int = 10): [DamageRanking!]!
   mus: [Mu!]!
   orderChanges(first: Int = 20, after: ID): [BattleOrderChange!]!
@@ -205,7 +205,7 @@ type Item {
   id: ID!
   itemCode: String!
   state: Int!
-  status: String!
+  status: ItemStatus!
   skills: [FloatEntry!]!
 
   # forward
@@ -217,7 +217,7 @@ type Item {
 
 type Damage {
   id: ID!
-  side: String!
+  side: Side!
   militaryRank: Int!
   damages: Int!
   at: DateTime!
@@ -300,7 +300,7 @@ type Employee {
 type TradeOffer {
   id: ID!
   itemCode: String!
-  side: String!
+  side: TradeSide!
   quantity: Int!
   fulfilled: Int!
   cancelled: Boolean!

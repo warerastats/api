@@ -1,6 +1,10 @@
 package model
 
-import "time"
+import (
+	"time"
+
+	"github.com/warerastats/models/models/enums"
+)
 
 // Union interfaces. Defined here so hand-written models (e.g. ActivityConnection)
 // can reference them; gqlgen autobinds the GraphQL unions to these.
@@ -147,13 +151,13 @@ func (Mu) IsSearchResult() {}
 func (Mu) IsEntity()       {}
 
 type Battle struct {
-	ID              string     `json:"id"`
-	AttackerDamages int32      `json:"attackerDamages"`
-	DefenderDamages int32      `json:"defenderDamages"`
-	WinnerSide      *string    `json:"winnerSide"`
-	IsActive        bool       `json:"isActive"`
-	EndedAt         *time.Time `json:"endedAt"`
-	LastUpdated     time.Time  `json:"lastUpdated"`
+	ID              string      `json:"id"`
+	AttackerDamages int32       `json:"attackerDamages"`
+	DefenderDamages int32       `json:"defenderDamages"`
+	WinnerSide      *enums.Side `json:"winnerSide"`
+	IsActive        bool        `json:"isActive"`
+	EndedAt         *time.Time  `json:"endedAt"`
+	LastUpdated     time.Time   `json:"lastUpdated"`
 
 	AttackerCountryID string
 	DefenderCountryID string
@@ -162,22 +166,22 @@ type Battle struct {
 }
 
 type Item struct {
-	ID       string `json:"id"`
-	ItemCode string `json:"itemCode"`
-	State    int32  `json:"state"`
-	Status   string `json:"status"`
+	ID       string           `json:"id"`
+	ItemCode string           `json:"itemCode"`
+	State    int32            `json:"state"`
+	Status   enums.ItemStatus `json:"status"`
 
 	OwnerUserID string
 	SkillsMap   map[string]float64
 }
 
 type Damage struct {
-	ID           string    `json:"id"`
-	Side         string    `json:"side"`
-	MilitaryRank int32     `json:"militaryRank"`
-	Damages      int32     `json:"damages"`
-	At           time.Time `json:"at"`
-	Ammo         *string   `json:"ammo"`
+	ID           string     `json:"id"`
+	Side         enums.Side `json:"side"`
+	MilitaryRank int32      `json:"militaryRank"`
+	Damages      int32      `json:"damages"`
+	At           time.Time  `json:"at"`
+	Ammo         *string    `json:"ammo"`
 
 	BattleID  string
 	UserID    string
@@ -223,14 +227,14 @@ type Employee struct {
 }
 
 type TradeOffer struct {
-	ID        string    `json:"id"`
-	ItemCode  string    `json:"itemCode"`
-	Side      string    `json:"side"`
-	Quantity  int32     `json:"quantity"`
-	Fulfilled int32     `json:"fulfilled"`
-	Cancelled bool      `json:"cancelled"`
-	Price     float64   `json:"price"`
-	Since     time.Time `json:"since"`
+	ID        string          `json:"id"`
+	ItemCode  string          `json:"itemCode"`
+	Side      enums.TradeSide `json:"side"`
+	Quantity  int32           `json:"quantity"`
+	Fulfilled int32           `json:"fulfilled"`
+	Cancelled bool            `json:"cancelled"`
+	Price     float64         `json:"price"`
+	Since     time.Time       `json:"since"`
 
 	UserID    string
 	CountryID *string

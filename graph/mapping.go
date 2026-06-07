@@ -186,7 +186,7 @@ func toBattle(b *trackers.Battle) *model.Battle {
 		ID:                b.ID.Hex(),
 		AttackerDamages:   int32(b.AttackerDamages),
 		DefenderDamages:   int32(b.DefenderDamages),
-		WinnerSide:        b.WinnerSide,
+		WinnerSide:        (*enums.Side)(b.WinnerSide),
 		IsActive:          b.IsActive,
 		EndedAt:           b.EndedAt,
 		LastUpdated:       b.LastUpdated,
@@ -205,7 +205,7 @@ func toItem(i *trackers.Item) *model.Item {
 		ID:          i.ID.Hex(),
 		ItemCode:    i.ItemCode,
 		State:       int32(i.State),
-		Status:      string(i.Status),
+		Status:      i.Status,
 		OwnerUserID: i.OwnerUserID.Hex(),
 		SkillsMap:   i.Skills,
 	}
@@ -214,7 +214,7 @@ func toItem(i *trackers.Item) *model.Item {
 func toDamage(d trackers.Damage) *model.Damage {
 	return &model.Damage{
 		ID:           d.ID.Hex(),
-		Side:         string(d.Side),
+		Side:         d.Side,
 		MilitaryRank: int32(d.MilitaryRank),
 		Damages:      int32(d.Damages),
 		At:           d.At,
@@ -301,7 +301,7 @@ func toTradeOffer(o *trackers.TradeOffer) *model.TradeOffer {
 	return &model.TradeOffer{
 		ID:        o.ID.Hex(),
 		ItemCode:  o.ItemCode,
-		Side:      string(o.Side),
+		Side:      o.Side,
 		Quantity:  int32(o.Quantity),
 		Fulfilled: int32(o.Fulfilled),
 		Cancelled: o.Cancelled,
@@ -728,20 +728,4 @@ func battleMatchesFilter(b *model.Battle, f trackers.BattleFilter) bool {
 	default:
 		return true
 	}
-}
-
-func sidePtr(side *string) *enums.Side {
-	if side == nil || *side == "" {
-		return nil
-	}
-	s := enums.Side(*side)
-	return &s
-}
-
-func tradeSidePtr(side *model.TradeSide) *enums.TradeSide {
-	if side == nil {
-		return nil
-	}
-	s := enums.TradeSide(string(*side))
-	return &s
 }

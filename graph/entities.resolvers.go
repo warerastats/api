@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/warerastats/api/graph/model"
+	"github.com/warerastats/models/models/enums"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
@@ -37,7 +38,7 @@ func (r *battleResolver) DefenderRegion(ctx context.Context, obj *model.Battle) 
 }
 
 // Damages is the resolver for the damages field.
-func (r *battleResolver) Damages(ctx context.Context, obj *model.Battle, first *int32, after *string, side *string, userID *string) ([]*model.Damage, error) {
+func (r *battleResolver) Damages(ctx context.Context, obj *model.Battle, first *int32, after *string, side *enums.Side, userID *string) ([]*model.Damage, error) {
 	bid, err := oidOf(obj.ID)
 	if err != nil {
 		return nil, err
@@ -50,7 +51,7 @@ func (r *battleResolver) Damages(ctx context.Context, obj *model.Battle, first *
 	if err != nil {
 		return nil, err
 	}
-	rows, err := r.Colls.Trackers.Damage.GetByBattlePaged(ctx, bid, before, limitOf(first, 50), sidePtr(side), uid)
+	rows, err := r.Colls.Trackers.Damage.GetByBattlePaged(ctx, bid, before, limitOf(first, 50), side, uid)
 	if err != nil {
 		return nil, err
 	}
@@ -1107,7 +1108,7 @@ func (r *userResolver) AllDamages(ctx context.Context, obj *model.User, first *i
 }
 
 // Items is the resolver for the items field.
-func (r *userResolver) Items(ctx context.Context, obj *model.User, first *int32, after *string) ([]*model.Item, error) {
+func (r *userResolver) Items(ctx context.Context, obj *model.User, first *int32, after *string, status *enums.ItemStatus) ([]*model.Item, error) {
 	uid, err := oidOf(obj.ID)
 	if err != nil {
 		return nil, err
@@ -1116,7 +1117,7 @@ func (r *userResolver) Items(ctx context.Context, obj *model.User, first *int32,
 	if err != nil {
 		return nil, err
 	}
-	rows, err := r.Colls.Trackers.Item.GetByOwnerPaged(ctx, uid, before, limitOf(first, 20))
+	rows, err := r.Colls.Trackers.Item.GetByOwnerPaged(ctx, uid, before, limitOf(first, 20), status)
 	if err != nil {
 		return nil, err
 	}
@@ -1150,7 +1151,7 @@ func (r *userResolver) Employment(ctx context.Context, obj *model.User) (*model.
 }
 
 // TradeOffers is the resolver for the tradeOffers field.
-func (r *userResolver) TradeOffers(ctx context.Context, obj *model.User, first *int32, after *string, itemCode *string, side *model.TradeSide) ([]*model.TradeOffer, error) {
+func (r *userResolver) TradeOffers(ctx context.Context, obj *model.User, first *int32, after *string, itemCode *string, side *enums.TradeSide) ([]*model.TradeOffer, error) {
 	uid, err := oidOf(obj.ID)
 	if err != nil {
 		return nil, err
@@ -1159,7 +1160,7 @@ func (r *userResolver) TradeOffers(ctx context.Context, obj *model.User, first *
 	if err != nil {
 		return nil, err
 	}
-	rows, err := r.Colls.Trackers.TradeOffer.GetByUserPaged(ctx, uid, before, limitOf(first, 20), itemCode, tradeSidePtr(side))
+	rows, err := r.Colls.Trackers.TradeOffer.GetByUserPaged(ctx, uid, before, limitOf(first, 20), itemCode, side)
 	if err != nil {
 		return nil, err
 	}
