@@ -753,6 +753,7 @@ type ComplexityRoot struct {
 		AllDamages          func(childComplexity int, first *int32, after *string) int
 		AvatarURL           func(childComplexity int) int
 		BattleParticipation func(childComplexity int) int
+		Battles             func(childComplexity int, first *int32, after *string) int
 		Company             func(childComplexity int) int
 		CompanyHistory      func(childComplexity int, first *int32, after *string) int
 		Country             func(childComplexity int) int
@@ -1190,6 +1191,7 @@ type UserResolver interface {
 	Transactions(ctx context.Context, obj *model.User, first *int32, after *string) (*model.ActivityConnection, error)
 	Damages(ctx context.Context, obj *model.User, battleID string) ([]*model.Damage, error)
 	AllDamages(ctx context.Context, obj *model.User, first *int32, after *string) ([]*model.Damage, error)
+	Battles(ctx context.Context, obj *model.User, first *int32, after *string) ([]*model.Battle, error)
 	Items(ctx context.Context, obj *model.User, first *int32, after *string, status *enums.ItemStatus) ([]*model.Item, error)
 	OwnedCompanies(ctx context.Context, obj *model.User) ([]*model.Company, error)
 	Employment(ctx context.Context, obj *model.User) (*model.Employee, error)
@@ -4327,6 +4329,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.User.BattleParticipation(childComplexity), true
+	case "User.battles":
+		if e.ComplexityRoot.User.Battles == nil {
+			break
+		}
+
+		args, err := ec.field_User_battles_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.User.Battles(childComplexity, args["first"].(*int32), args["after"].(*string)), true
 	case "User.company":
 		if e.ComplexityRoot.User.Company == nil {
 			break
@@ -6412,6 +6425,8 @@ func (ec *executionContext) childFields_User(ctx context.Context, field graphql.
 		return ec.fieldContext_User_damages(ctx, field)
 	case "allDamages":
 		return ec.fieldContext_User_allDamages(ctx, field)
+	case "battles":
+		return ec.fieldContext_User_battles(ctx, field)
 	case "items":
 		return ec.fieldContext_User_items(ctx, field)
 	case "ownedCompanies":
@@ -8141,6 +8156,28 @@ func (ec *executionContext) field_Region_strategicResources_args(ctx context.Con
 }
 
 func (ec *executionContext) field_User_allDamages_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "first",
+		func(ctx context.Context, v any) (*int32, error) {
+			return ec.unmarshalOInt2ᚖint32(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["first"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "after",
+		func(ctx context.Context, v any) (*string, error) {
+			return ec.unmarshalOID2ᚖstring(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["after"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_User_battles_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "first",
@@ -21690,6 +21727,50 @@ func (ec *executionContext) fieldContext_User_allDamages(ctx context.Context, fi
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_User_allDamages_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _User_battles(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_User_battles(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.User().Battles(ctx, obj, fc.Args["first"].(*int32), fc.Args["after"].(*string))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []*model.Battle) graphql.Marshaler {
+			return ec.marshalNBattle2ᚕᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐBattleᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_User_battles(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_Battle(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_User_battles_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -35290,6 +35371,42 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 					}
 				}()
 				res = ec._User_allDamages(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "battles":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._User_battles(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}

@@ -21,6 +21,7 @@ type User {
   transactions(first: Int = 20, after: ID): ActivityConnection!
   damages(battleId: ID!): [Damage!]!
   allDamages(first: Int = 20, after: ID): [Damage!]!
+  battles(first: Int = 20, after: ID): [Battle!]!
   items(first: Int = 20, after: ID, status: ItemStatus): [Item!]!
   ownedCompanies: [Company!]!
   employment: Employee

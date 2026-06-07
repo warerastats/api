@@ -1113,6 +1113,33 @@ func (r *userResolver) AllDamages(ctx context.Context, obj *model.User, first *i
 	return mapVal(rows, toDamage), nil
 }
 
+// Battles is the resolver for the battles field.
+func (r *userResolver) Battles(ctx context.Context, obj *model.User, first *int32, after *string) ([]*model.Battle, error) {
+	uid, err := oidOf(obj.ID)
+	if err != nil {
+		return nil, err
+	}
+	before, err := cursorPtr(after)
+	if err != nil {
+		return nil, err
+	}
+	ids, err := r.Colls.Trackers.Damage.GetBattleIDsByUserPaged(ctx, uid, before, limitOf(first, 20))
+	if err != nil {
+		return nil, err
+	}
+	out := make([]*model.Battle, 0, len(ids))
+	for _, id := range ids {
+		b, err := loadBattle(ctx, id.Hex())
+		if err != nil {
+			return nil, err
+		}
+		if b != nil {
+			out = append(out, b)
+		}
+	}
+	return out, nil
+}
+
 // Items is the resolver for the items field.
 func (r *userResolver) Items(ctx context.Context, obj *model.User, first *int32, after *string, status *enums.ItemStatus) ([]*model.Item, error) {
 	uid, err := oidOf(obj.ID)
