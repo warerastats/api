@@ -200,6 +200,7 @@ type ComplexityRoot struct {
 		Inventory             func(childComplexity int) int
 		Money                 func(childComplexity int) int
 		Name                  func(childComplexity int) int
+		OrderChanges          func(childComplexity int, first *int32, after *string) int
 		Parties               func(childComplexity int, first *int32, after *string) int
 		Regions               func(childComplexity int) int
 		RulingParty           func(childComplexity int) int
@@ -503,6 +504,7 @@ type ComplexityRoot struct {
 		MercReputationHistory func(childComplexity int, first *int32, after *string) int
 		Name                  func(childComplexity int) int
 		NameHistory           func(childComplexity int, first *int32, after *string) int
+		OrderChanges          func(childComplexity int, first *int32, after *string) int
 		Owner                 func(childComplexity int) int
 		OwnerHistory          func(childComplexity int, first *int32, after *string) int
 		Region                func(childComplexity int) int
@@ -969,6 +971,7 @@ type CountryResolver interface {
 	Parties(ctx context.Context, obj *model.Country, first *int32, after *string) ([]*model.Party, error)
 	Regions(ctx context.Context, obj *model.Country) ([]*model.Region, error)
 	Battles(ctx context.Context, obj *model.Country, first *int32, after *string, filter *model.BattleFilter) ([]*model.Battle, error)
+	OrderChanges(ctx context.Context, obj *model.Country, first *int32, after *string) ([]*model.BattleOrderChange, error)
 	RulingPartyHistory(ctx context.Context, obj *model.Country, first *int32, after *string) ([]*model.CountryRulingPartyChange, error)
 	SpecialisationHistory(ctx context.Context, obj *model.Country, first *int32, after *string) ([]*model.CountrySpecialisationChange, error)
 	TaxFlows(ctx context.Context, obj *model.Country, from time.Time, to time.Time) ([]*model.CountryTaxFlow, error)
@@ -1057,6 +1060,7 @@ type MuResolver interface {
 	Region(ctx context.Context, obj *model.Mu) (*model.Region, error)
 	Members(ctx context.Context, obj *model.Mu) ([]*model.User, error)
 	Battles(ctx context.Context, obj *model.Mu, first *int32, after *string, filter *model.BattleFilter) ([]*model.Battle, error)
+	OrderChanges(ctx context.Context, obj *model.Mu, first *int32, after *string) ([]*model.BattleOrderChange, error)
 	NameHistory(ctx context.Context, obj *model.Mu, first *int32, after *string) ([]*model.MuNameChange, error)
 	OwnerHistory(ctx context.Context, obj *model.Mu, first *int32, after *string) ([]*model.MuOwnerChange, error)
 	MercReputationHistory(ctx context.Context, obj *model.Mu, first *int32, after *string) ([]*model.MuMercenaryReputationChange, error)
@@ -1758,6 +1762,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Country.Name(childComplexity), true
+	case "Country.orderChanges":
+		if e.ComplexityRoot.Country.OrderChanges == nil {
+			break
+		}
+
+		args, err := ec.field_Country_orderChanges_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Country.OrderChanges(childComplexity, args["first"].(*int32), args["after"].(*string)), true
 	case "Country.parties":
 		if e.ComplexityRoot.Country.Parties == nil {
 			break
@@ -3053,6 +3068,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mu.NameHistory(childComplexity, args["first"].(*int32), args["after"].(*string)), true
+	case "Mu.orderChanges":
+		if e.ComplexityRoot.Mu.OrderChanges == nil {
+			break
+		}
+
+		args, err := ec.field_Mu_orderChanges_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mu.OrderChanges(childComplexity, args["first"].(*int32), args["after"].(*string)), true
 	case "Mu.owner":
 		if e.ComplexityRoot.Mu.Owner == nil {
 			break
@@ -5437,6 +5463,8 @@ func (ec *executionContext) childFields_Country(ctx context.Context, field graph
 		return ec.fieldContext_Country_regions(ctx, field)
 	case "battles":
 		return ec.fieldContext_Country_battles(ctx, field)
+	case "orderChanges":
+		return ec.fieldContext_Country_orderChanges(ctx, field)
 	case "rulingPartyHistory":
 		return ec.fieldContext_Country_rulingPartyHistory(ctx, field)
 	case "specialisationHistory":
@@ -5995,6 +6023,8 @@ func (ec *executionContext) childFields_Mu(ctx context.Context, field graphql.Co
 		return ec.fieldContext_Mu_members(ctx, field)
 	case "battles":
 		return ec.fieldContext_Mu_battles(ctx, field)
+	case "orderChanges":
+		return ec.fieldContext_Mu_orderChanges(ctx, field)
 	case "nameHistory":
 		return ec.fieldContext_Mu_nameHistory(ctx, field)
 	case "ownerHistory":
@@ -7065,6 +7095,28 @@ func (ec *executionContext) field_Country_flipEvents_args(ctx context.Context, r
 	return args, nil
 }
 
+func (ec *executionContext) field_Country_orderChanges_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "first",
+		func(ctx context.Context, v any) (*int32, error) {
+			return ec.unmarshalOInt2ᚖint32(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["first"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "after",
+		func(ctx context.Context, v any) (*string, error) {
+			return ec.unmarshalOID2ᚖstring(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["after"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Country_parties_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -7294,6 +7346,28 @@ func (ec *executionContext) field_Mu_mercReputationHistory_args(ctx context.Cont
 }
 
 func (ec *executionContext) field_Mu_nameHistory_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "first",
+		func(ctx context.Context, v any) (*int32, error) {
+			return ec.unmarshalOInt2ᚖint32(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["first"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "after",
+		func(ctx context.Context, v any) (*string, error) {
+			return ec.unmarshalOID2ᚖstring(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["after"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mu_orderChanges_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "first",
@@ -10723,6 +10797,50 @@ func (ec *executionContext) fieldContext_Country_battles(ctx context.Context, fi
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Country_battles_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Country_orderChanges(ctx context.Context, field graphql.CollectedField, obj *model.Country) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Country_orderChanges(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Country().OrderChanges(ctx, obj, fc.Args["first"].(*int32), fc.Args["after"].(*string))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []*model.BattleOrderChange) graphql.Marshaler {
+			return ec.marshalNBattleOrderChange2ᚕᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐBattleOrderChangeᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Country_orderChanges(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Country",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_BattleOrderChange(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Country_orderChanges_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -15917,6 +16035,50 @@ func (ec *executionContext) fieldContext_Mu_battles(ctx context.Context, field g
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mu_battles_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mu_orderChanges(ctx context.Context, field graphql.CollectedField, obj *model.Mu) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Mu_orderChanges(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mu().OrderChanges(ctx, obj, fc.Args["first"].(*int32), fc.Args["after"].(*string))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []*model.BattleOrderChange) graphql.Marshaler {
+			return ec.marshalNBattleOrderChange2ᚕᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐBattleOrderChangeᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Mu_orderChanges(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mu",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_BattleOrderChange(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mu_orderChanges_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -27559,6 +27721,42 @@ func (ec *executionContext) _Country(ctx context.Context, sel ast.SelectionSet, 
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "orderChanges":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Country_orderChanges(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "rulingPartyHistory":
 			field := field
 
@@ -31199,6 +31397,42 @@ func (ec *executionContext) _Mu(ctx context.Context, sel ast.SelectionSet, obj *
 					}
 				}()
 				res = ec._Mu_battles(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "orderChanges":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Mu_orderChanges(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}

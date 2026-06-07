@@ -65,6 +65,7 @@ type Country {
   battles(first: Int = 20, after: ID, filter: BattleFilter = ALL): [Battle!]!
 
   # history
+  orderChanges(first: Int = 20, after: ID): [BattleOrderChange!]!
   rulingPartyHistory(first: Int = 20, after: ID): [CountryRulingPartyChange!]!
   specialisationHistory(first: Int = 20, after: ID): [CountrySpecialisationChange!]!
 
@@ -169,6 +170,7 @@ type Mu {
   battles(first: Int = 20, after: ID, filter: BattleFilter = ALL): [Battle!]!
 
   # history
+  orderChanges(first: Int = 20, after: ID): [BattleOrderChange!]!
   nameHistory(first: Int = 20, after: ID): [MuNameChange!]!
   ownerHistory(first: Int = 20, after: ID): [MuOwnerChange!]!
   mercReputationHistory(first: Int = 20, after: ID): [MuMercenaryReputationChange!]!

@@ -283,6 +283,23 @@ func (r *countryResolver) Battles(ctx context.Context, obj *model.Country, first
 	return mapPtr(rows, toBattle), nil
 }
 
+// OrderChanges is the resolver for the orderChanges field.
+func (r *countryResolver) OrderChanges(ctx context.Context, obj *model.Country, first *int32, after *string) ([]*model.BattleOrderChange, error) {
+	cid, err := oidOf(obj.ID)
+	if err != nil {
+		return nil, err
+	}
+	before, err := cursorPtr(after)
+	if err != nil {
+		return nil, err
+	}
+	rows, err := r.Colls.Events.BattleOrderChange.ListByEntity(ctx, "country", cid, before, limitOf(first, 20))
+	if err != nil {
+		return nil, err
+	}
+	return mapVal(rows, toBattleOrderChange), nil
+}
+
 // RulingPartyHistory is the resolver for the rulingPartyHistory field.
 func (r *countryResolver) RulingPartyHistory(ctx context.Context, obj *model.Country, first *int32, after *string) ([]*model.CountryRulingPartyChange, error) {
 	cid, err := oidOf(obj.ID)
@@ -557,6 +574,23 @@ func (r *muResolver) Battles(ctx context.Context, obj *model.Mu, first *int32, a
 		out = append(out, b)
 	}
 	return out, nil
+}
+
+// OrderChanges is the resolver for the orderChanges field.
+func (r *muResolver) OrderChanges(ctx context.Context, obj *model.Mu, first *int32, after *string) ([]*model.BattleOrderChange, error) {
+	mid, err := oidOf(obj.ID)
+	if err != nil {
+		return nil, err
+	}
+	before, err := cursorPtr(after)
+	if err != nil {
+		return nil, err
+	}
+	rows, err := r.Colls.Events.BattleOrderChange.ListByEntity(ctx, "mu", mid, before, limitOf(first, 20))
+	if err != nil {
+		return nil, err
+	}
+	return mapVal(rows, toBattleOrderChange), nil
 }
 
 // NameHistory is the resolver for the nameHistory field.
