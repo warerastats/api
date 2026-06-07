@@ -3,129 +3,129 @@
 
 type UserNameChange {
   id: ID!
-  at: Time!
+  at: DateTime!
   username: String!
   user: User!
 }
 
 type UserCountryChange {
   id: ID!
-  at: Time!
+  at: DateTime!
   user: User!
   country: Country
 }
 
 type UserPartyChange {
   id: ID!
-  at: Time!
+  at: DateTime!
   user: User!
   party: Party
 }
 
 type UserCompanyChange {
   id: ID!
-  at: Time!
+  at: DateTime!
   user: User!
   company: Company
 }
 
 type UserMuChange {
   id: ID!
-  at: Time!
+  at: DateTime!
   user: User!
   mu: Mu
 }
 
 type UserSkillChange {
   id: ID!
-  at: Time!
+  at: DateTime!
   user: User!
   skills: [IntEntry!]!
 }
 
 type PartyNameChange {
   id: ID!
-  at: Time!
+  at: DateTime!
   name: String!
   party: Party!
 }
 
 type PartyLeaderChange {
   id: ID!
-  at: Time!
+  at: DateTime!
   party: Party!
   leader: User!
 }
 
 type PartyDescriptionChange {
   id: ID!
-  at: Time!
+  at: DateTime!
   description: String!
   party: Party!
 }
 
 type PartyEthicsChange {
   id: ID!
-  at: Time!
+  at: DateTime!
   ethics: Ethics!
   party: Party!
 }
 
 type CountryRulingPartyChange {
   id: ID!
-  at: Time!
+  at: DateTime!
   country: Country!
   party: Party
 }
 
 type CountrySpecialisationChange {
   id: ID!
-  at: Time!
+  at: DateTime!
   itemCode: String
   country: Country!
 }
 
 type RegionOwnerChange {
   id: ID!
-  at: Time!
+  at: DateTime!
   region: Region!
   country: Country!
 }
 
 type RegionDeposit {
   id: ID!
-  at: Time!
+  at: DateTime!
   type: String
-  startsAt: Time
-  endsAt: Time
+  startsAt: DateTime
+  endsAt: DateTime
   bonusPercent: Float
   region: Region!
 }
 
 type RegionStrategicResource {
   id: ID!
-  at: Time!
+  at: DateTime!
   resource: String
   region: Region!
 }
 
 type CompanyRegionChange {
   id: ID!
-  at: Time!
+  at: DateTime!
   company: Company!
   region: Region!
 }
 
 type CompanyItemCodeChange {
   id: ID!
-  at: Time!
+  at: DateTime!
   itemCode: String!
   company: Company!
 }
 
 type EmployeeWageChange {
   id: ID!
-  at: Time!
+  at: DateTime!
   wage: Float!
   user: User!
   company: Company!
@@ -133,28 +133,28 @@ type EmployeeWageChange {
 
 type MuNameChange {
   id: ID!
-  at: Time!
+  at: DateTime!
   name: String!
   mu: Mu!
 }
 
 type MuOwnerChange {
   id: ID!
-  at: Time!
+  at: DateTime!
   mu: Mu!
   owner: User!
 }
 
 type MuMercenaryReputationChange {
   id: ID!
-  at: Time!
+  at: DateTime!
   mercRep: Float!
   mu: Mu!
 }
 
 type BattleOrderChange {
   id: ID!
-  at: Time!
+  at: DateTime!
   side: String!
   kind: String!
   action: String!

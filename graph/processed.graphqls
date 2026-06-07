@@ -4,7 +4,7 @@
 
 type UserFinanceReport {
   id: ID!
-  dayStart: Time!
+  dayStart: DateTime!
   wagesPaid: Float!
   wagesEarned: Float!
   itemsBought: Float!
@@ -25,7 +25,7 @@ type UserFlipEvent {
   sellRevenue: Float!
   profit: Float!
   heldMs: Int64!
-  at: Time!
+  at: DateTime!
   user: User!
 }
 
@@ -33,7 +33,7 @@ type FlipLot {
   tradeId: ID!
   quantity: Int!
   unitPrice: Float!
-  boughtAt: Time!
+  boughtAt: DateTime!
 }
 
 type FlipLotGroup {
@@ -44,13 +44,13 @@ type FlipLotGroup {
 type UserFlipState {
   totalFlips: Int!
   totalProfit: Float!
-  updatedAt: Time!
+  updatedAt: DateTime!
   openLots: [FlipLotGroup!]!
   user: User!
 }
 
 type UserInventory {
-  updatedAt: Time!
+  updatedAt: DateTime!
   items: [IntEntry!]!
   user: User!
 }
@@ -63,7 +63,7 @@ type UserBattleParticipation {
   ownCountryParticipated: Int!
   muOrderBattles: Int!
   muOrderParticipated: Int!
-  updatedAt: Time!
+  updatedAt: DateTime!
   user: User!
 }
 
@@ -83,7 +83,7 @@ type TaxSource {
 
 type CountryTaxFlow {
   id: ID!
-  hourStart: Time!
+  hourStart: DateTime!
   totalTax: Float!
   hijackedIn: Float!
   coreEarned: Float!
@@ -101,7 +101,7 @@ type CountryFlipEvent {
   buyCost: Float!
   sellRevenue: Float!
   profit: Float!
-  at: Time!
+  at: DateTime!
   country: Country!
 }
 
@@ -109,7 +109,7 @@ type CountryFlipState {
   totalTrades: Int!
   profitable: Int!
   totalProfit: Float!
-  updatedAt: Time!
+  updatedAt: DateTime!
   country: Country!
 }
 
@@ -117,7 +117,7 @@ type InventoryLot {
   tradeId: ID!
   quantity: Int!
   unitPrice: Float!
-  boughtAt: Time!
+  boughtAt: DateTime!
 }
 
 type InventoryLotGroup {
@@ -126,7 +126,7 @@ type InventoryLotGroup {
 }
 
 type CountryInventory {
-  updatedAt: Time!
+  updatedAt: DateTime!
   lots: [InventoryLotGroup!]!
   country: Country!
 }
@@ -135,7 +135,7 @@ type CountryInventory {
 
 type EntityWealthReport {
   id: ID!
-  dayStart: Time!
+  dayStart: DateTime!
   memberCount: Int!
   totalDamage: Int64!
   totalWealth: Float!
@@ -152,7 +152,7 @@ type EquipmentUsage {
 
 type BattleDamageReport {
   id: ID!
-  intervalStart: Time!
+  intervalStart: DateTime!
   side: String!
   damage: Int64!
   damagePct: Float!
@@ -166,7 +166,7 @@ type BattleDamageReport {
 type ItemCandle {
   id: ID!
   itemCode: String!
-  bucketStart: Time!
+  bucketStart: DateTime!
   open: Float!
   high: Float!
   low: Float!
@@ -179,7 +179,7 @@ type ItemCandle {
 
 type WageCandle {
   id: ID!
-  bucketStart: Time!
+  bucketStart: DateTime!
   open: Float!
   high: Float!
   low: Float!
@@ -212,14 +212,14 @@ type ItemMarketReport {
   asks: [OrderbookLevel!]!
   effectiveBuy: [EffectivePrice!]!
   effectiveSell: [EffectivePrice!]!
-  updatedAt: Time!
+  updatedAt: DateTime!
 }
 
 type EquipmentWindowPrice {
   weightedAvg: Float!
   volume: Int!
   count: Int!
-  updatedAt: Time!
+  updatedAt: DateTime!
 }
 
 type EquipmentSkillPrice {
@@ -229,7 +229,7 @@ type EquipmentSkillPrice {
   max: Float!
   avg: Float!
   volume: Int!
-  updatedAt: Time!
+  updatedAt: DateTime!
 }
 
 type EquipmentPricing {
@@ -240,7 +240,7 @@ type EquipmentPricing {
 }
 
 type MarketState {
-  at: Time!
+  at: DateTime!
   avgWage24h: Float!
   wageVolume24h: Int!
   marketVolume24h: Float!
@@ -255,7 +255,7 @@ type WagePaidUser {
 }
 
 type WageMarketState {
-  at: Time!
+  at: DateTime!
   avgWeighted14d: Float!
   min14d: Float!
   max14d: Float!
@@ -266,7 +266,7 @@ type WageMarketState {
 
 type InflationPoint {
   id: ID!
-  dayStart: Time!
+  dayStart: DateTime!
   indexValue: Float!
   pctChange24h: Float!
   perItem: [FloatEntry!]!
@@ -274,7 +274,7 @@ type InflationPoint {
 
 type DismantleReport {
   id: ID!
-  hourStart: Time!
+  hourStart: DateTime!
   count: Int!
   stateBuckets: [IntEntry!]!
 }
@@ -292,5 +292,5 @@ type CasesReport {
   uniqueItemCodes: [String!]!
   expectedValue14d: Float!
   perItem: [CaseItemStat!]!
-  updatedAt: Time!
+  updatedAt: DateTime!
 }

@@ -9,6 +9,12 @@ import (
 	"strconv"
 )
 
+type PartyBattleParticipation struct {
+	Party       *Party `json:"party"`
+	TotalDamage int    `json:"totalDamage"`
+	BattleCount int32  `json:"battleCount"`
+}
+
 type Query struct {
 }
 

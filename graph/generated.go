@@ -117,6 +117,7 @@ type ComplexityRoot struct {
 		LastUpdated     func(childComplexity int) int
 		Mus             func(childComplexity int) int
 		OrderChanges    func(childComplexity int, first *int32, after *string) int
+		TopDamage       func(childComplexity int, limit *int32) int
 		WinnerSide      func(childComplexity int) int
 	}
 
@@ -190,7 +191,7 @@ type ComplexityRoot struct {
 	}
 
 	Country struct {
-		Battles               func(childComplexity int, first *int32, after *string) int
+		Battles               func(childComplexity int, first *int32, after *string, filter *model.BattleFilter) int
 		Code                  func(childComplexity int) int
 		FlipEvents            func(childComplexity int, from time.Time, to time.Time, first *int32, after *string) int
 		FlipState             func(childComplexity int) int
@@ -491,7 +492,7 @@ type ComplexityRoot struct {
 
 	Mu struct {
 		AvatarURL             func(childComplexity int) int
-		Battles               func(childComplexity int, first *int32, after *string) int
+		Battles               func(childComplexity int, first *int32, after *string, filter *model.BattleFilter) int
 		Dorms                 func(childComplexity int) int
 		Hq                    func(childComplexity int) int
 		ID                    func(childComplexity int) int
@@ -546,6 +547,7 @@ type ComplexityRoot struct {
 
 	Party struct {
 		AvatarURL          func(childComplexity int) int
+		Battles            func(childComplexity int, first *int32, after *string) int
 		Country            func(childComplexity int) int
 		Description        func(childComplexity int) int
 		DescriptionHistory func(childComplexity int, first *int32, after *string) int
@@ -558,9 +560,16 @@ type ComplexityRoot struct {
 		Members            func(childComplexity int) int
 		Name               func(childComplexity int) int
 		NameHistory        func(childComplexity int, first *int32, after *string) int
+		Participation      func(childComplexity int) int
 		Region             func(childComplexity int) int
 		RulesCountries     func(childComplexity int) int
 		WealthReports      func(childComplexity int, from time.Time, to time.Time) int
+	}
+
+	PartyBattleParticipation struct {
+		BattleCount func(childComplexity int) int
+		Party       func(childComplexity int) int
+		TotalDamage func(childComplexity int) int
 	}
 
 	PartyDescriptionChange struct {
@@ -626,6 +635,8 @@ type ComplexityRoot struct {
 	}
 
 	Region struct {
+		ActiveBattles      func(childComplexity int) int
+		Battles            func(childComplexity int, first *int32, after *string, filter *model.BattleFilter) int
 		Companies          func(childComplexity int, first *int32, after *string) int
 		Country            func(childComplexity int) int
 		Deposits           func(childComplexity int, first *int32, after *string) int
@@ -918,6 +929,7 @@ type BattleResolver interface {
 	AttackerRegion(ctx context.Context, obj *model.Battle) (*model.Region, error)
 	DefenderRegion(ctx context.Context, obj *model.Battle) (*model.Region, error)
 	Damages(ctx context.Context, obj *model.Battle, first *int32, after *string, side *string, userID *string) ([]*model.Damage, error)
+	TopDamage(ctx context.Context, obj *model.Battle, limit *int32) ([]*model.DamageRanking, error)
 	Mus(ctx context.Context, obj *model.Battle) ([]*model.Mu, error)
 	OrderChanges(ctx context.Context, obj *model.Battle, first *int32, after *string) ([]*model.BattleOrderChange, error)
 	DamageReports(ctx context.Context, obj *model.Battle, from time.Time, to time.Time) ([]*model.BattleDamageReport, error)
@@ -954,7 +966,7 @@ type CountryResolver interface {
 	UserCount(ctx context.Context, obj *model.Country) (int32, error)
 	Parties(ctx context.Context, obj *model.Country, first *int32, after *string) ([]*model.Party, error)
 	Regions(ctx context.Context, obj *model.Country) ([]*model.Region, error)
-	Battles(ctx context.Context, obj *model.Country, first *int32, after *string) ([]*model.Battle, error)
+	Battles(ctx context.Context, obj *model.Country, first *int32, after *string, filter *model.BattleFilter) ([]*model.Battle, error)
 	RulingPartyHistory(ctx context.Context, obj *model.Country, first *int32, after *string) ([]*model.CountryRulingPartyChange, error)
 	SpecialisationHistory(ctx context.Context, obj *model.Country, first *int32, after *string) ([]*model.CountrySpecialisationChange, error)
 	TaxFlows(ctx context.Context, obj *model.Country, from time.Time, to time.Time) ([]*model.CountryTaxFlow, error)
@@ -1042,7 +1054,7 @@ type MuResolver interface {
 	Owner(ctx context.Context, obj *model.Mu) (*model.User, error)
 	Region(ctx context.Context, obj *model.Mu) (*model.Region, error)
 	Members(ctx context.Context, obj *model.Mu) ([]*model.User, error)
-	Battles(ctx context.Context, obj *model.Mu, first *int32, after *string) ([]*model.Battle, error)
+	Battles(ctx context.Context, obj *model.Mu, first *int32, after *string, filter *model.BattleFilter) ([]*model.Battle, error)
 	NameHistory(ctx context.Context, obj *model.Mu, first *int32, after *string) ([]*model.MuNameChange, error)
 	OwnerHistory(ctx context.Context, obj *model.Mu, first *int32, after *string) ([]*model.MuOwnerChange, error)
 	MercReputationHistory(ctx context.Context, obj *model.Mu, first *int32, after *string) ([]*model.MuMercenaryReputationChange, error)
@@ -1068,6 +1080,8 @@ type PartyResolver interface {
 	Leader(ctx context.Context, obj *model.Party) (*model.User, error)
 	Members(ctx context.Context, obj *model.Party) ([]*model.User, error)
 	RulesCountries(ctx context.Context, obj *model.Party) ([]*model.Country, error)
+	Battles(ctx context.Context, obj *model.Party, first *int32, after *string) ([]*model.Battle, error)
+	Participation(ctx context.Context, obj *model.Party) (*model.PartyBattleParticipation, error)
 	NameHistory(ctx context.Context, obj *model.Party, first *int32, after *string) ([]*model.PartyNameChange, error)
 	LeaderHistory(ctx context.Context, obj *model.Party, first *int32, after *string) ([]*model.PartyLeaderChange, error)
 	DescriptionHistory(ctx context.Context, obj *model.Party, first *int32, after *string) ([]*model.PartyDescriptionChange, error)
@@ -1127,6 +1141,8 @@ type RegionResolver interface {
 	Parties(ctx context.Context, obj *model.Region) ([]*model.Party, error)
 	Mus(ctx context.Context, obj *model.Region) ([]*model.Mu, error)
 	Companies(ctx context.Context, obj *model.Region, first *int32, after *string) ([]*model.Company, error)
+	Battles(ctx context.Context, obj *model.Region, first *int32, after *string, filter *model.BattleFilter) ([]*model.Battle, error)
+	ActiveBattles(ctx context.Context, obj *model.Region) ([]*model.Battle, error)
 	OwnerHistory(ctx context.Context, obj *model.Region, first *int32, after *string) ([]*model.RegionOwnerChange, error)
 	Deposits(ctx context.Context, obj *model.Region, first *int32, after *string) ([]*model.RegionDeposit, error)
 	StrategicResources(ctx context.Context, obj *model.Region, first *int32, after *string) ([]*model.RegionStrategicResource, error)
@@ -1375,6 +1391,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Battle.OrderChanges(childComplexity, args["first"].(*int32), args["after"].(*string)), true
+	case "Battle.topDamage":
+		if e.ComplexityRoot.Battle.TopDamage == nil {
+			break
+		}
+
+		args, err := ec.field_Battle_topDamage_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Battle.TopDamage(childComplexity, args["limit"].(*int32)), true
 	case "Battle.winnerSide":
 		if e.ComplexityRoot.Battle.WinnerSide == nil {
 			break
@@ -1680,7 +1707,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.ComplexityRoot.Country.Battles(childComplexity, args["first"].(*int32), args["after"].(*string)), true
+		return e.ComplexityRoot.Country.Battles(childComplexity, args["first"].(*int32), args["after"].(*string), args["filter"].(*model.BattleFilter)), true
 	case "Country.code":
 		if e.ComplexityRoot.Country.Code == nil {
 			break
@@ -2958,7 +2985,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.ComplexityRoot.Mu.Battles(childComplexity, args["first"].(*int32), args["after"].(*string)), true
+		return e.ComplexityRoot.Mu.Battles(childComplexity, args["first"].(*int32), args["after"].(*string), args["filter"].(*model.BattleFilter)), true
 	case "Mu.dorms":
 		if e.ComplexityRoot.Mu.Dorms == nil {
 			break
@@ -3184,6 +3211,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Party.AvatarURL(childComplexity), true
+	case "Party.battles":
+		if e.ComplexityRoot.Party.Battles == nil {
+			break
+		}
+
+		args, err := ec.field_Party_battles_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Party.Battles(childComplexity, args["first"].(*int32), args["after"].(*string)), true
 	case "Party.country":
 		if e.ComplexityRoot.Party.Country == nil {
 			break
@@ -3276,6 +3314,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Party.NameHistory(childComplexity, args["first"].(*int32), args["after"].(*string)), true
+	case "Party.participation":
+		if e.ComplexityRoot.Party.Participation == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Party.Participation(childComplexity), true
 	case "Party.region":
 		if e.ComplexityRoot.Party.Region == nil {
 			break
@@ -3299,6 +3343,25 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Party.WealthReports(childComplexity, args["from"].(time.Time), args["to"].(time.Time)), true
+
+	case "PartyBattleParticipation.battleCount":
+		if e.ComplexityRoot.PartyBattleParticipation.BattleCount == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PartyBattleParticipation.BattleCount(childComplexity), true
+	case "PartyBattleParticipation.party":
+		if e.ComplexityRoot.PartyBattleParticipation.Party == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PartyBattleParticipation.Party(childComplexity), true
+	case "PartyBattleParticipation.totalDamage":
+		if e.ComplexityRoot.PartyBattleParticipation.TotalDamage == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PartyBattleParticipation.TotalDamage(childComplexity), true
 
 	case "PartyDescriptionChange.at":
 		if e.ComplexityRoot.PartyDescriptionChange.At == nil {
@@ -3718,6 +3781,23 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.Query.WageMarketStates(childComplexity, args["from"].(time.Time), args["to"].(time.Time)), true
 
+	case "Region.activeBattles":
+		if e.ComplexityRoot.Region.ActiveBattles == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Region.ActiveBattles(childComplexity), true
+	case "Region.battles":
+		if e.ComplexityRoot.Region.Battles == nil {
+			break
+		}
+
+		args, err := ec.field_Region_battles_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Region.Battles(childComplexity, args["first"].(*int32), args["after"].(*string), args["filter"].(*model.BattleFilter)), true
 	case "Region.companies":
 		if e.ComplexityRoot.Region.Companies == nil {
 			break
@@ -5181,6 +5261,8 @@ func (ec *executionContext) childFields_Battle(ctx context.Context, field graphq
 		return ec.fieldContext_Battle_defenderRegion(ctx, field)
 	case "damages":
 		return ec.fieldContext_Battle_damages(ctx, field)
+	case "topDamage":
+		return ec.fieldContext_Battle_topDamage(ctx, field)
 	case "mus":
 		return ec.fieldContext_Battle_mus(ctx, field)
 	case "orderChanges":
@@ -6009,6 +6091,10 @@ func (ec *executionContext) childFields_Party(ctx context.Context, field graphql
 		return ec.fieldContext_Party_members(ctx, field)
 	case "rulesCountries":
 		return ec.fieldContext_Party_rulesCountries(ctx, field)
+	case "battles":
+		return ec.fieldContext_Party_battles(ctx, field)
+	case "participation":
+		return ec.fieldContext_Party_participation(ctx, field)
 	case "nameHistory":
 		return ec.fieldContext_Party_nameHistory(ctx, field)
 	case "leaderHistory":
@@ -6021,6 +6107,18 @@ func (ec *executionContext) childFields_Party(ctx context.Context, field graphql
 		return ec.fieldContext_Party_wealthReports(ctx, field)
 	}
 	return nil, fmt.Errorf("no field named %q was found under type Party", field.Name)
+}
+
+func (ec *executionContext) childFields_PartyBattleParticipation(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "party":
+		return ec.fieldContext_PartyBattleParticipation_party(ctx, field)
+	case "totalDamage":
+		return ec.fieldContext_PartyBattleParticipation_totalDamage(ctx, field)
+	case "battleCount":
+		return ec.fieldContext_PartyBattleParticipation_battleCount(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type PartyBattleParticipation", field.Name)
 }
 
 func (ec *executionContext) childFields_PartyDescriptionChange(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
@@ -6105,6 +6203,10 @@ func (ec *executionContext) childFields_Region(ctx context.Context, field graphq
 		return ec.fieldContext_Region_mus(ctx, field)
 	case "companies":
 		return ec.fieldContext_Region_companies(ctx, field)
+	case "battles":
+		return ec.fieldContext_Region_battles(ctx, field)
+	case "activeBattles":
+		return ec.fieldContext_Region_activeBattles(ctx, field)
 	case "ownerHistory":
 		return ec.fieldContext_Region_ownerHistory(ctx, field)
 	case "deposits":
@@ -6728,7 +6830,7 @@ func (ec *executionContext) field_Battle_damageReports_args(ctx context.Context,
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "from",
 		func(ctx context.Context, v any) (time.Time, error) {
-			return ec.unmarshalNTime2timeᚐTime(ctx, v)
+			return ec.unmarshalNDateTime2timeᚐTime(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -6736,7 +6838,7 @@ func (ec *executionContext) field_Battle_damageReports_args(ctx context.Context,
 	args["from"] = arg0
 	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "to",
 		func(ctx context.Context, v any) (time.Time, error) {
-			return ec.unmarshalNTime2timeᚐTime(ctx, v)
+			return ec.unmarshalNDateTime2timeᚐTime(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -6805,6 +6907,20 @@ func (ec *executionContext) field_Battle_orderChanges_args(ctx context.Context, 
 	return args, nil
 }
 
+func (ec *executionContext) field_Battle_topDamage_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "limit",
+		func(ctx context.Context, v any) (*int32, error) {
+			return ec.unmarshalOInt2ᚖint32(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["limit"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Company_itemCodeHistory_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -6868,6 +6984,14 @@ func (ec *executionContext) field_Country_battles_args(ctx context.Context, rawA
 		return nil, err
 	}
 	args["after"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "filter",
+		func(ctx context.Context, v any) (*model.BattleFilter, error) {
+			return ec.unmarshalOBattleFilter2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐBattleFilter(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["filter"] = arg2
 	return args, nil
 }
 
@@ -6876,7 +7000,7 @@ func (ec *executionContext) field_Country_flipEvents_args(ctx context.Context, r
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "from",
 		func(ctx context.Context, v any) (time.Time, error) {
-			return ec.unmarshalNTime2timeᚐTime(ctx, v)
+			return ec.unmarshalNDateTime2timeᚐTime(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -6884,7 +7008,7 @@ func (ec *executionContext) field_Country_flipEvents_args(ctx context.Context, r
 	args["from"] = arg0
 	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "to",
 		func(ctx context.Context, v any) (time.Time, error) {
-			return ec.unmarshalNTime2timeᚐTime(ctx, v)
+			return ec.unmarshalNDateTime2timeᚐTime(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -6980,7 +7104,7 @@ func (ec *executionContext) field_Country_taxFlows_args(ctx context.Context, raw
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "from",
 		func(ctx context.Context, v any) (time.Time, error) {
-			return ec.unmarshalNTime2timeᚐTime(ctx, v)
+			return ec.unmarshalNDateTime2timeᚐTime(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -6988,7 +7112,7 @@ func (ec *executionContext) field_Country_taxFlows_args(ctx context.Context, raw
 	args["from"] = arg0
 	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "to",
 		func(ctx context.Context, v any) (time.Time, error) {
-			return ec.unmarshalNTime2timeᚐTime(ctx, v)
+			return ec.unmarshalNDateTime2timeᚐTime(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -7024,7 +7148,7 @@ func (ec *executionContext) field_Country_wealthReports_args(ctx context.Context
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "from",
 		func(ctx context.Context, v any) (time.Time, error) {
-			return ec.unmarshalNTime2timeᚐTime(ctx, v)
+			return ec.unmarshalNDateTime2timeᚐTime(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -7032,7 +7156,7 @@ func (ec *executionContext) field_Country_wealthReports_args(ctx context.Context
 	args["from"] = arg0
 	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "to",
 		func(ctx context.Context, v any) (time.Time, error) {
-			return ec.unmarshalNTime2timeᚐTime(ctx, v)
+			return ec.unmarshalNDateTime2timeᚐTime(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -7104,6 +7228,14 @@ func (ec *executionContext) field_Mu_battles_args(ctx context.Context, rawArgs m
 		return nil, err
 	}
 	args["after"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "filter",
+		func(ctx context.Context, v any) (*model.BattleFilter, error) {
+			return ec.unmarshalOBattleFilter2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐBattleFilter(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["filter"] = arg2
 	return args, nil
 }
 
@@ -7178,7 +7310,7 @@ func (ec *executionContext) field_Mu_wealthReports_args(ctx context.Context, raw
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "from",
 		func(ctx context.Context, v any) (time.Time, error) {
-			return ec.unmarshalNTime2timeᚐTime(ctx, v)
+			return ec.unmarshalNDateTime2timeᚐTime(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -7186,12 +7318,34 @@ func (ec *executionContext) field_Mu_wealthReports_args(ctx context.Context, raw
 	args["from"] = arg0
 	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "to",
 		func(ctx context.Context, v any) (time.Time, error) {
-			return ec.unmarshalNTime2timeᚐTime(ctx, v)
+			return ec.unmarshalNDateTime2timeᚐTime(ctx, v)
 		})
 	if err != nil {
 		return nil, err
 	}
 	args["to"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Party_battles_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "first",
+		func(ctx context.Context, v any) (*int32, error) {
+			return ec.unmarshalOInt2ᚖint32(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["first"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "after",
+		func(ctx context.Context, v any) (*string, error) {
+			return ec.unmarshalOID2ᚖstring(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["after"] = arg1
 	return args, nil
 }
 
@@ -7288,7 +7442,7 @@ func (ec *executionContext) field_Party_wealthReports_args(ctx context.Context, 
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "from",
 		func(ctx context.Context, v any) (time.Time, error) {
-			return ec.unmarshalNTime2timeᚐTime(ctx, v)
+			return ec.unmarshalNDateTime2timeᚐTime(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -7296,7 +7450,7 @@ func (ec *executionContext) field_Party_wealthReports_args(ctx context.Context, 
 	args["from"] = arg0
 	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "to",
 		func(ctx context.Context, v any) (time.Time, error) {
-			return ec.unmarshalNTime2timeᚐTime(ctx, v)
+			return ec.unmarshalNDateTime2timeᚐTime(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -7396,7 +7550,7 @@ func (ec *executionContext) field_Query_dismantleReports_args(ctx context.Contex
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "from",
 		func(ctx context.Context, v any) (time.Time, error) {
-			return ec.unmarshalNTime2timeᚐTime(ctx, v)
+			return ec.unmarshalNDateTime2timeᚐTime(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -7404,7 +7558,7 @@ func (ec *executionContext) field_Query_dismantleReports_args(ctx context.Contex
 	args["from"] = arg0
 	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "to",
 		func(ctx context.Context, v any) (time.Time, error) {
-			return ec.unmarshalNTime2timeᚐTime(ctx, v)
+			return ec.unmarshalNDateTime2timeᚐTime(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -7440,7 +7594,7 @@ func (ec *executionContext) field_Query_inflation_args(ctx context.Context, rawA
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "from",
 		func(ctx context.Context, v any) (time.Time, error) {
-			return ec.unmarshalNTime2timeᚐTime(ctx, v)
+			return ec.unmarshalNDateTime2timeᚐTime(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -7448,7 +7602,7 @@ func (ec *executionContext) field_Query_inflation_args(ctx context.Context, rawA
 	args["from"] = arg0
 	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "to",
 		func(ctx context.Context, v any) (time.Time, error) {
-			return ec.unmarshalNTime2timeᚐTime(ctx, v)
+			return ec.unmarshalNDateTime2timeᚐTime(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -7470,7 +7624,7 @@ func (ec *executionContext) field_Query_itemCandles_args(ctx context.Context, ra
 	args["itemCode"] = arg0
 	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "from",
 		func(ctx context.Context, v any) (time.Time, error) {
-			return ec.unmarshalNTime2timeᚐTime(ctx, v)
+			return ec.unmarshalNDateTime2timeᚐTime(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -7478,7 +7632,7 @@ func (ec *executionContext) field_Query_itemCandles_args(ctx context.Context, ra
 	args["from"] = arg1
 	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "to",
 		func(ctx context.Context, v any) (time.Time, error) {
-			return ec.unmarshalNTime2timeᚐTime(ctx, v)
+			return ec.unmarshalNDateTime2timeᚐTime(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -7520,7 +7674,7 @@ func (ec *executionContext) field_Query_marketStates_args(ctx context.Context, r
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "from",
 		func(ctx context.Context, v any) (time.Time, error) {
-			return ec.unmarshalNTime2timeᚐTime(ctx, v)
+			return ec.unmarshalNDateTime2timeᚐTime(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -7528,7 +7682,7 @@ func (ec *executionContext) field_Query_marketStates_args(ctx context.Context, r
 	args["from"] = arg0
 	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "to",
 		func(ctx context.Context, v any) (time.Time, error) {
-			return ec.unmarshalNTime2timeᚐTime(ctx, v)
+			return ec.unmarshalNDateTime2timeᚐTime(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -7680,7 +7834,7 @@ func (ec *executionContext) field_Query_topDamage_args(ctx context.Context, rawA
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "from",
 		func(ctx context.Context, v any) (time.Time, error) {
-			return ec.unmarshalNTime2timeᚐTime(ctx, v)
+			return ec.unmarshalNDateTime2timeᚐTime(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -7688,7 +7842,7 @@ func (ec *executionContext) field_Query_topDamage_args(ctx context.Context, rawA
 	args["from"] = arg0
 	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "to",
 		func(ctx context.Context, v any) (time.Time, error) {
-			return ec.unmarshalNTime2timeᚐTime(ctx, v)
+			return ec.unmarshalNDateTime2timeᚐTime(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -7724,7 +7878,7 @@ func (ec *executionContext) field_Query_topWageEarners_args(ctx context.Context,
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "from",
 		func(ctx context.Context, v any) (time.Time, error) {
-			return ec.unmarshalNTime2timeᚐTime(ctx, v)
+			return ec.unmarshalNDateTime2timeᚐTime(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -7732,7 +7886,7 @@ func (ec *executionContext) field_Query_topWageEarners_args(ctx context.Context,
 	args["from"] = arg0
 	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "to",
 		func(ctx context.Context, v any) (time.Time, error) {
-			return ec.unmarshalNTime2timeᚐTime(ctx, v)
+			return ec.unmarshalNDateTime2timeᚐTime(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -7754,7 +7908,7 @@ func (ec *executionContext) field_Query_topWagePayers_args(ctx context.Context, 
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "from",
 		func(ctx context.Context, v any) (time.Time, error) {
-			return ec.unmarshalNTime2timeᚐTime(ctx, v)
+			return ec.unmarshalNDateTime2timeᚐTime(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -7762,7 +7916,7 @@ func (ec *executionContext) field_Query_topWagePayers_args(ctx context.Context, 
 	args["from"] = arg0
 	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "to",
 		func(ctx context.Context, v any) (time.Time, error) {
-			return ec.unmarshalNTime2timeᚐTime(ctx, v)
+			return ec.unmarshalNDateTime2timeᚐTime(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -7812,7 +7966,7 @@ func (ec *executionContext) field_Query_wageCandles_args(ctx context.Context, ra
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "from",
 		func(ctx context.Context, v any) (time.Time, error) {
-			return ec.unmarshalNTime2timeᚐTime(ctx, v)
+			return ec.unmarshalNDateTime2timeᚐTime(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -7820,7 +7974,7 @@ func (ec *executionContext) field_Query_wageCandles_args(ctx context.Context, ra
 	args["from"] = arg0
 	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "to",
 		func(ctx context.Context, v any) (time.Time, error) {
-			return ec.unmarshalNTime2timeᚐTime(ctx, v)
+			return ec.unmarshalNDateTime2timeᚐTime(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -7834,7 +7988,7 @@ func (ec *executionContext) field_Query_wageMarketStates_args(ctx context.Contex
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "from",
 		func(ctx context.Context, v any) (time.Time, error) {
-			return ec.unmarshalNTime2timeᚐTime(ctx, v)
+			return ec.unmarshalNDateTime2timeᚐTime(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -7842,12 +7996,42 @@ func (ec *executionContext) field_Query_wageMarketStates_args(ctx context.Contex
 	args["from"] = arg0
 	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "to",
 		func(ctx context.Context, v any) (time.Time, error) {
-			return ec.unmarshalNTime2timeᚐTime(ctx, v)
+			return ec.unmarshalNDateTime2timeᚐTime(ctx, v)
 		})
 	if err != nil {
 		return nil, err
 	}
 	args["to"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Region_battles_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "first",
+		func(ctx context.Context, v any) (*int32, error) {
+			return ec.unmarshalOInt2ᚖint32(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["first"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "after",
+		func(ctx context.Context, v any) (*string, error) {
+			return ec.unmarshalOID2ᚖstring(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["after"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "filter",
+		func(ctx context.Context, v any) (*model.BattleFilter, error) {
+			return ec.unmarshalOBattleFilter2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐBattleFilter(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["filter"] = arg2
 	return args, nil
 }
 
@@ -8024,7 +8208,7 @@ func (ec *executionContext) field_User_financeReports_args(ctx context.Context, 
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "from",
 		func(ctx context.Context, v any) (time.Time, error) {
-			return ec.unmarshalNTime2timeᚐTime(ctx, v)
+			return ec.unmarshalNDateTime2timeᚐTime(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -8032,7 +8216,7 @@ func (ec *executionContext) field_User_financeReports_args(ctx context.Context, 
 	args["from"] = arg0
 	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "to",
 		func(ctx context.Context, v any) (time.Time, error) {
-			return ec.unmarshalNTime2timeᚐTime(ctx, v)
+			return ec.unmarshalNDateTime2timeᚐTime(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -8046,7 +8230,7 @@ func (ec *executionContext) field_User_flipEvents_args(ctx context.Context, rawA
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "from",
 		func(ctx context.Context, v any) (time.Time, error) {
-			return ec.unmarshalNTime2timeᚐTime(ctx, v)
+			return ec.unmarshalNDateTime2timeᚐTime(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -8054,7 +8238,7 @@ func (ec *executionContext) field_User_flipEvents_args(ctx context.Context, rawA
 	args["from"] = arg0
 	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "to",
 		func(ctx context.Context, v any) (time.Time, error) {
-			return ec.unmarshalNTime2timeᚐTime(ctx, v)
+			return ec.unmarshalNDateTime2timeᚐTime(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -8554,14 +8738,14 @@ func (ec *executionContext) _Battle_endedAt(ctx context.Context, field graphql.C
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *time.Time) graphql.Marshaler {
-			return ec.marshalOTime2ᚖtimeᚐTime(ctx, selections, v)
+			return ec.marshalODateTime2ᚖtimeᚐTime(ctx, selections, v)
 		},
 		true,
 		false,
 	)
 }
 func (ec *executionContext) fieldContext_Battle_endedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("Battle", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("Battle", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _Battle_lastUpdated(ctx context.Context, field graphql.CollectedField, obj *model.Battle) (ret graphql.Marshaler) {
@@ -8577,14 +8761,14 @@ func (ec *executionContext) _Battle_lastUpdated(ctx context.Context, field graph
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_Battle_lastUpdated(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("Battle", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("Battle", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _Battle_attackerCountry(ctx context.Context, field graphql.CollectedField, obj *model.Battle) (ret graphql.Marshaler) {
@@ -8759,6 +8943,50 @@ func (ec *executionContext) fieldContext_Battle_damages(ctx context.Context, fie
 	return fc, nil
 }
 
+func (ec *executionContext) _Battle_topDamage(ctx context.Context, field graphql.CollectedField, obj *model.Battle) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Battle_topDamage(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Battle().TopDamage(ctx, obj, fc.Args["limit"].(*int32))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []*model.DamageRanking) graphql.Marshaler {
+			return ec.marshalNDamageRanking2ᚕᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐDamageRankingᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Battle_topDamage(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Battle",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_DamageRanking(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Battle_topDamage_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Battle_mus(ctx context.Context, field graphql.CollectedField, obj *model.Battle) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -8915,14 +9143,14 @@ func (ec *executionContext) _BattleDamageReport_intervalStart(ctx context.Contex
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_BattleDamageReport_intervalStart(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("BattleDamageReport", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("BattleDamageReport", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _BattleDamageReport_side(ctx context.Context, field graphql.CollectedField, obj *model.BattleDamageReport) (ret graphql.Marshaler) {
@@ -9117,14 +9345,14 @@ func (ec *executionContext) _BattleOrderChange_at(ctx context.Context, field gra
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_BattleOrderChange_at(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("BattleOrderChange", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("BattleOrderChange", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _BattleOrderChange_side(ctx context.Context, field graphql.CollectedField, obj *model.BattleOrderChange) (ret graphql.Marshaler) {
@@ -9599,14 +9827,14 @@ func (ec *executionContext) _CasesReport_updatedAt(ctx context.Context, field gr
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_CasesReport_updatedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("CasesReport", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("CasesReport", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _Company_id(ctx context.Context, field graphql.CollectedField, obj *model.Company) (ret graphql.Marshaler) {
@@ -9898,14 +10126,14 @@ func (ec *executionContext) _CompanyItemCodeChange_at(ctx context.Context, field
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_CompanyItemCodeChange_at(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("CompanyItemCodeChange", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("CompanyItemCodeChange", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _CompanyItemCodeChange_itemCode(ctx context.Context, field graphql.CollectedField, obj *model.CompanyItemCodeChange) (ret graphql.Marshaler) {
@@ -9999,14 +10227,14 @@ func (ec *executionContext) _CompanyRegionChange_at(ctx context.Context, field g
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_CompanyRegionChange_at(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("CompanyRegionChange", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("CompanyRegionChange", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _CompanyRegionChange_company(ctx context.Context, field graphql.CollectedField, obj *model.CompanyRegionChange) (ret graphql.Marshaler) {
@@ -10405,7 +10633,7 @@ func (ec *executionContext) _Country_battles(ctx context.Context, field graphql.
 		},
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.Resolvers.Country().Battles(ctx, obj, fc.Args["first"].(*int32), fc.Args["after"].(*string))
+			return ec.Resolvers.Country().Battles(ctx, obj, fc.Args["first"].(*int32), fc.Args["after"].(*string), fc.Args["filter"].(*model.BattleFilter))
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []*model.Battle) graphql.Marshaler {
@@ -10874,14 +11102,14 @@ func (ec *executionContext) _CountryFlipEvent_at(ctx context.Context, field grap
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_CountryFlipEvent_at(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("CountryFlipEvent", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("CountryFlipEvent", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _CountryFlipEvent_country(ctx context.Context, field graphql.CollectedField, obj *model.CountryFlipEvent) (ret graphql.Marshaler) {
@@ -10998,14 +11226,14 @@ func (ec *executionContext) _CountryFlipState_updatedAt(ctx context.Context, fie
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_CountryFlipState_updatedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("CountryFlipState", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("CountryFlipState", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _CountryFlipState_country(ctx context.Context, field graphql.CollectedField, obj *model.CountryFlipState) (ret graphql.Marshaler) {
@@ -11053,14 +11281,14 @@ func (ec *executionContext) _CountryInventory_updatedAt(ctx context.Context, fie
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_CountryInventory_updatedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("CountryInventory", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("CountryInventory", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _CountryInventory_lots(ctx context.Context, field graphql.CollectedField, obj *model.CountryInventory) (ret graphql.Marshaler) {
@@ -11163,14 +11391,14 @@ func (ec *executionContext) _CountryRulingPartyChange_at(ctx context.Context, fi
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_CountryRulingPartyChange_at(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("CountryRulingPartyChange", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("CountryRulingPartyChange", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _CountryRulingPartyChange_country(ctx context.Context, field graphql.CollectedField, obj *model.CountryRulingPartyChange) (ret graphql.Marshaler) {
@@ -11273,14 +11501,14 @@ func (ec *executionContext) _CountrySpecialisationChange_at(ctx context.Context,
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_CountrySpecialisationChange_at(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("CountrySpecialisationChange", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("CountrySpecialisationChange", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _CountrySpecialisationChange_itemCode(ctx context.Context, field graphql.CollectedField, obj *model.CountrySpecialisationChange) (ret graphql.Marshaler) {
@@ -11374,14 +11602,14 @@ func (ec *executionContext) _CountryTaxFlow_hourStart(ctx context.Context, field
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_CountryTaxFlow_hourStart(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("CountryTaxFlow", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("CountryTaxFlow", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _CountryTaxFlow_totalTax(ctx context.Context, field graphql.CollectedField, obj *model.CountryTaxFlow) (ret graphql.Marshaler) {
@@ -11810,14 +12038,14 @@ func (ec *executionContext) _Damage_at(ctx context.Context, field graphql.Collec
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_Damage_at(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("Damage", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("Damage", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _Damage_ammo(ctx context.Context, field graphql.CollectedField, obj *model.Damage) (ret graphql.Marshaler) {
@@ -12341,14 +12569,14 @@ func (ec *executionContext) _DismantleReport_hourStart(ctx context.Context, fiel
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_DismantleReport_hourStart(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("DismantleReport", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("DismantleReport", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _DismantleReport_count(ctx context.Context, field graphql.CollectedField, obj *model.DismantleReport) (ret graphql.Marshaler) {
@@ -12644,14 +12872,14 @@ func (ec *executionContext) _Employee_joinedAt(ctx context.Context, field graphq
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_Employee_joinedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("Employee", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("Employee", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _Employee_lastFidelityIncreaseAt(ctx context.Context, field graphql.CollectedField, obj *model.Employee) (ret graphql.Marshaler) {
@@ -12667,14 +12895,14 @@ func (ec *executionContext) _Employee_lastFidelityIncreaseAt(ctx context.Context
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_Employee_lastFidelityIncreaseAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("Employee", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("Employee", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _Employee_user(ctx context.Context, field graphql.CollectedField, obj *model.Employee) (ret graphql.Marshaler) {
@@ -12853,14 +13081,14 @@ func (ec *executionContext) _EmployeeWageChange_at(ctx context.Context, field gr
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_EmployeeWageChange_at(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("EmployeeWageChange", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("EmployeeWageChange", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _EmployeeWageChange_wage(ctx context.Context, field graphql.CollectedField, obj *model.EmployeeWageChange) (ret graphql.Marshaler) {
@@ -12986,14 +13214,14 @@ func (ec *executionContext) _EntityWealthReport_dayStart(ctx context.Context, fi
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_EntityWealthReport_dayStart(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("EntityWealthReport", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("EntityWealthReport", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _EntityWealthReport_memberCount(ctx context.Context, field graphql.CollectedField, obj *model.EntityWealthReport) (ret graphql.Marshaler) {
@@ -13404,14 +13632,14 @@ func (ec *executionContext) _EquipmentSkillPrice_updatedAt(ctx context.Context, 
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_EquipmentSkillPrice_updatedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("EquipmentSkillPrice", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("EquipmentSkillPrice", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _EquipmentUsage_itemCode(ctx context.Context, field graphql.CollectedField, obj *model.EquipmentUsage) (ret graphql.Marshaler) {
@@ -13565,14 +13793,14 @@ func (ec *executionContext) _EquipmentWindowPrice_updatedAt(ctx context.Context,
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_EquipmentWindowPrice_updatedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("EquipmentWindowPrice", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("EquipmentWindowPrice", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _Ethics_militarism(ctx context.Context, field graphql.CollectedField, obj *model.Ethics) (ret graphql.Marshaler) {
@@ -13749,14 +13977,14 @@ func (ec *executionContext) _FlipLot_boughtAt(ctx context.Context, field graphql
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_FlipLot_boughtAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("FlipLot", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("FlipLot", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _FlipLotGroup_itemCode(ctx context.Context, field graphql.CollectedField, obj *model.FlipLotGroup) (ret graphql.Marshaler) {
@@ -13896,14 +14124,14 @@ func (ec *executionContext) _InflationPoint_dayStart(ctx context.Context, field 
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_InflationPoint_dayStart(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("InflationPoint", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("InflationPoint", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _InflationPoint_indexValue(ctx context.Context, field graphql.CollectedField, obj *model.InflationPoint) (ret graphql.Marshaler) {
@@ -14112,14 +14340,14 @@ func (ec *executionContext) _InventoryLot_boughtAt(ctx context.Context, field gr
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_InventoryLot_boughtAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("InventoryLot", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("InventoryLot", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _InventoryLotGroup_itemCode(ctx context.Context, field graphql.CollectedField, obj *model.InventoryLotGroup) (ret graphql.Marshaler) {
@@ -14436,14 +14664,14 @@ func (ec *executionContext) _ItemCandle_bucketStart(ctx context.Context, field g
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_ItemCandle_bucketStart(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("ItemCandle", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("ItemCandle", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _ItemCandle_open(ctx context.Context, field graphql.CollectedField, obj *model.ItemCandle) (ret graphql.Marshaler) {
@@ -14932,14 +15160,14 @@ func (ec *executionContext) _ItemMarketReport_updatedAt(ctx context.Context, fie
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_ItemMarketReport_updatedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("ItemMarketReport", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("ItemMarketReport", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _LootTransaction_id(ctx context.Context, field graphql.CollectedField, obj *model.LootTransaction) (ret graphql.Marshaler) {
@@ -15042,14 +15270,14 @@ func (ec *executionContext) _MarketState_at(ctx context.Context, field graphql.C
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_MarketState_at(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("MarketState", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("MarketState", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _MarketState_avgWage24h(ctx context.Context, field graphql.CollectedField, obj *model.MarketState) (ret graphql.Marshaler) {
@@ -15599,7 +15827,7 @@ func (ec *executionContext) _Mu_battles(ctx context.Context, field graphql.Colle
 		},
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.Resolvers.Mu().Battles(ctx, obj, fc.Args["first"].(*int32), fc.Args["after"].(*string))
+			return ec.Resolvers.Mu().Battles(ctx, obj, fc.Args["first"].(*int32), fc.Args["after"].(*string), fc.Args["filter"].(*model.BattleFilter))
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []*model.Battle) graphql.Marshaler {
@@ -15845,14 +16073,14 @@ func (ec *executionContext) _MuMercenaryReputationChange_at(ctx context.Context,
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_MuMercenaryReputationChange_at(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("MuMercenaryReputationChange", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("MuMercenaryReputationChange", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _MuMercenaryReputationChange_mercRep(ctx context.Context, field graphql.CollectedField, obj *model.MuMercenaryReputationChange) (ret graphql.Marshaler) {
@@ -15946,14 +16174,14 @@ func (ec *executionContext) _MuNameChange_at(ctx context.Context, field graphql.
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_MuNameChange_at(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("MuNameChange", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("MuNameChange", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _MuNameChange_name(ctx context.Context, field graphql.CollectedField, obj *model.MuNameChange) (ret graphql.Marshaler) {
@@ -16047,14 +16275,14 @@ func (ec *executionContext) _MuOwnerChange_at(ctx context.Context, field graphql
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_MuOwnerChange_at(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("MuOwnerChange", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("MuOwnerChange", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _MuOwnerChange_mu(ctx context.Context, field graphql.CollectedField, obj *model.MuOwnerChange) (ret graphql.Marshaler) {
@@ -16437,14 +16665,14 @@ func (ec *executionContext) _Party_lastUpdated(ctx context.Context, field graphq
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_Party_lastUpdated(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("Party", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("Party", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _Party_country(ctx context.Context, field graphql.CollectedField, obj *model.Party) (ret graphql.Marshaler) {
@@ -16602,6 +16830,82 @@ func (ec *executionContext) fieldContext_Party_rulesCountries(_ context.Context,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return ec.childFields_Country(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Party_battles(ctx context.Context, field graphql.CollectedField, obj *model.Party) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Party_battles(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Party().Battles(ctx, obj, fc.Args["first"].(*int32), fc.Args["after"].(*string))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []*model.Battle) graphql.Marshaler {
+			return ec.marshalNBattle2ᚕᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐBattleᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Party_battles(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Party",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_Battle(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Party_battles_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Party_participation(ctx context.Context, field graphql.CollectedField, obj *model.Party) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Party_participation(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.Party().Participation(ctx, obj)
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.PartyBattleParticipation) graphql.Marshaler {
+			return ec.marshalOPartyBattleParticipation2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐPartyBattleParticipation(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_Party_participation(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Party",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_PartyBattleParticipation(ctx, field)
 		},
 	}
 	return fc, nil
@@ -16827,6 +17131,84 @@ func (ec *executionContext) fieldContext_Party_wealthReports(ctx context.Context
 	return fc, nil
 }
 
+func (ec *executionContext) _PartyBattleParticipation_party(ctx context.Context, field graphql.CollectedField, obj *model.PartyBattleParticipation) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PartyBattleParticipation_party(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Party, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.Party) graphql.Marshaler {
+			return ec.marshalNParty2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐParty(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PartyBattleParticipation_party(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PartyBattleParticipation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_Party(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PartyBattleParticipation_totalDamage(ctx context.Context, field graphql.CollectedField, obj *model.PartyBattleParticipation) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PartyBattleParticipation_totalDamage(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.TotalDamage, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v int) graphql.Marshaler {
+			return ec.marshalNInt642int(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PartyBattleParticipation_totalDamage(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PartyBattleParticipation", field, false, false, errors.New("field of type Int64 does not have child fields"))
+}
+
+func (ec *executionContext) _PartyBattleParticipation_battleCount(ctx context.Context, field graphql.CollectedField, obj *model.PartyBattleParticipation) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PartyBattleParticipation_battleCount(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.BattleCount, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v int32) graphql.Marshaler {
+			return ec.marshalNInt2int32(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PartyBattleParticipation_battleCount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PartyBattleParticipation", field, false, false, errors.New("field of type Int does not have child fields"))
+}
+
 func (ec *executionContext) _PartyDescriptionChange_id(ctx context.Context, field graphql.CollectedField, obj *model.PartyDescriptionChange) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -16863,14 +17245,14 @@ func (ec *executionContext) _PartyDescriptionChange_at(ctx context.Context, fiel
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_PartyDescriptionChange_at(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("PartyDescriptionChange", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("PartyDescriptionChange", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _PartyDescriptionChange_description(ctx context.Context, field graphql.CollectedField, obj *model.PartyDescriptionChange) (ret graphql.Marshaler) {
@@ -16964,14 +17346,14 @@ func (ec *executionContext) _PartyEthicsChange_at(ctx context.Context, field gra
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_PartyEthicsChange_at(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("PartyEthicsChange", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("PartyEthicsChange", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _PartyEthicsChange_ethics(ctx context.Context, field graphql.CollectedField, obj *model.PartyEthicsChange) (ret graphql.Marshaler) {
@@ -17074,14 +17456,14 @@ func (ec *executionContext) _PartyLeaderChange_at(ctx context.Context, field gra
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_PartyLeaderChange_at(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("PartyLeaderChange", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("PartyLeaderChange", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _PartyLeaderChange_party(ctx context.Context, field graphql.CollectedField, obj *model.PartyLeaderChange) (ret graphql.Marshaler) {
@@ -17184,14 +17566,14 @@ func (ec *executionContext) _PartyNameChange_at(ctx context.Context, field graph
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_PartyNameChange_at(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("PartyNameChange", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("PartyNameChange", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _PartyNameChange_name(ctx context.Context, field graphql.CollectedField, obj *model.PartyNameChange) (ret graphql.Marshaler) {
@@ -18971,6 +19353,82 @@ func (ec *executionContext) fieldContext_Region_companies(ctx context.Context, f
 	return fc, nil
 }
 
+func (ec *executionContext) _Region_battles(ctx context.Context, field graphql.CollectedField, obj *model.Region) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Region_battles(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Region().Battles(ctx, obj, fc.Args["first"].(*int32), fc.Args["after"].(*string), fc.Args["filter"].(*model.BattleFilter))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []*model.Battle) graphql.Marshaler {
+			return ec.marshalNBattle2ᚕᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐBattleᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Region_battles(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Region",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_Battle(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Region_battles_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Region_activeBattles(ctx context.Context, field graphql.CollectedField, obj *model.Region) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Region_activeBattles(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.Region().ActiveBattles(ctx, obj)
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []*model.Battle) graphql.Marshaler {
+			return ec.marshalNBattle2ᚕᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐBattleᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Region_activeBattles(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Region",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_Battle(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Region_ownerHistory(ctx context.Context, field graphql.CollectedField, obj *model.Region) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -19139,14 +19597,14 @@ func (ec *executionContext) _RegionDeposit_at(ctx context.Context, field graphql
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_RegionDeposit_at(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("RegionDeposit", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("RegionDeposit", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _RegionDeposit_type(ctx context.Context, field graphql.CollectedField, obj *model.RegionDeposit) (ret graphql.Marshaler) {
@@ -19185,14 +19643,14 @@ func (ec *executionContext) _RegionDeposit_startsAt(ctx context.Context, field g
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *time.Time) graphql.Marshaler {
-			return ec.marshalOTime2ᚖtimeᚐTime(ctx, selections, v)
+			return ec.marshalODateTime2ᚖtimeᚐTime(ctx, selections, v)
 		},
 		true,
 		false,
 	)
 }
 func (ec *executionContext) fieldContext_RegionDeposit_startsAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("RegionDeposit", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("RegionDeposit", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _RegionDeposit_endsAt(ctx context.Context, field graphql.CollectedField, obj *model.RegionDeposit) (ret graphql.Marshaler) {
@@ -19208,14 +19666,14 @@ func (ec *executionContext) _RegionDeposit_endsAt(ctx context.Context, field gra
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *time.Time) graphql.Marshaler {
-			return ec.marshalOTime2ᚖtimeᚐTime(ctx, selections, v)
+			return ec.marshalODateTime2ᚖtimeᚐTime(ctx, selections, v)
 		},
 		true,
 		false,
 	)
 }
 func (ec *executionContext) fieldContext_RegionDeposit_endsAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("RegionDeposit", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("RegionDeposit", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _RegionDeposit_bonusPercent(ctx context.Context, field graphql.CollectedField, obj *model.RegionDeposit) (ret graphql.Marshaler) {
@@ -19309,14 +19767,14 @@ func (ec *executionContext) _RegionOwnerChange_at(ctx context.Context, field gra
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_RegionOwnerChange_at(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("RegionOwnerChange", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("RegionOwnerChange", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _RegionOwnerChange_region(ctx context.Context, field graphql.CollectedField, obj *model.RegionOwnerChange) (ret graphql.Marshaler) {
@@ -19419,14 +19877,14 @@ func (ec *executionContext) _RegionStrategicResource_at(ctx context.Context, fie
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_RegionStrategicResource_at(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("RegionStrategicResource", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("RegionStrategicResource", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _RegionStrategicResource_resource(ctx context.Context, field graphql.CollectedField, obj *model.RegionStrategicResource) (ret graphql.Marshaler) {
@@ -19520,14 +19978,14 @@ func (ec *executionContext) _Skill_since(ctx context.Context, field graphql.Coll
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_Skill_since(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("Skill", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("Skill", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _Skill_set(ctx context.Context, field graphql.CollectedField, obj *model.Skill) (ret graphql.Marshaler) {
@@ -20315,14 +20773,14 @@ func (ec *executionContext) _TradeOffer_since(ctx context.Context, field graphql
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_TradeOffer_since(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("TradeOffer", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("TradeOffer", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _TradeOffer_user(ctx context.Context, field graphql.CollectedField, obj *model.TradeOffer) (ret graphql.Marshaler) {
@@ -20856,14 +21314,14 @@ func (ec *executionContext) _User_lastDate(ctx context.Context, field graphql.Co
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_User_lastDate(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("User", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("User", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _User_lastSeen(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
@@ -20879,14 +21337,14 @@ func (ec *executionContext) _User_lastSeen(ctx context.Context, field graphql.Co
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_User_lastSeen(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("User", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("User", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _User_wealth(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
@@ -22107,14 +22565,14 @@ func (ec *executionContext) _UserBattleParticipation_updatedAt(ctx context.Conte
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_UserBattleParticipation_updatedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("UserBattleParticipation", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("UserBattleParticipation", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _UserBattleParticipation_user(ctx context.Context, field graphql.CollectedField, obj *model.UserBattleParticipation) (ret graphql.Marshaler) {
@@ -22185,14 +22643,14 @@ func (ec *executionContext) _UserCompanyChange_at(ctx context.Context, field gra
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_UserCompanyChange_at(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("UserCompanyChange", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("UserCompanyChange", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _UserCompanyChange_user(ctx context.Context, field graphql.CollectedField, obj *model.UserCompanyChange) (ret graphql.Marshaler) {
@@ -22295,14 +22753,14 @@ func (ec *executionContext) _UserCountryChange_at(ctx context.Context, field gra
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_UserCountryChange_at(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("UserCountryChange", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("UserCountryChange", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _UserCountryChange_user(ctx context.Context, field graphql.CollectedField, obj *model.UserCountryChange) (ret graphql.Marshaler) {
@@ -22405,14 +22863,14 @@ func (ec *executionContext) _UserFinanceReport_dayStart(ctx context.Context, fie
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_UserFinanceReport_dayStart(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("UserFinanceReport", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("UserFinanceReport", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _UserFinanceReport_wagesPaid(ctx context.Context, field graphql.CollectedField, obj *model.UserFinanceReport) (ret graphql.Marshaler) {
@@ -22828,14 +23286,14 @@ func (ec *executionContext) _UserFlipEvent_at(ctx context.Context, field graphql
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_UserFlipEvent_at(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("UserFlipEvent", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("UserFlipEvent", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _UserFlipEvent_user(ctx context.Context, field graphql.CollectedField, obj *model.UserFlipEvent) (ret graphql.Marshaler) {
@@ -22929,14 +23387,14 @@ func (ec *executionContext) _UserFlipState_updatedAt(ctx context.Context, field 
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_UserFlipState_updatedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("UserFlipState", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("UserFlipState", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _UserFlipState_openLots(ctx context.Context, field graphql.CollectedField, obj *model.UserFlipState) (ret graphql.Marshaler) {
@@ -23016,14 +23474,14 @@ func (ec *executionContext) _UserInventory_updatedAt(ctx context.Context, field 
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_UserInventory_updatedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("UserInventory", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("UserInventory", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _UserInventory_items(ctx context.Context, field graphql.CollectedField, obj *model.UserInventory) (ret graphql.Marshaler) {
@@ -23126,14 +23584,14 @@ func (ec *executionContext) _UserMuChange_at(ctx context.Context, field graphql.
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_UserMuChange_at(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("UserMuChange", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("UserMuChange", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _UserMuChange_user(ctx context.Context, field graphql.CollectedField, obj *model.UserMuChange) (ret graphql.Marshaler) {
@@ -23236,14 +23694,14 @@ func (ec *executionContext) _UserNameChange_at(ctx context.Context, field graphq
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_UserNameChange_at(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("UserNameChange", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("UserNameChange", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _UserNameChange_username(ctx context.Context, field graphql.CollectedField, obj *model.UserNameChange) (ret graphql.Marshaler) {
@@ -23337,14 +23795,14 @@ func (ec *executionContext) _UserPartyChange_at(ctx context.Context, field graph
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_UserPartyChange_at(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("UserPartyChange", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("UserPartyChange", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _UserPartyChange_user(ctx context.Context, field graphql.CollectedField, obj *model.UserPartyChange) (ret graphql.Marshaler) {
@@ -23447,14 +23905,14 @@ func (ec *executionContext) _UserSkillChange_at(ctx context.Context, field graph
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_UserSkillChange_at(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("UserSkillChange", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("UserSkillChange", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _UserSkillChange_user(ctx context.Context, field graphql.CollectedField, obj *model.UserSkillChange) (ret graphql.Marshaler) {
@@ -23557,14 +24015,14 @@ func (ec *executionContext) _WageCandle_bucketStart(ctx context.Context, field g
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_WageCandle_bucketStart(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("WageCandle", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("WageCandle", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _WageCandle_open(ctx context.Context, field graphql.CollectedField, obj *model.WageCandle) (ret graphql.Marshaler) {
@@ -23764,14 +24222,14 @@ func (ec *executionContext) _WageMarketState_at(ctx context.Context, field graph
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
-			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
 func (ec *executionContext) fieldContext_WageMarketState_at(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("WageMarketState", field, false, false, errors.New("field of type Time does not have child fields"))
+	return graphql.NewScalarFieldContext("WageMarketState", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _WageMarketState_avgWeighted14d(ctx context.Context, field graphql.CollectedField, obj *model.WageMarketState) (ret graphql.Marshaler) {
@@ -25635,6 +26093,42 @@ func (ec *executionContext) _Battle(ctx context.Context, sel ast.SelectionSet, o
 					}
 				}()
 				res = ec._Battle_damages(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "topDamage":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Battle_topDamage(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -31489,6 +31983,75 @@ func (ec *executionContext) _Party(ctx context.Context, sel ast.SelectionSet, ob
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "battles":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Party_battles(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "participation":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Party_participation(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "nameHistory":
 			field := field
 
@@ -31669,6 +32232,55 @@ func (ec *executionContext) _Party(ctx context.Context, sel ast.SelectionSet, ob
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var partyBattleParticipationImplementors = []string{"PartyBattleParticipation"}
+
+func (ec *executionContext) _PartyBattleParticipation(ctx context.Context, sel ast.SelectionSet, obj *model.PartyBattleParticipation) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, partyBattleParticipationImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PartyBattleParticipation")
+		case "party":
+			out.Values[i] = ec._PartyBattleParticipation_party(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "totalDamage":
+			out.Values[i] = ec._PartyBattleParticipation_totalDamage(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "battleCount":
+			out.Values[i] = ec._PartyBattleParticipation_battleCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -32981,6 +33593,78 @@ func (ec *executionContext) _Region(ctx context.Context, sel ast.SelectionSet, o
 					}
 				}()
 				res = ec._Region_companies(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "battles":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Region_battles(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "activeBattles":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Region_activeBattles(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -37715,6 +38399,22 @@ func (ec *executionContext) marshalNDamageRanking2ᚖgithubᚗcomᚋwarerastats�
 	return ec._DamageRanking(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNDateTime2timeᚐTime(ctx context.Context, v any) (time.Time, error) {
+	res, err := graphql.UnmarshalTime(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNDateTime2timeᚐTime(ctx context.Context, sel ast.SelectionSet, v time.Time) graphql.Marshaler {
+	_ = sel
+	res := graphql.MarshalTime(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
 func (ec *executionContext) marshalNDismantleReport2ᚕᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐDismantleReportᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.DismantleReport) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
@@ -38051,6 +38751,22 @@ func (ec *executionContext) unmarshalNInt2int32(ctx context.Context, v any) (int
 func (ec *executionContext) marshalNInt2int32(ctx context.Context, sel ast.SelectionSet, v int32) graphql.Marshaler {
 	_ = sel
 	res := graphql.MarshalInt32(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) unmarshalNInt642int(ctx context.Context, v any) (int, error) {
+	res, err := graphql.UnmarshalInt(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNInt642int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
+	_ = sel
+	res := graphql.MarshalInt(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -38843,22 +39559,6 @@ func (ec *executionContext) marshalNTaxes2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋ
 	return ec._Taxes(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNTime2timeᚐTime(ctx context.Context, v any) (time.Time, error) {
-	res, err := graphql.UnmarshalTime(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel ast.SelectionSet, v time.Time) graphql.Marshaler {
-	_ = sel
-	res := graphql.MarshalTime(v)
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
-		}
-	}
-	return res
-}
-
 func (ec *executionContext) marshalNTradeOffer2ᚕᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐTradeOfferᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.TradeOffer) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
@@ -39475,6 +40175,24 @@ func (ec *executionContext) marshalOCountryInventory2ᚖgithubᚗcomᚋwarerasta
 	return ec._CountryInventory(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalODateTime2ᚖtimeᚐTime(ctx context.Context, v any) (*time.Time, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalTime(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalODateTime2ᚖtimeᚐTime(ctx context.Context, sel ast.SelectionSet, v *time.Time) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	_ = sel
+	_ = ctx
+	res := graphql.MarshalTime(*v)
+	return res
+}
+
 func (ec *executionContext) marshalOEmployee2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐEmployee(ctx context.Context, sel ast.SelectionSet, v *model.Employee) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -39591,6 +40309,13 @@ func (ec *executionContext) marshalOParty2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋ
 	return ec._Party(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalOPartyBattleParticipation2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐPartyBattleParticipation(ctx context.Context, sel ast.SelectionSet, v *model.PartyBattleParticipation) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._PartyBattleParticipation(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalORegion2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐRegion(ctx context.Context, sel ast.SelectionSet, v *model.Region) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -39620,24 +40345,6 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	_ = sel
 	_ = ctx
 	res := graphql.MarshalString(*v)
-	return res
-}
-
-func (ec *executionContext) unmarshalOTime2ᚖtimeᚐTime(ctx context.Context, v any) (*time.Time, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := graphql.UnmarshalTime(v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOTime2ᚖtimeᚐTime(ctx context.Context, sel ast.SelectionSet, v *time.Time) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	_ = sel
-	_ = ctx
-	res := graphql.MarshalTime(*v)
 	return res
 }
 

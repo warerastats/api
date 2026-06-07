@@ -717,6 +717,19 @@ func toBattleFilter(f *model.BattleFilter) trackers.BattleFilter {
 	}
 }
 
+// battleMatchesFilter reports whether a mapped battle satisfies the filter, used
+// where battles are reached via a join and filtered after loading.
+func battleMatchesFilter(b *model.Battle, f trackers.BattleFilter) bool {
+	switch f {
+	case trackers.BattleFilterActive:
+		return b.IsActive
+	case trackers.BattleFilterFinalized:
+		return b.WinnerSide != nil
+	default:
+		return true
+	}
+}
+
 func sidePtr(side *string) *enums.Side {
 	if side == nil || *side == "" {
 		return nil

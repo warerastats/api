@@ -5,7 +5,7 @@
 # time-ordered cursor). The Activity feed uses a small Connection wrapper since
 # it is a union. Time-windowed derived data takes (from, to).
 
-scalar Time
+scalar DateTime
 scalar Int64
 
 enum BattleFilter {
@@ -49,22 +49,22 @@ type Query {
   orderBook(itemCode: String!): OrderBook!
 
   # --- time-series / derived roots ---
-  itemCandles(itemCode: String!, from: Time!, to: Time!): [ItemCandle!]!
-  wageCandles(from: Time!, to: Time!): [WageCandle!]!
-  marketStates(from: Time!, to: Time!): [MarketState!]!
+  itemCandles(itemCode: String!, from: DateTime!, to: DateTime!): [ItemCandle!]!
+  wageCandles(from: DateTime!, to: DateTime!): [WageCandle!]!
+  marketStates(from: DateTime!, to: DateTime!): [MarketState!]!
   latestMarketState: MarketState
-  wageMarketStates(from: Time!, to: Time!): [WageMarketState!]!
+  wageMarketStates(from: DateTime!, to: DateTime!): [WageMarketState!]!
   latestWageMarketState: WageMarketState
-  inflation(from: Time!, to: Time!): [InflationPoint!]!
-  dismantleReports(from: Time!, to: Time!): [DismantleReport!]!
+  inflation(from: DateTime!, to: DateTime!): [InflationPoint!]!
+  dismantleReports(from: DateTime!, to: DateTime!): [DismantleReport!]!
   itemMarketReport(itemCode: String!): ItemMarketReport
   casesReports: [CasesReport!]!
   equipmentPricing(itemCode: String!, windowDays: Int!): EquipmentPricing
 
   # --- leaderboards ---
-  topDamage(from: Time!, to: Time!, limit: Int = 10): [DamageRanking!]!
-  topWageEarners(from: Time!, to: Time!, limit: Int = 10): [WageRanking!]!
-  topWagePayers(from: Time!, to: Time!, limit: Int = 10): [WageRanking!]!
+  topDamage(from: DateTime!, to: DateTime!, limit: Int = 10): [DamageRanking!]!
+  topWageEarners(from: DateTime!, to: DateTime!, limit: Int = 10): [WageRanking!]!
+  topWagePayers(from: DateTime!, to: DateTime!, limit: Int = 10): [WageRanking!]!
   topFlippers(limit: Int = 10): [UserFlipState!]!
 }
 

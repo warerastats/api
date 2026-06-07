@@ -6,8 +6,8 @@ type User {
   level: Int!
   avatarUrl: String!
   militaryRank: Int!
-  lastDate: Time!
-  lastSeen: Time!
+  lastDate: DateTime!
+  lastSeen: DateTime!
   wealth: [FloatEntry!]!
   skills: [IntEntry!]!
 
@@ -38,8 +38,8 @@ type User {
   wageHistory(first: Int = 20, after: ID): [EmployeeWageChange!]!
 
   # derived edges
-  financeReports(from: Time!, to: Time!): [UserFinanceReport!]!
-  flipEvents(from: Time!, to: Time!, first: Int = 50, after: ID): [UserFlipEvent!]!
+  financeReports(from: DateTime!, to: DateTime!): [UserFinanceReport!]!
+  flipEvents(from: DateTime!, to: DateTime!, first: Int = 50, after: ID): [UserFlipEvent!]!
   flipState: UserFlipState
   inventory: UserInventory
   battleParticipation: UserBattleParticipation
@@ -61,18 +61,18 @@ type Country {
   userCount: Int!
   parties(first: Int = 20, after: ID): [Party!]!
   regions: [Region!]!
-  battles(first: Int = 20, after: ID): [Battle!]!
+  battles(first: Int = 20, after: ID, filter: BattleFilter = ALL): [Battle!]!
 
   # history
   rulingPartyHistory(first: Int = 20, after: ID): [CountryRulingPartyChange!]!
   specialisationHistory(first: Int = 20, after: ID): [CountrySpecialisationChange!]!
 
   # derived
-  taxFlows(from: Time!, to: Time!): [CountryTaxFlow!]!
-  flipEvents(from: Time!, to: Time!, first: Int = 50, after: ID): [CountryFlipEvent!]!
+  taxFlows(from: DateTime!, to: DateTime!): [CountryTaxFlow!]!
+  flipEvents(from: DateTime!, to: DateTime!, first: Int = 50, after: ID): [CountryFlipEvent!]!
   flipState: CountryFlipState
   inventory: CountryInventory
-  wealthReports(from: Time!, to: Time!): [EntityWealthReport!]!
+  wealthReports(from: DateTime!, to: DateTime!): [EntityWealthReport!]!
 }
 
 type Taxes {
@@ -98,6 +98,8 @@ type Region {
   parties: [Party!]!
   mus: [Mu!]!
   companies(first: Int = 20, after: ID): [Company!]!
+  battles(first: Int = 20, after: ID, filter: BattleFilter = ALL): [Battle!]!
+  activeBattles: [Battle!]!
 
   # history
   ownerHistory(first: Int = 20, after: ID): [RegionOwnerChange!]!
@@ -111,7 +113,7 @@ type Party {
   description: String!
   avatarUrl: String!
   ethics: Ethics!
-  lastUpdated: Time!
+  lastUpdated: DateTime!
 
   # forward
   country: Country
@@ -121,6 +123,8 @@ type Party {
   # reverse
   members: [User!]!
   rulesCountries: [Country!]!
+  battles(first: Int = 20, after: ID): [Battle!]!
+  participation: PartyBattleParticipation
 
   # history
   nameHistory(first: Int = 20, after: ID): [PartyNameChange!]!
@@ -129,7 +133,7 @@ type Party {
   ethicsHistory(first: Int = 20, after: ID): [PartyEthicsChange!]!
 
   # derived
-  wealthReports(from: Time!, to: Time!): [EntityWealthReport!]!
+  wealthReports(from: DateTime!, to: DateTime!): [EntityWealthReport!]!
 }
 
 type Ethics {
@@ -137,6 +141,13 @@ type Ethics {
   isolationism: Int!
   imperialism: Int!
   industrialism: Int!
+}
+
+# Live cumulative battle damage rollup for a party (computed per query).
+type PartyBattleParticipation {
+  party: Party!
+  totalDamage: Int64!
+  battleCount: Int!
 }
 
 type Mu {
@@ -154,7 +165,7 @@ type Mu {
 
   # reverse
   members: [User!]!
-  battles(first: Int = 20, after: ID): [Battle!]!
+  battles(first: Int = 20, after: ID, filter: BattleFilter = ALL): [Battle!]!
 
   # history
   nameHistory(first: Int = 20, after: ID): [MuNameChange!]!
@@ -162,7 +173,7 @@ type Mu {
   mercReputationHistory(first: Int = 20, after: ID): [MuMercenaryReputationChange!]!
 
   # derived
-  wealthReports(from: Time!, to: Time!): [EntityWealthReport!]!
+  wealthReports(from: DateTime!, to: DateTime!): [EntityWealthReport!]!
 }
 
 type Battle {
@@ -171,8 +182,8 @@ type Battle {
   defenderDamages: Int!
   winnerSide: String
   isActive: Boolean!
-  endedAt: Time
-  lastUpdated: Time!
+  endedAt: DateTime
+  lastUpdated: DateTime!
 
   # forward
   attackerCountry: Country
@@ -182,11 +193,12 @@ type Battle {
 
   # reverse
   damages(first: Int = 50, after: ID, side: String, userId: ID): [Damage!]!
+  topDamage(limit: Int = 10): [DamageRanking!]!
   mus: [Mu!]!
   orderChanges(first: Int = 20, after: ID): [BattleOrderChange!]!
 
   # derived
-  damageReports(from: Time!, to: Time!): [BattleDamageReport!]!
+  damageReports(from: DateTime!, to: DateTime!): [BattleDamageReport!]!
 }
 
 type Item {
@@ -208,7 +220,7 @@ type Damage {
   side: String!
   militaryRank: Int!
   damages: Int!
-  at: Time!
+  at: DateTime!
   ammo: String
 
   # forward
@@ -228,7 +240,7 @@ type Damage {
 
 type Skill {
   id: ID!
-  since: Time!
+  since: DateTime!
   set: SkillSet!
 
   # forward
@@ -273,8 +285,8 @@ type Employee {
   id: ID!
   wage: Float!
   fidelity: Int!
-  joinedAt: Time!
-  lastFidelityIncreaseAt: Time!
+  joinedAt: DateTime!
+  lastFidelityIncreaseAt: DateTime!
 
   # forward
   user: User
@@ -293,7 +305,7 @@ type TradeOffer {
   fulfilled: Int!
   cancelled: Boolean!
   price: Float!
-  since: Time!
+  since: DateTime!
 
   # forward
   user: User
