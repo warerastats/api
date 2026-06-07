@@ -122,9 +122,11 @@ func (r *battleResolver) OrderChanges(ctx context.Context, obj *model.Battle, fi
 }
 
 // DamageReports is the resolver for the damageReports field.
-func (r *battleResolver) DamageReports(ctx context.Context, obj *model.Battle, from time.Time, to time.Time, entityKind *model.EntityKind, entityIds []string) ([]*model.BattleDamageReport, error) {
-	if err := enforceTimeWindow(ctx, from, to, reportTimeWindowDays); err != nil {
-		return nil, err
+func (r *battleResolver) DamageReports(ctx context.Context, obj *model.Battle, from *time.Time, to *time.Time, entityKind *model.EntityKind, entityIds []string) ([]*model.BattleDamageReport, error) {
+	if from != nil && to != nil {
+		if err := enforceTimeWindow(ctx, *from, *to, reportTimeWindowDays); err != nil {
+			return nil, err
+		}
 	}
 	bid, err := oidOf(obj.ID)
 	if err != nil {

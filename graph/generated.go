@@ -107,7 +107,7 @@ type ComplexityRoot struct {
 		AttackerCountry func(childComplexity int) int
 		AttackerDamages func(childComplexity int) int
 		AttackerRegion  func(childComplexity int) int
-		DamageReports   func(childComplexity int, from time.Time, to time.Time, entityKind *model.EntityKind, entityIds []string) int
+		DamageReports   func(childComplexity int, from *time.Time, to *time.Time, entityKind *model.EntityKind, entityIds []string) int
 		Damages         func(childComplexity int, first *int32, after *string, side *enums.Side, userID *string) int
 		DefenderCountry func(childComplexity int) int
 		DefenderDamages func(childComplexity int) int
@@ -933,7 +933,7 @@ type BattleResolver interface {
 	TopDamage(ctx context.Context, obj *model.Battle, limit *int32) ([]*model.DamageRanking, error)
 	Mus(ctx context.Context, obj *model.Battle) ([]*model.Mu, error)
 	OrderChanges(ctx context.Context, obj *model.Battle, first *int32, after *string) ([]*model.BattleOrderChange, error)
-	DamageReports(ctx context.Context, obj *model.Battle, from time.Time, to time.Time, entityKind *model.EntityKind, entityIds []string) ([]*model.BattleDamageReport, error)
+	DamageReports(ctx context.Context, obj *model.Battle, from *time.Time, to *time.Time, entityKind *model.EntityKind, entityIds []string) ([]*model.BattleDamageReport, error)
 }
 type BattleDamageReportResolver interface {
 	Battle(ctx context.Context, obj *model.BattleDamageReport) (*model.Battle, error)
@@ -1321,7 +1321,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.ComplexityRoot.Battle.DamageReports(childComplexity, args["from"].(time.Time), args["to"].(time.Time), args["entityKind"].(*model.EntityKind), args["entityIds"].([]string)), true
+		return e.ComplexityRoot.Battle.DamageReports(childComplexity, args["from"].(*time.Time), args["to"].(*time.Time), args["entityKind"].(*model.EntityKind), args["entityIds"].([]string)), true
 	case "Battle.damages":
 		if e.ComplexityRoot.Battle.Damages == nil {
 			break
@@ -6830,16 +6830,16 @@ func (ec *executionContext) field_Battle_damageReports_args(ctx context.Context,
 	var err error
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "from",
-		func(ctx context.Context, v any) (time.Time, error) {
-			return ec.unmarshalNDateTime2timeᚐTime(ctx, v)
+		func(ctx context.Context, v any) (*time.Time, error) {
+			return ec.unmarshalODateTime2ᚖtimeᚐTime(ctx, v)
 		})
 	if err != nil {
 		return nil, err
 	}
 	args["from"] = arg0
 	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "to",
-		func(ctx context.Context, v any) (time.Time, error) {
-			return ec.unmarshalNDateTime2timeᚐTime(ctx, v)
+		func(ctx context.Context, v any) (*time.Time, error) {
+			return ec.unmarshalODateTime2ᚖtimeᚐTime(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -9098,7 +9098,7 @@ func (ec *executionContext) _Battle_damageReports(ctx context.Context, field gra
 		},
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.Resolvers.Battle().DamageReports(ctx, obj, fc.Args["from"].(time.Time), fc.Args["to"].(time.Time), fc.Args["entityKind"].(*model.EntityKind), fc.Args["entityIds"].([]string))
+			return ec.Resolvers.Battle().DamageReports(ctx, obj, fc.Args["from"].(*time.Time), fc.Args["to"].(*time.Time), fc.Args["entityKind"].(*model.EntityKind), fc.Args["entityIds"].([]string))
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []*model.BattleDamageReport) graphql.Marshaler {
