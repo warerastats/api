@@ -23,6 +23,25 @@ func oidArgPtr(s *string) (*bson.ObjectID, error) {
 	return &id, nil
 }
 
+// oidList parses a list of hex id arguments into ObjectIDs, skipping empty entries.
+func oidList(ss []string) ([]bson.ObjectID, error) {
+	if len(ss) == 0 {
+		return nil, nil
+	}
+	out := make([]bson.ObjectID, 0, len(ss))
+	for _, s := range ss {
+		if s == "" {
+			continue
+		}
+		id, err := bson.ObjectIDFromHex(s)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, id)
+	}
+	return out, nil
+}
+
 // --- batched FK loaders (return nil when the key is absent or empty) ---
 
 func loadUser(ctx context.Context, id string) (*model.User, error) {

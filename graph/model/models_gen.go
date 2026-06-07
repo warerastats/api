@@ -74,3 +74,62 @@ func (e BattleFilter) MarshalJSON() ([]byte, error) {
 	e.MarshalGQL(&buf)
 	return buf.Bytes(), nil
 }
+
+type EntityKind string
+
+const (
+	EntityKindUser    EntityKind = "USER"
+	EntityKindCountry EntityKind = "COUNTRY"
+	EntityKindParty   EntityKind = "PARTY"
+	EntityKindMu      EntityKind = "MU"
+)
+
+var AllEntityKind = []EntityKind{
+	EntityKindUser,
+	EntityKindCountry,
+	EntityKindParty,
+	EntityKindMu,
+}
+
+func (e EntityKind) IsValid() bool {
+	switch e {
+	case EntityKindUser, EntityKindCountry, EntityKindParty, EntityKindMu:
+		return true
+	}
+	return false
+}
+
+func (e EntityKind) String() string {
+	return string(e)
+}
+
+func (e *EntityKind) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = EntityKind(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid EntityKind", str)
+	}
+	return nil
+}
+
+func (e EntityKind) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *EntityKind) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e EntityKind) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}

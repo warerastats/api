@@ -198,7 +198,7 @@ type Battle {
   orderChanges(first: Int = 20, after: ID): [BattleOrderChange!]!
 
   # derived
-  damageReports(from: DateTime!, to: DateTime!): [BattleDamageReport!]!
+  damageReports(from: DateTime!, to: DateTime!, entityKind: EntityKind, entityIds: [ID!]): [BattleDamageReport!]!
 }
 
 type Item {

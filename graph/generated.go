@@ -107,7 +107,7 @@ type ComplexityRoot struct {
 		AttackerCountry func(childComplexity int) int
 		AttackerDamages func(childComplexity int) int
 		AttackerRegion  func(childComplexity int) int
-		DamageReports   func(childComplexity int, from time.Time, to time.Time) int
+		DamageReports   func(childComplexity int, from time.Time, to time.Time, entityKind *model.EntityKind, entityIds []string) int
 		Damages         func(childComplexity int, first *int32, after *string, side *enums.Side, userID *string) int
 		DefenderCountry func(childComplexity int) int
 		DefenderDamages func(childComplexity int) int
@@ -933,7 +933,7 @@ type BattleResolver interface {
 	TopDamage(ctx context.Context, obj *model.Battle, limit *int32) ([]*model.DamageRanking, error)
 	Mus(ctx context.Context, obj *model.Battle) ([]*model.Mu, error)
 	OrderChanges(ctx context.Context, obj *model.Battle, first *int32, after *string) ([]*model.BattleOrderChange, error)
-	DamageReports(ctx context.Context, obj *model.Battle, from time.Time, to time.Time) ([]*model.BattleDamageReport, error)
+	DamageReports(ctx context.Context, obj *model.Battle, from time.Time, to time.Time, entityKind *model.EntityKind, entityIds []string) ([]*model.BattleDamageReport, error)
 }
 type BattleDamageReportResolver interface {
 	Battle(ctx context.Context, obj *model.BattleDamageReport) (*model.Battle, error)
@@ -1321,7 +1321,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.ComplexityRoot.Battle.DamageReports(childComplexity, args["from"].(time.Time), args["to"].(time.Time)), true
+		return e.ComplexityRoot.Battle.DamageReports(childComplexity, args["from"].(time.Time), args["to"].(time.Time), args["entityKind"].(*model.EntityKind), args["entityIds"].([]string)), true
 	case "Battle.damages":
 		if e.ComplexityRoot.Battle.Damages == nil {
 			break
@@ -6845,6 +6845,22 @@ func (ec *executionContext) field_Battle_damageReports_args(ctx context.Context,
 		return nil, err
 	}
 	args["to"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "entityKind",
+		func(ctx context.Context, v any) (*model.EntityKind, error) {
+			return ec.unmarshalOEntityKind2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐEntityKind(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["entityKind"] = arg2
+	arg3, err := graphql.ProcessArgField(ctx, rawArgs, "entityIds",
+		func(ctx context.Context, v any) ([]string, error) {
+			return ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["entityIds"] = arg3
 	return args, nil
 }
 
@@ -9082,7 +9098,7 @@ func (ec *executionContext) _Battle_damageReports(ctx context.Context, field gra
 		},
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.Resolvers.Battle().DamageReports(ctx, obj, fc.Args["from"].(time.Time), fc.Args["to"].(time.Time))
+			return ec.Resolvers.Battle().DamageReports(ctx, obj, fc.Args["from"].(time.Time), fc.Args["to"].(time.Time), fc.Args["entityKind"].(*model.EntityKind), fc.Args["entityIds"].([]string))
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []*model.BattleDamageReport) graphql.Marshaler {
@@ -40267,6 +40283,22 @@ func (ec *executionContext) marshalOEntity2githubᚗcomᚋwarerastatsᚋapiᚋgr
 	return ec._Entity(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalOEntityKind2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐEntityKind(ctx context.Context, v any) (*model.EntityKind, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.EntityKind)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOEntityKind2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐEntityKind(ctx context.Context, sel ast.SelectionSet, v *model.EntityKind) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
+}
+
 func (ec *executionContext) marshalOEquipmentPricing2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐEquipmentPricing(ctx context.Context, sel ast.SelectionSet, v *model.EquipmentPricing) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -40296,6 +40328,42 @@ func (ec *executionContext) marshalOFloat2ᚖfloat64(ctx context.Context, sel as
 	_ = sel
 	res := graphql.MarshalFloatContext(*v)
 	return graphql.WrapContextMarshaler(ctx, res)
+}
+
+func (ec *executionContext) unmarshalOID2ᚕstringᚄ(ctx context.Context, v any) ([]string, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]string, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNID2string(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOID2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNID2string(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalOID2ᚖstring(ctx context.Context, v any) (*string, error) {

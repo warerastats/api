@@ -703,6 +703,27 @@ func toCasesReport(r processedreports.CasesReport) *model.CasesReport {
 
 // ---------- arg helpers ----------
 
+// entityKindStr maps an EntityKind enum to the lowercase entityType stored in reports.
+func entityKindStr(k *model.EntityKind) *string {
+	if k == nil {
+		return nil
+	}
+	var s string
+	switch *k {
+	case model.EntityKindUser:
+		s = "user"
+	case model.EntityKindCountry:
+		s = "country"
+	case model.EntityKindParty:
+		s = "party"
+	case model.EntityKindMu:
+		s = "mu"
+	default:
+		return nil
+	}
+	return &s
+}
+
 func toBattleFilter(f *model.BattleFilter) trackers.BattleFilter {
 	if f == nil {
 		return trackers.BattleFilterAll

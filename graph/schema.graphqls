@@ -32,6 +32,14 @@ enum Side {
   DEFENDER
 }
 
+# The family of a polymorphic Entity reference.
+enum EntityKind {
+  USER
+  COUNTRY
+  PARTY
+  MU
+}
+
 # A search hit across the named entity families.
 union SearchResult = User | Party | Country | Mu
 
