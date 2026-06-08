@@ -172,7 +172,7 @@ func (l *ipRateLimiter) middleware(next http.Handler) http.Handler {
 			return
 		}
 		if !l.allow(clientIP(r)) {
-			writeGraphQLError(w, http.StatusTooManyRequests, "rate limit exceeded: try again later")
+			writeGraphQLError(w, http.StatusTooManyRequests, "rate limit exceeded (1 req per 10 seconds): try again later")
 			return
 		}
 		next.ServeHTTP(w, r)
