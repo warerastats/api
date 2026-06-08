@@ -71,6 +71,7 @@ type Country {
 
   # derived
   taxFlows(from: DateTime!, to: DateTime!): [CountryTaxFlow!]!
+  moneyFlows(from: DateTime!, to: DateTime!): [CountryMoneyFlowReport!]!
   flipEvents(from: DateTime!, to: DateTime!, first: Int = 50, after: ID): [CountryFlipEvent!]!
   flipState: CountryFlipState
   inventory: CountryInventory
@@ -136,6 +137,7 @@ type Party {
 
   # derived
   wealthReports(from: DateTime!, to: DateTime!): [EntityWealthReport!]!
+  moneyCountryFlows(from: DateTime!, to: DateTime!): [MuCountryMoneyFlowReport!]!
 }
 
 type Ethics {

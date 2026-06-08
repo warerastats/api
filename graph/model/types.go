@@ -585,6 +585,82 @@ type CountryTaxFlow struct {
 	CountryID     string
 }
 
+type CountryMoneyFlowCounterpart struct {
+	InEquipment  float64 `json:"inEquipment"`
+	OutEquipment float64 `json:"outEquipment"`
+	InItems      float64 `json:"inItems"`
+	OutItems     float64 `json:"outItems"`
+	InWages      float64 `json:"inWages"`
+	OutWages     float64 `json:"outWages"`
+	CountryID    string
+}
+
+type CountryMoneyFlowReport struct {
+	ID                      string                         `json:"id"`
+	DayStart                time.Time                      `json:"dayStart"`
+	InEquipment             float64                        `json:"inEquipment"`
+	OutEquipment            float64                        `json:"outEquipment"`
+	InItems                 float64                        `json:"inItems"`
+	OutItems                float64                        `json:"outItems"`
+	InWages                 float64                        `json:"inWages"`
+	OutWages                float64                        `json:"outWages"`
+	InEquipmentDomestic     float64                        `json:"inEquipmentDomestic"`
+	OutEquipmentDomestic    float64                        `json:"outEquipmentDomestic"`
+	InItemsDomestic         float64                        `json:"inItemsDomestic"`
+	OutItemsDomestic        float64                        `json:"outItemsDomestic"`
+	InWagesDomestic         float64                        `json:"inWagesDomestic"`
+	OutWagesDomestic        float64                        `json:"outWagesDomestic"`
+	InEquipmentCrossBorder  float64                        `json:"inEquipmentCrossBorder"`
+	OutEquipmentCrossBorder float64                        `json:"outEquipmentCrossBorder"`
+	InItemsCrossBorder      float64                        `json:"inItemsCrossBorder"`
+	OutItemsCrossBorder     float64                        `json:"outItemsCrossBorder"`
+	InWagesCrossBorder      float64                        `json:"inWagesCrossBorder"`
+	OutWagesCrossBorder     float64                        `json:"outWagesCrossBorder"`
+	Counterparts            []*CountryMoneyFlowCounterpart `json:"counterparts"`
+	CountryID               string
+}
+
+type MuCountryMoneyFlowCounterpart struct {
+	InEquipment  float64 `json:"inEquipment"`
+	OutEquipment float64 `json:"outEquipment"`
+	InItems      float64 `json:"inItems"`
+	OutItems     float64 `json:"outItems"`
+	InWages      float64 `json:"inWages"`
+	OutWages     float64 `json:"outWages"`
+	CountryID    string
+}
+
+type MuCountryMoneyFlowReport struct {
+	ID                                      string                           `json:"id"`
+	DayStart                                time.Time                        `json:"dayStart"`
+	InEquipment                             float64                          `json:"inEquipment"`
+	OutEquipment                            float64                          `json:"outEquipment"`
+	InItems                                 float64                          `json:"inItems"`
+	OutItems                                float64                          `json:"outItems"`
+	InWages                                 float64                          `json:"inWages"`
+	OutWages                                float64                          `json:"outWages"`
+	InEquipmentInsideMu                     float64                          `json:"inEquipmentInsideMu"`
+	OutEquipmentInsideMu                    float64                          `json:"outEquipmentInsideMu"`
+	InItemsInsideMu                         float64                          `json:"inItemsInsideMu"`
+	OutItemsInsideMu                        float64                          `json:"outItemsInsideMu"`
+	InWagesInsideMu                         float64                          `json:"inWagesInsideMu"`
+	OutWagesInsideMu                        float64                          `json:"outWagesInsideMu"`
+	InEquipmentSameCountryOutsideMu         float64                          `json:"inEquipmentSameCountryOutsideMu"`
+	OutEquipmentSameCountryOutsideMu        float64                          `json:"outEquipmentSameCountryOutsideMu"`
+	InItemsSameCountryOutsideMu             float64                          `json:"inItemsSameCountryOutsideMu"`
+	OutItemsSameCountryOutsideMu            float64                          `json:"outItemsSameCountryOutsideMu"`
+	InWagesSameCountryOutsideMu             float64                          `json:"inWagesSameCountryOutsideMu"`
+	OutWagesSameCountryOutsideMu            float64                          `json:"outWagesSameCountryOutsideMu"`
+	InEquipmentCrossBorderOutsideMuCountry  float64                          `json:"inEquipmentCrossBorderOutsideMuCountry"`
+	OutEquipmentCrossBorderOutsideMuCountry float64                          `json:"outEquipmentCrossBorderOutsideMuCountry"`
+	InItemsCrossBorderOutsideMuCountry      float64                          `json:"inItemsCrossBorderOutsideMuCountry"`
+	OutItemsCrossBorderOutsideMuCountry     float64                          `json:"outItemsCrossBorderOutsideMuCountry"`
+	InWagesCrossBorderOutsideMuCountry      float64                          `json:"inWagesCrossBorderOutsideMuCountry"`
+	OutWagesCrossBorderOutsideMuCountry     float64                          `json:"outWagesCrossBorderOutsideMuCountry"`
+	Counterparts                            []*MuCountryMoneyFlowCounterpart `json:"counterparts"`
+	MuID                                    string
+}
+
 type CountryFlipEvent struct {
 	ID          string    `json:"id"`
 	ItemCode    string    `json:"itemCode"`

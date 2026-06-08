@@ -560,6 +560,90 @@ func toCountryTaxFlow(f processedreports.CountryTaxFlow) *model.CountryTaxFlow {
 	}
 }
 
+func toCountryMoneyFlowReport(r processedreports.CountryMoneyFlowReport) *model.CountryMoneyFlowReport {
+	counterparts := make([]*model.CountryMoneyFlowCounterpart, len(r.Counterparts))
+	for i, cp := range r.Counterparts {
+		counterparts[i] = &model.CountryMoneyFlowCounterpart{
+			InEquipment:  cp.InEquipment,
+			OutEquipment: cp.OutEquipment,
+			InItems:      cp.InItems,
+			OutItems:     cp.OutItems,
+			InWages:      cp.InWages,
+			OutWages:     cp.OutWages,
+			CountryID:    cp.CountryID.Hex(),
+		}
+	}
+	return &model.CountryMoneyFlowReport{
+		ID:                      r.ID,
+		DayStart:                r.DayStart,
+		InEquipment:             r.InEquipment,
+		OutEquipment:            r.OutEquipment,
+		InItems:                 r.InItems,
+		OutItems:                r.OutItems,
+		InWages:                 r.InWages,
+		OutWages:                r.OutWages,
+		InEquipmentDomestic:     r.InEquipmentDomestic,
+		OutEquipmentDomestic:    r.OutEquipmentDomestic,
+		InItemsDomestic:         r.InItemsDomestic,
+		OutItemsDomestic:        r.OutItemsDomestic,
+		InWagesDomestic:         r.InWagesDomestic,
+		OutWagesDomestic:        r.OutWagesDomestic,
+		InEquipmentCrossBorder:  r.InEquipmentCrossBorder,
+		OutEquipmentCrossBorder: r.OutEquipmentCrossBorder,
+		InItemsCrossBorder:      r.InItemsCrossBorder,
+		OutItemsCrossBorder:     r.OutItemsCrossBorder,
+		InWagesCrossBorder:      r.InWagesCrossBorder,
+		OutWagesCrossBorder:     r.OutWagesCrossBorder,
+		Counterparts:            counterparts,
+		CountryID:               r.CountryID.Hex(),
+	}
+}
+
+func toMuCountryMoneyFlowReport(r processedreports.MuCountryMoneyFlowReport) *model.MuCountryMoneyFlowReport {
+	counterparts := make([]*model.MuCountryMoneyFlowCounterpart, len(r.Counterparts))
+	for i, cp := range r.Counterparts {
+		counterparts[i] = &model.MuCountryMoneyFlowCounterpart{
+			InEquipment:  cp.InEquipment,
+			OutEquipment: cp.OutEquipment,
+			InItems:      cp.InItems,
+			OutItems:     cp.OutItems,
+			InWages:      cp.InWages,
+			OutWages:     cp.OutWages,
+			CountryID:    cp.CountryID.Hex(),
+		}
+	}
+	return &model.MuCountryMoneyFlowReport{
+		ID:                                      r.ID,
+		DayStart:                                r.DayStart,
+		InEquipment:                             r.InEquipment,
+		OutEquipment:                            r.OutEquipment,
+		InItems:                                 r.InItems,
+		OutItems:                                r.OutItems,
+		InWages:                                 r.InWages,
+		OutWages:                                r.OutWages,
+		InEquipmentInsideMu:                     r.InEquipmentInsideMu,
+		OutEquipmentInsideMu:                    r.OutEquipmentInsideMu,
+		InItemsInsideMu:                         r.InItemsInsideMu,
+		OutItemsInsideMu:                        r.OutItemsInsideMu,
+		InWagesInsideMu:                         r.InWagesInsideMu,
+		OutWagesInsideMu:                        r.OutWagesInsideMu,
+		InEquipmentSameCountryOutsideMu:         r.InEquipmentSameCountryOutsideMu,
+		OutEquipmentSameCountryOutsideMu:        r.OutEquipmentSameCountryOutsideMu,
+		InItemsSameCountryOutsideMu:             r.InItemsSameCountryOutsideMu,
+		OutItemsSameCountryOutsideMu:            r.OutItemsSameCountryOutsideMu,
+		InWagesSameCountryOutsideMu:             r.InWagesSameCountryOutsideMu,
+		OutWagesSameCountryOutsideMu:            r.OutWagesSameCountryOutsideMu,
+		InEquipmentCrossBorderOutsideMuCountry:  r.InEquipmentCrossBorderOutsideMuCountry,
+		OutEquipmentCrossBorderOutsideMuCountry: r.OutEquipmentCrossBorderOutsideMuCountry,
+		InItemsCrossBorderOutsideMuCountry:      r.InItemsCrossBorderOutsideMuCountry,
+		OutItemsCrossBorderOutsideMuCountry:     r.OutItemsCrossBorderOutsideMuCountry,
+		InWagesCrossBorderOutsideMuCountry:      r.InWagesCrossBorderOutsideMuCountry,
+		OutWagesCrossBorderOutsideMuCountry:     r.OutWagesCrossBorderOutsideMuCountry,
+		Counterparts:                            counterparts,
+		MuID:                                    r.MuID.Hex(),
+	}
+}
+
 func toCountryFlipEvent(e processedestimators.CountryFlipEvent) *model.CountryFlipEvent {
 	return &model.CountryFlipEvent{
 		ID: e.ID.Hex(), ItemCode: e.ItemCode, Quantity: int32(e.Quantity), BuyCost: e.BuyCost,

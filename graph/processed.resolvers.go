@@ -51,6 +51,16 @@ func (r *countryInventoryResolver) Country(ctx context.Context, obj *model.Count
 }
 
 // Country is the resolver for the country field.
+func (r *countryMoneyFlowCounterpartResolver) Country(ctx context.Context, obj *model.CountryMoneyFlowCounterpart) (*model.Country, error) {
+	return loadCountry(ctx, obj.CountryID)
+}
+
+// Country is the resolver for the country field.
+func (r *countryMoneyFlowReportResolver) Country(ctx context.Context, obj *model.CountryMoneyFlowReport) (*model.Country, error) {
+	return loadCountry(ctx, obj.CountryID)
+}
+
+// Country is the resolver for the country field.
 func (r *countryTaxFlowResolver) Country(ctx context.Context, obj *model.CountryTaxFlow) (*model.Country, error) {
 	return loadCountry(ctx, obj.CountryID)
 }
@@ -63,6 +73,16 @@ func (r *entityWealthReportResolver) Entity(ctx context.Context, obj *model.Enti
 // PctChange24h is the resolver for the pctChange24h field.
 func (r *inflationPointResolver) PctChange24h(ctx context.Context, obj *model.InflationPoint) (float64, error) {
 	return obj.PctChange, nil
+}
+
+// Country is the resolver for the country field.
+func (r *muCountryMoneyFlowCounterpartResolver) Country(ctx context.Context, obj *model.MuCountryMoneyFlowCounterpart) (*model.Country, error) {
+	return loadCountry(ctx, obj.CountryID)
+}
+
+// Mu is the resolver for the mu field.
+func (r *muCountryMoneyFlowReportResolver) Mu(ctx context.Context, obj *model.MuCountryMoneyFlowReport) (*model.Mu, error) {
+	return loadMu(ctx, obj.MuID)
 }
 
 // Country is the resolver for the country field.
@@ -138,6 +158,16 @@ func (r *Resolver) CountryFlipState() CountryFlipStateResolver { return &country
 // CountryInventory returns CountryInventoryResolver implementation.
 func (r *Resolver) CountryInventory() CountryInventoryResolver { return &countryInventoryResolver{r} }
 
+// CountryMoneyFlowCounterpart returns CountryMoneyFlowCounterpartResolver implementation.
+func (r *Resolver) CountryMoneyFlowCounterpart() CountryMoneyFlowCounterpartResolver {
+	return &countryMoneyFlowCounterpartResolver{r}
+}
+
+// CountryMoneyFlowReport returns CountryMoneyFlowReportResolver implementation.
+func (r *Resolver) CountryMoneyFlowReport() CountryMoneyFlowReportResolver {
+	return &countryMoneyFlowReportResolver{r}
+}
+
 // CountryTaxFlow returns CountryTaxFlowResolver implementation.
 func (r *Resolver) CountryTaxFlow() CountryTaxFlowResolver { return &countryTaxFlowResolver{r} }
 
@@ -148,6 +178,16 @@ func (r *Resolver) EntityWealthReport() EntityWealthReportResolver {
 
 // InflationPoint returns InflationPointResolver implementation.
 func (r *Resolver) InflationPoint() InflationPointResolver { return &inflationPointResolver{r} }
+
+// MuCountryMoneyFlowCounterpart returns MuCountryMoneyFlowCounterpartResolver implementation.
+func (r *Resolver) MuCountryMoneyFlowCounterpart() MuCountryMoneyFlowCounterpartResolver {
+	return &muCountryMoneyFlowCounterpartResolver{r}
+}
+
+// MuCountryMoneyFlowReport returns MuCountryMoneyFlowReportResolver implementation.
+func (r *Resolver) MuCountryMoneyFlowReport() MuCountryMoneyFlowReportResolver {
+	return &muCountryMoneyFlowReportResolver{r}
+}
 
 // TaxHijack returns TaxHijackResolver implementation.
 func (r *Resolver) TaxHijack() TaxHijackResolver { return &taxHijackResolver{r} }
@@ -181,9 +221,13 @@ type battleDamageReportResolver struct{ *Resolver }
 type countryFlipEventResolver struct{ *Resolver }
 type countryFlipStateResolver struct{ *Resolver }
 type countryInventoryResolver struct{ *Resolver }
+type countryMoneyFlowCounterpartResolver struct{ *Resolver }
+type countryMoneyFlowReportResolver struct{ *Resolver }
 type countryTaxFlowResolver struct{ *Resolver }
 type entityWealthReportResolver struct{ *Resolver }
 type inflationPointResolver struct{ *Resolver }
+type muCountryMoneyFlowCounterpartResolver struct{ *Resolver }
+type muCountryMoneyFlowReportResolver struct{ *Resolver }
 type taxHijackResolver struct{ *Resolver }
 type taxSourceResolver struct{ *Resolver }
 type userBattleParticipationResolver struct{ *Resolver }

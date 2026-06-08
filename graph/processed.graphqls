@@ -94,6 +94,82 @@ type CountryTaxFlow {
   country: Country!
 }
 
+type CountryMoneyFlowCounterpart {
+  inEquipment: Float!
+  outEquipment: Float!
+  inItems: Float!
+  outItems: Float!
+  inWages: Float!
+  outWages: Float!
+  country: Country!
+}
+
+type CountryMoneyFlowReport {
+  id: ID!
+  dayStart: DateTime!
+  inEquipment: Float!
+  outEquipment: Float!
+  inItems: Float!
+  outItems: Float!
+  inWages: Float!
+  outWages: Float!
+  inEquipmentDomestic: Float!
+  outEquipmentDomestic: Float!
+  inItemsDomestic: Float!
+  outItemsDomestic: Float!
+  inWagesDomestic: Float!
+  outWagesDomestic: Float!
+  inEquipmentCrossBorder: Float!
+  outEquipmentCrossBorder: Float!
+  inItemsCrossBorder: Float!
+  outItemsCrossBorder: Float!
+  inWagesCrossBorder: Float!
+  outWagesCrossBorder: Float!
+  counterparts: [CountryMoneyFlowCounterpart!]!
+  country: Country!
+}
+
+type MuCountryMoneyFlowCounterpart {
+  inEquipment: Float!
+  outEquipment: Float!
+  inItems: Float!
+  outItems: Float!
+  inWages: Float!
+  outWages: Float!
+  country: Country!
+}
+
+type MuCountryMoneyFlowReport {
+  id: ID!
+  dayStart: DateTime!
+  inEquipment: Float!
+  outEquipment: Float!
+  inItems: Float!
+  outItems: Float!
+  inWages: Float!
+  outWages: Float!
+  inEquipmentInsideMu: Float!
+  outEquipmentInsideMu: Float!
+  inItemsInsideMu: Float!
+  outItemsInsideMu: Float!
+  inWagesInsideMu: Float!
+  outWagesInsideMu: Float!
+  inEquipmentSameCountryOutsideMu: Float!
+  outEquipmentSameCountryOutsideMu: Float!
+  inItemsSameCountryOutsideMu: Float!
+  outItemsSameCountryOutsideMu: Float!
+  inWagesSameCountryOutsideMu: Float!
+  outWagesSameCountryOutsideMu: Float!
+  inEquipmentCrossBorderOutsideMuCountry: Float!
+  outEquipmentCrossBorderOutsideMuCountry: Float!
+  inItemsCrossBorderOutsideMuCountry: Float!
+  outItemsCrossBorderOutsideMuCountry: Float!
+  inWagesCrossBorderOutsideMuCountry: Float!
+  outWagesCrossBorderOutsideMuCountry: Float!
+  counterparts: [MuCountryMoneyFlowCounterpart!]!
+  mu: Mu!
+}
+
 type CountryFlipEvent {
   id: ID!
   itemCode: String!
