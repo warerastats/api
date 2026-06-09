@@ -698,7 +698,10 @@ type ComplexityRoot struct {
 		Item                  func(childComplexity int, id string) int
 		ItemCandles           func(childComplexity int, itemCode string, from time.Time, to time.Time) int
 		ItemMarketReport      func(childComplexity int, itemCode string) int
+		LatestInflation       func(childComplexity int) int
+		LatestItemCandle      func(childComplexity int, itemCode string) int
 		LatestMarketState     func(childComplexity int) int
+		LatestWageCandle      func(childComplexity int) int
 		LatestWageMarketState func(childComplexity int) int
 		MarketStates          func(childComplexity int, from time.Time, to time.Time) int
 		Mu                    func(childComplexity int, id string) int
@@ -1221,12 +1224,15 @@ type QueryResolver interface {
 	Mus(ctx context.Context, first *int32, after *string, activeOnly *bool) ([]*model.Mu, error)
 	OrderBook(ctx context.Context, itemCode string) (*model.OrderBook, error)
 	ItemCandles(ctx context.Context, itemCode string, from time.Time, to time.Time) ([]*model.ItemCandle, error)
+	LatestItemCandle(ctx context.Context, itemCode string) (*model.ItemCandle, error)
 	WageCandles(ctx context.Context, from time.Time, to time.Time) ([]*model.WageCandle, error)
+	LatestWageCandle(ctx context.Context) (*model.WageCandle, error)
 	MarketStates(ctx context.Context, from time.Time, to time.Time) ([]*model.MarketState, error)
 	LatestMarketState(ctx context.Context) (*model.MarketState, error)
 	WageMarketStates(ctx context.Context, from time.Time, to time.Time) ([]*model.WageMarketState, error)
 	LatestWageMarketState(ctx context.Context) (*model.WageMarketState, error)
 	Inflation(ctx context.Context, from time.Time, to time.Time) ([]*model.InflationPoint, error)
+	LatestInflation(ctx context.Context) (*model.InflationPoint, error)
 	DismantleReports(ctx context.Context, from time.Time, to time.Time) ([]*model.DismantleReport, error)
 	ItemMarketReport(ctx context.Context, itemCode string) (*model.ItemMarketReport, error)
 	CasesReports(ctx context.Context) ([]*model.CasesReport, error)
@@ -4121,12 +4127,35 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.ItemMarketReport(childComplexity, args["itemCode"].(string)), true
+	case "Query.latestInflation":
+		if e.ComplexityRoot.Query.LatestInflation == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Query.LatestInflation(childComplexity), true
+	case "Query.latestItemCandle":
+		if e.ComplexityRoot.Query.LatestItemCandle == nil {
+			break
+		}
+
+		args, err := ec.field_Query_latestItemCandle_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.LatestItemCandle(childComplexity, args["itemCode"].(string)), true
 	case "Query.latestMarketState":
 		if e.ComplexityRoot.Query.LatestMarketState == nil {
 			break
 		}
 
 		return e.ComplexityRoot.Query.LatestMarketState(childComplexity), true
+	case "Query.latestWageCandle":
+		if e.ComplexityRoot.Query.LatestWageCandle == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Query.LatestWageCandle(childComplexity), true
 	case "Query.latestWageMarketState":
 		if e.ComplexityRoot.Query.LatestWageMarketState == nil {
 			break
@@ -8478,6 +8507,20 @@ func (ec *executionContext) field_Query_item_args(ctx context.Context, rawArgs m
 		return nil, err
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_latestItemCandle_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "itemCode",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNString2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["itemCode"] = arg0
 	return args, nil
 }
 
@@ -20899,6 +20942,50 @@ func (ec *executionContext) fieldContext_Query_itemCandles(ctx context.Context, 
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_latestItemCandle(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Query_latestItemCandle(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().LatestItemCandle(ctx, fc.Args["itemCode"].(string))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.ItemCandle) graphql.Marshaler {
+			return ec.marshalOItemCandle2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐItemCandle(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_Query_latestItemCandle(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_ItemCandle(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_latestItemCandle_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_wageCandles(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -20939,6 +21026,38 @@ func (ec *executionContext) fieldContext_Query_wageCandles(ctx context.Context, 
 	if fc.Args, err = ec.field_Query_wageCandles_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_latestWageCandle(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Query_latestWageCandle(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.Query().LatestWageCandle(ctx)
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.WageCandle) graphql.Marshaler {
+			return ec.marshalOWageCandle2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐWageCandle(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_Query_latestWageCandle(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_WageCandle(ctx, field)
+		},
 	}
 	return fc, nil
 }
@@ -21135,6 +21254,38 @@ func (ec *executionContext) fieldContext_Query_inflation(ctx context.Context, fi
 	if fc.Args, err = ec.field_Query_inflation_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_latestInflation(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Query_latestInflation(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.Query().LatestInflation(ctx)
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.InflationPoint) graphql.Marshaler {
+			return ec.marshalOInflationPoint2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐInflationPoint(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_Query_latestInflation(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_InflationPoint(ctx, field)
+		},
 	}
 	return fc, nil
 }
@@ -36353,6 +36504,25 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "latestItemCandle":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_latestItemCandle(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "wageCandles":
 			field := field
 
@@ -36366,6 +36536,25 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "latestWageCandle":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_latestWageCandle(ctx, field)
 				return res
 			}
 
@@ -36470,6 +36659,25 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "latestInflation":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_latestInflation(ctx, field)
 				return res
 			}
 
@@ -43811,6 +44019,13 @@ func (ec *executionContext) marshalOID2ᚖstring(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) marshalOInflationPoint2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐInflationPoint(ctx context.Context, sel ast.SelectionSet, v *model.InflationPoint) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._InflationPoint(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalOInt2ᚖint32(ctx context.Context, v any) (*int32, error) {
 	if v == nil {
 		return nil, nil
@@ -43834,6 +44049,13 @@ func (ec *executionContext) marshalOItem2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋg
 		return graphql.Null
 	}
 	return ec._Item(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOItemCandle2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐItemCandle(ctx context.Context, sel ast.SelectionSet, v *model.ItemCandle) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ItemCandle(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOItemMarketReport2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐItemMarketReport(ctx context.Context, sel ast.SelectionSet, v *model.ItemMarketReport) graphql.Marshaler {
@@ -43993,6 +44215,13 @@ func (ec *executionContext) marshalOUserInventory2ᚖgithubᚗcomᚋwarerastats�
 		return graphql.Null
 	}
 	return ec._UserInventory(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOWageCandle2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐWageCandle(ctx context.Context, sel ast.SelectionSet, v *model.WageCandle) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._WageCandle(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOWageMarketState2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐWageMarketState(ctx context.Context, sel ast.SelectionSet, v *model.WageMarketState) graphql.Marshaler {

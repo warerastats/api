@@ -214,6 +214,15 @@ func (r *queryResolver) ItemCandles(ctx context.Context, itemCode string, from t
 	return mapVal(rows, toItemCandle), nil
 }
 
+// LatestItemCandle is the resolver for the latestItemCandle field.
+func (r *queryResolver) LatestItemCandle(ctx context.Context, itemCode string) (*model.ItemCandle, error) {
+	st, ok, err := r.Colls.Processed.Candles.ItemCandle.GetLatest(ctx, itemCode)
+	if err != nil || !ok {
+		return nil, err
+	}
+	return toItemCandle(*st), nil
+}
+
 // WageCandles is the resolver for the wageCandles field.
 func (r *queryResolver) WageCandles(ctx context.Context, from time.Time, to time.Time) ([]*model.WageCandle, error) {
 	if err := enforceTimeWindow(ctx, from, to, reportTimeWindowDays); err != nil {
@@ -224,6 +233,15 @@ func (r *queryResolver) WageCandles(ctx context.Context, from time.Time, to time
 		return nil, err
 	}
 	return mapVal(rows, toWageCandle), nil
+}
+
+// LatestWageCandle is the resolver for the latestWageCandle field.
+func (r *queryResolver) LatestWageCandle(ctx context.Context) (*model.WageCandle, error) {
+	st, ok, err := r.Colls.Processed.Candles.WageCandle.GetLatest(ctx)
+	if err != nil || !ok {
+		return nil, err
+	}
+	return toWageCandle(*st), nil
 }
 
 // MarketStates is the resolver for the marketStates field.
@@ -278,6 +296,15 @@ func (r *queryResolver) Inflation(ctx context.Context, from time.Time, to time.T
 		return nil, err
 	}
 	return mapVal(rows, toInflationPoint), nil
+}
+
+// LatestInflation is the resolver for the latestInflation field.
+func (r *queryResolver) LatestInflation(ctx context.Context) (*model.InflationPoint, error) {
+	st, ok, err := r.Colls.Processed.Estimators.Inflation.GetLatest(ctx)
+	if err != nil || !ok {
+		return nil, err
+	}
+	return toInflationPoint(*st), nil
 }
 
 // DismantleReports is the resolver for the dismantleReports field.

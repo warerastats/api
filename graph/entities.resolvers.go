@@ -1503,26 +1503,3 @@ type regionResolver struct{ *Resolver }
 type skillResolver struct{ *Resolver }
 type tradeOfferResolver struct{ *Resolver }
 type userResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//    it when you're done.
-//  - You have helper methods in this file. Move them out to keep these resolver files clean.
-/*
-	func (r *muResolver) MoneyCountryFlows(ctx context.Context, obj *model.Mu, from time.Time, to time.Time) ([]*model.MuCountryMoneyFlowReport, error) {
-	if err := enforceTimeWindow(ctx, from, to, reportTimeWindowDays); err != nil {
-		return nil, err
-	}
-	mid, err := oidOf(obj.ID)
-	if err != nil {
-		return nil, err
-	}
-	rows, err := r.Colls.Processed.Reports.MuCountryMoneyFlow.GetByMuRange(ctx, mid, from, to)
-	if err != nil {
-		return nil, err
-	}
-	return mapVal(rows, toMuCountryMoneyFlowReport), nil
-}
-*/

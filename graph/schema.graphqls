@@ -71,12 +71,15 @@ type Query {
 
   # --- time-series / derived roots ---
   itemCandles(itemCode: String!, from: DateTime!, to: DateTime!): [ItemCandle!]!
+  latestItemCandle(itemCode: String!): ItemCandle
   wageCandles(from: DateTime!, to: DateTime!): [WageCandle!]!
+  latestWageCandle: WageCandle
   marketStates(from: DateTime!, to: DateTime!): [MarketState!]!
   latestMarketState: MarketState
   wageMarketStates(from: DateTime!, to: DateTime!): [WageMarketState!]!
   latestWageMarketState: WageMarketState
   inflation(from: DateTime!, to: DateTime!): [InflationPoint!]!
+  latestInflation: InflationPoint
   dismantleReports(from: DateTime!, to: DateTime!): [DismantleReport!]!
   itemMarketReport(itemCode: String!): ItemMarketReport
   casesReports: [CasesReport!]!
