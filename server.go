@@ -25,7 +25,7 @@ const defaultPort = "8080"
 const (
 	playgroundMaxDepth     = 7
 	playgroundMaxPageSize  = 50
-	playgroundMaxQueryCost = 50000
+	playgroundMaxQueryCost = 100000
 	playgroundComplexity   = 2000
 	playgroundRateInterval = 10 * time.Second
 )
