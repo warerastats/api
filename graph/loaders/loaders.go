@@ -35,7 +35,7 @@ func newLoaders(colls *models.Collections) *Loaders {
 
 	return &Loaders{
 		User: dataloadgen.NewLoader(func(ctx context.Context, keys []string) ([]*trackers.User, []error) {
-			return batch(ctx, keys, colls.Trackers.User.GetMany, func(u trackers.User) bson.ObjectID { return u.ID })
+			return batch(ctx, keys, colls.Trackers.User.GetManyBasic, func(u trackers.User) bson.ObjectID { return u.ID })
 		}, opt),
 
 		Country: dataloadgen.NewLoader(func(ctx context.Context, keys []string) ([]*trackers.Country, []error) {
@@ -47,7 +47,7 @@ func newLoaders(colls *models.Collections) *Loaders {
 		}, opt),
 
 		Mu: dataloadgen.NewLoader(func(ctx context.Context, keys []string) ([]*trackers.Mu, []error) {
-			return batch(ctx, keys, colls.Trackers.Mu.GetMany, func(m trackers.Mu) bson.ObjectID { return m.ID })
+			return batch(ctx, keys, colls.Trackers.Mu.GetManyBasic, func(m trackers.Mu) bson.ObjectID { return m.ID })
 		}, opt),
 
 		Region: dataloadgen.NewLoader(func(ctx context.Context, keys []string) ([]*trackers.Region, []error) {
