@@ -39,6 +39,7 @@ enum EntityKind {
   PARTY
   MU
   ALLIANCE
+  SIDE
 }
 
 # A search hit across the named entity families.

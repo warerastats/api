@@ -826,6 +826,8 @@ func entityKindStr(k *model.EntityKind) *string {
 		s = "mu"
 	case model.EntityKindAlliance:
 		s = "alliance"
+	case model.EntityKindSide:
+		s = "side"
 	default:
 		return nil
 	}

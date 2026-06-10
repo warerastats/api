@@ -83,6 +83,7 @@ const (
 	EntityKindParty    EntityKind = "PARTY"
 	EntityKindMu       EntityKind = "MU"
 	EntityKindAlliance EntityKind = "ALLIANCE"
+	EntityKindSide     EntityKind = "SIDE"
 )
 
 var AllEntityKind = []EntityKind{
@@ -91,11 +92,12 @@ var AllEntityKind = []EntityKind{
 	EntityKindParty,
 	EntityKindMu,
 	EntityKindAlliance,
+	EntityKindSide,
 }
 
 func (e EntityKind) IsValid() bool {
 	switch e {
-	case EntityKindUser, EntityKindCountry, EntityKindParty, EntityKindMu, EntityKindAlliance:
+	case EntityKindUser, EntityKindCountry, EntityKindParty, EntityKindMu, EntityKindAlliance, EntityKindSide:
 		return true
 	}
 	return false
