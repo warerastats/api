@@ -105,6 +105,7 @@ func toCountry(c *trackers.Country) *model.Country {
 		},
 		Specialisation: c.SpecialisationItemCode,
 		RulingPartyID:  hexPtr(c.RulingPartyID),
+		AllianceID:     hexPtr(c.AllianceID),
 	}
 }
 
@@ -178,22 +179,34 @@ func toMu(m *trackers.Mu) *model.Mu {
 	}
 }
 
+func toAlliance(a *trackers.Alliance) *model.Alliance {
+	if a == nil {
+		return nil
+	}
+	return &model.Alliance{
+		ID:   a.ID.Hex(),
+		Name: a.Name,
+	}
+}
+
 func toBattle(b *trackers.Battle) *model.Battle {
 	if b == nil {
 		return nil
 	}
 	return &model.Battle{
-		ID:                b.ID.Hex(),
-		AttackerDamages:   int32(b.AttackerDamages),
-		DefenderDamages:   int32(b.DefenderDamages),
-		WinnerSide:        (*enums.Side)(b.WinnerSide),
-		IsActive:          b.IsActive,
-		EndedAt:           b.EndedAt,
-		LastUpdated:       b.LastUpdated,
-		AttackerCountryID: b.AttackerCountryID.Hex(),
-		DefenderCountryID: b.DefenderCountryID.Hex(),
-		AttackerRegionID:  hexPtr(b.AttackerRegionID),
-		DefenderRegionID:  b.DefenderRegionID.Hex(),
+		ID:                 b.ID.Hex(),
+		AttackerDamages:    int32(b.AttackerDamages),
+		DefenderDamages:    int32(b.DefenderDamages),
+		WinnerSide:         (*enums.Side)(b.WinnerSide),
+		IsActive:           b.IsActive,
+		EndedAt:            b.EndedAt,
+		LastUpdated:        b.LastUpdated,
+		AttackerCountryID:  b.AttackerCountryID.Hex(),
+		DefenderCountryID:  b.DefenderCountryID.Hex(),
+		AttackerAllianceID: hexPtr(b.AttackerAllianceID),
+		DefenderAllianceID: hexPtr(b.DefenderAllianceID),
+		AttackerRegionID:   hexPtr(b.AttackerRegionID),
+		DefenderRegionID:   b.DefenderRegionID.Hex(),
 	}
 }
 
@@ -222,6 +235,7 @@ func toDamage(d trackers.Damage) *model.Damage {
 		BattleID:     d.BattleID.Hex(),
 		UserID:       d.UserID.Hex(),
 		CountryID:    d.CountryID.Hex(),
+		AllianceID:   hexPtr(d.AllianceID),
 		MuID:         hexPtr(d.MuID),
 		PartyID:      hexPtr(d.PartyID),
 		SkillID:      d.SkillID.Hex(),
@@ -442,6 +456,14 @@ func toCountryRulingPartyChange(e events.CountryRulingPartyChange) *model.Countr
 
 func toCountrySpecialisationChange(e events.CountrySpecialisationChange) *model.CountrySpecialisationChange {
 	return &model.CountrySpecialisationChange{ID: e.ID.Hex(), At: atOf(e.ID), ItemCode: e.SpecialisationItemCode, CountryID: e.CountryID.Hex()}
+}
+
+func toCountryAllianceJoin(e events.CountryAllianceJoin) *model.CountryAllianceJoin {
+	return &model.CountryAllianceJoin{ID: e.ID.Hex(), At: atOf(e.ID), CountryID: e.CountryID.Hex(), AllianceID: e.AllianceID.Hex()}
+}
+
+func toCountryAllianceLeave(e events.CountryAllianceLeave) *model.CountryAllianceLeave {
+	return &model.CountryAllianceLeave{ID: e.ID.Hex(), At: atOf(e.ID), CountryID: e.CountryID.Hex(), PrevAllianceID: hexPtr(e.PrevAllianceID)}
 }
 
 func toRegionOwnerChange(e events.RegionOwnerChange) *model.RegionOwnerChange {
@@ -802,6 +824,8 @@ func entityKindStr(k *model.EntityKind) *string {
 		s = "party"
 	case model.EntityKindMu:
 		s = "mu"
+	case model.EntityKindAlliance:
+		s = "alliance"
 	default:
 		return nil
 	}

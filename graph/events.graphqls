@@ -85,6 +85,20 @@ type CountrySpecialisationChange {
   country: Country!
 }
 
+type CountryAllianceJoin {
+  id: ID!
+  at: DateTime!
+  country: Country!
+  alliance: Alliance!
+}
+
+type CountryAllianceLeave {
+  id: ID!
+  at: DateTime!
+  country: Country!
+  prevAlliance: Alliance
+}
+
 type RegionOwnerChange {
   id: ID!
   at: DateTime!

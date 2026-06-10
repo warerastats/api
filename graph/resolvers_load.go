@@ -116,6 +116,24 @@ func loadMuP(ctx context.Context, id *string) (*model.Mu, error) {
 	return loadMu(ctx, *id)
 }
 
+func loadAlliance(ctx context.Context, id string) (*model.Alliance, error) {
+	if id == "" {
+		return nil, nil
+	}
+	a, err := loaders.For(ctx).Alliance.Load(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return toAlliance(a), nil
+}
+
+func loadAllianceP(ctx context.Context, id *string) (*model.Alliance, error) {
+	if id == nil {
+		return nil, nil
+	}
+	return loadAlliance(ctx, *id)
+}
+
 func loadRegion(ctx context.Context, id string) (*model.Region, error) {
 	if id == "" {
 		return nil, nil
@@ -244,6 +262,12 @@ func loadEntity(ctx context.Context, typ, id string) (model.Entity, error) {
 			return nil, err
 		}
 		return m, nil
+	case "alliance":
+		a, err := loadAlliance(ctx, id)
+		if err != nil || a == nil {
+			return nil, err
+		}
+		return a, nil
 	default:
 		return nil, nil
 	}

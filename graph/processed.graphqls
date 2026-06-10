@@ -170,6 +170,111 @@ type MuCountryMoneyFlowReport {
   mu: Mu!
 }
 
+type CountryAllianceMoneyFlowCounterpart {
+  inEquipment: Float!
+  outEquipment: Float!
+  inItems: Float!
+  outItems: Float!
+  inWages: Float!
+  outWages: Float!
+  alliance: Alliance!
+}
+
+type CountryAllianceMoneyFlowReport {
+  id: ID!
+  dayStart: DateTime!
+  inEquipment: Float!
+  outEquipment: Float!
+  inItems: Float!
+  outItems: Float!
+  inWages: Float!
+  outWages: Float!
+  inEquipmentInAlliance: Float!
+  outEquipmentInAlliance: Float!
+  inItemsInAlliance: Float!
+  outItemsInAlliance: Float!
+  inWagesInAlliance: Float!
+  outWagesInAlliance: Float!
+  inEquipmentOutsideAlliance: Float!
+  outEquipmentOutsideAlliance: Float!
+  inItemsOutsideAlliance: Float!
+  outItemsOutsideAlliance: Float!
+  inWagesOutsideAlliance: Float!
+  outWagesOutsideAlliance: Float!
+  counterparts: [CountryAllianceMoneyFlowCounterpart!]!
+  country: Country!
+}
+
+type AllianceMoneyFlowCounterpart {
+  inEquipment: Float!
+  outEquipment: Float!
+  inItems: Float!
+  outItems: Float!
+  inWages: Float!
+  outWages: Float!
+  alliance: Alliance!
+}
+
+type AllianceMoneyFlowReport {
+  id: ID!
+  dayStart: DateTime!
+  inEquipment: Float!
+  outEquipment: Float!
+  inItems: Float!
+  outItems: Float!
+  inWages: Float!
+  outWages: Float!
+  inEquipmentInAlliance: Float!
+  outEquipmentInAlliance: Float!
+  inItemsInAlliance: Float!
+  outItemsInAlliance: Float!
+  inWagesInAlliance: Float!
+  outWagesInAlliance: Float!
+  inEquipmentOutsideAlliance: Float!
+  outEquipmentOutsideAlliance: Float!
+  inItemsOutsideAlliance: Float!
+  outItemsOutsideAlliance: Float!
+  inWagesOutsideAlliance: Float!
+  outWagesOutsideAlliance: Float!
+  counterparts: [AllianceMoneyFlowCounterpart!]!
+  alliance: Alliance!
+}
+
+type MuAllianceMoneyFlowCounterpart {
+  inEquipment: Float!
+  outEquipment: Float!
+  inItems: Float!
+  outItems: Float!
+  inWages: Float!
+  outWages: Float!
+  alliance: Alliance!
+}
+
+type MuAllianceMoneyFlowReport {
+  id: ID!
+  dayStart: DateTime!
+  inEquipment: Float!
+  outEquipment: Float!
+  inItems: Float!
+  outItems: Float!
+  inWages: Float!
+  outWages: Float!
+  inEquipmentInsideMuAlliance: Float!
+  outEquipmentInsideMuAlliance: Float!
+  inItemsInsideMuAlliance: Float!
+  outItemsInsideMuAlliance: Float!
+  inWagesInsideMuAlliance: Float!
+  outWagesInsideMuAlliance: Float!
+  inEquipmentOutsideMuAlliance: Float!
+  outEquipmentOutsideMuAlliance: Float!
+  inItemsOutsideMuAlliance: Float!
+  outItemsOutsideMuAlliance: Float!
+  inWagesOutsideMuAlliance: Float!
+  outWagesOutsideMuAlliance: Float!
+  counterparts: [MuAllianceMoneyFlowCounterpart!]!
+  mu: Mu!
+}
+
 type CountryFlipEvent {
   id: ID!
   itemCode: String!

@@ -18,6 +18,135 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
+// Countries is the resolver for the countries field.
+func (r *allianceResolver) Countries(ctx context.Context, obj *model.Alliance) ([]*model.Country, error) {
+	aid, err := oidOf(obj.ID)
+	if err != nil {
+		return nil, err
+	}
+	rows, err := r.Colls.Trackers.Country.GetByAlliance(ctx, aid)
+	if err != nil {
+		return nil, err
+	}
+	return mapPtr(rows, toCountry), nil
+}
+
+// Battles is the resolver for the battles field.
+func (r *allianceResolver) Battles(ctx context.Context, obj *model.Alliance, first *int32, after *string, filter *model.BattleFilter) ([]*model.Battle, error) {
+	aid, err := oidOf(obj.ID)
+	if err != nil {
+		return nil, err
+	}
+	before, err := cursorPtr(after)
+	if err != nil {
+		return nil, err
+	}
+	rows, err := r.Colls.Trackers.Battle.GetByAlliancePaged(ctx, aid, toBattleFilter(filter), before, limitOf(first, 20))
+	if err != nil {
+		return nil, err
+	}
+	return mapPtr(rows, toBattle), nil
+}
+
+// Participation is the resolver for the participation field.
+func (r *allianceResolver) Participation(ctx context.Context, obj *model.Alliance) (*model.AllianceBattleParticipation, error) {
+	aid, err := oidOf(obj.ID)
+	if err != nil {
+		return nil, err
+	}
+	agg, err := r.Colls.Trackers.Damage.AggregateAllianceParticipation(ctx, aid)
+	if err != nil {
+		return nil, err
+	}
+	return &model.AllianceBattleParticipation{
+		AllianceID:  obj.ID,
+		TotalDamage: agg.TotalDamage,
+		BattleCount: int32(agg.BattleCount),
+	}, nil
+}
+
+// TopDamage is the resolver for the topDamage field.
+func (r *allianceResolver) TopDamage(ctx context.Context, obj *model.Alliance, limit *int32) ([]*model.DamageRanking, error) {
+	aid, err := oidOf(obj.ID)
+	if err != nil {
+		return nil, err
+	}
+	rows, err := r.Colls.Trackers.Damage.AggregateAllianceDamage(ctx, aid, limitOf(limit, 10))
+	if err != nil {
+		return nil, err
+	}
+	out := make([]*model.DamageRanking, len(rows))
+	for i, r := range rows {
+		out[i] = &model.DamageRanking{UserID: r.UserID.Hex(), TotalDamage: r.TotalDamage, BattleCount: int32(r.BattleCount)}
+	}
+	return out, nil
+}
+
+// WealthReports is the resolver for the wealthReports field.
+func (r *allianceResolver) WealthReports(ctx context.Context, obj *model.Alliance, from time.Time, to time.Time) ([]*model.EntityWealthReport, error) {
+	if err := enforceTimeWindow(ctx, from, to, reportTimeWindowDays); err != nil {
+		return nil, err
+	}
+	aid, err := oidOf(obj.ID)
+	if err != nil {
+		return nil, err
+	}
+	rows, err := r.Colls.Processed.Reports.EntityWealthReport.GetByEntityRange(ctx, "alliance", aid, from, to)
+	if err != nil {
+		return nil, err
+	}
+	return mapVal(rows, toEntityWealthReport), nil
+}
+
+// MoneyFlows is the resolver for the moneyFlows field.
+func (r *allianceResolver) MoneyFlows(ctx context.Context, obj *model.Alliance, from time.Time, to time.Time) ([]*model.AllianceMoneyFlowReport, error) {
+	if err := enforceTimeWindow(ctx, from, to, reportTimeWindowDays); err != nil {
+		return nil, err
+	}
+	aid, err := oidOf(obj.ID)
+	if err != nil {
+		return nil, err
+	}
+	rows, err := r.Colls.Processed.Reports.AllianceMoneyFlow.GetByAllianceRange(ctx, aid, from, to)
+	if err != nil {
+		return nil, err
+	}
+	return mapVal(rows, toAllianceMoneyFlowReport), nil
+}
+
+// DamageReports is the resolver for the damageReports field.
+func (r *allianceResolver) DamageReports(ctx context.Context, obj *model.Alliance, from *time.Time, to *time.Time, entityKind *model.EntityKind, entityIds []string) ([]*model.BattleDamageReport, error) {
+	// Alliance damage reports: find battles the alliance participated in, then query those.
+	aid, err := oidOf(obj.ID)
+	if err != nil {
+		return nil, err
+	}
+	battleIDs, err := r.Colls.Trackers.Damage.GetBattleIDsByAlliancePaged(ctx, aid, nil, 200)
+	if err != nil {
+		return nil, err
+	}
+	ids, err := oidList(entityIds)
+	if err != nil {
+		return nil, err
+	}
+	var out []*model.BattleDamageReport
+	for _, bid := range battleIDs {
+		rows, err := r.Colls.Processed.Reports.BattleDamageReport.GetByBattle(ctx, bid, from, to, entityKindStr(entityKind), ids)
+		if err != nil {
+			return nil, err
+		}
+		for i := range rows {
+			out = append(out, toBattleDamageReport(rows[i]))
+		}
+	}
+	return out, nil
+}
+
+// Alliance is the resolver for the alliance field.
+func (r *allianceBattleParticipationResolver) Alliance(ctx context.Context, obj *model.AllianceBattleParticipation) (*model.Alliance, error) {
+	return loadAlliance(ctx, obj.AllianceID)
+}
+
 // AttackerCountry is the resolver for the attackerCountry field.
 func (r *battleResolver) AttackerCountry(ctx context.Context, obj *model.Battle) (*model.Country, error) {
 	return loadCountry(ctx, obj.AttackerCountryID)
@@ -26,6 +155,16 @@ func (r *battleResolver) AttackerCountry(ctx context.Context, obj *model.Battle)
 // DefenderCountry is the resolver for the defenderCountry field.
 func (r *battleResolver) DefenderCountry(ctx context.Context, obj *model.Battle) (*model.Country, error) {
 	return loadCountry(ctx, obj.DefenderCountryID)
+}
+
+// AttackerAlliance is the resolver for the attackerAlliance field.
+func (r *battleResolver) AttackerAlliance(ctx context.Context, obj *model.Battle) (*model.Alliance, error) {
+	return loadAllianceP(ctx, obj.AttackerAllianceID)
+}
+
+// DefenderAlliance is the resolver for the defenderAlliance field.
+func (r *battleResolver) DefenderAlliance(ctx context.Context, obj *model.Battle) (*model.Alliance, error) {
+	return loadAllianceP(ctx, obj.DefenderAllianceID)
 }
 
 // AttackerRegion is the resolver for the attackerRegion field.
@@ -206,6 +345,11 @@ func (r *countryResolver) RulingParty(ctx context.Context, obj *model.Country) (
 	return loadPartyP(ctx, obj.RulingPartyID)
 }
 
+// Alliance is the resolver for the alliance field.
+func (r *countryResolver) Alliance(ctx context.Context, obj *model.Country) (*model.Alliance, error) {
+	return loadAllianceP(ctx, obj.AllianceID)
+}
+
 // Users is the resolver for the users field.
 func (r *countryResolver) Users(ctx context.Context, obj *model.Country, first *int32, after *string) ([]*model.User, error) {
 	cid, err := oidOf(obj.ID)
@@ -335,6 +479,40 @@ func (r *countryResolver) SpecialisationHistory(ctx context.Context, obj *model.
 	return mapVal(rows, toCountrySpecialisationChange), nil
 }
 
+// AllianceJoinHistory is the resolver for the allianceJoinHistory field.
+func (r *countryResolver) AllianceJoinHistory(ctx context.Context, obj *model.Country, first *int32, after *string) ([]*model.CountryAllianceJoin, error) {
+	cid, err := oidOf(obj.ID)
+	if err != nil {
+		return nil, err
+	}
+	before, err := cursorPtr(after)
+	if err != nil {
+		return nil, err
+	}
+	rows, err := r.Colls.Events.CountryAllianceJoin.ListByCountry(ctx, cid, before, limitOf(first, 20))
+	if err != nil {
+		return nil, err
+	}
+	return mapVal(rows, toCountryAllianceJoin), nil
+}
+
+// AllianceLeaveHistory is the resolver for the allianceLeaveHistory field.
+func (r *countryResolver) AllianceLeaveHistory(ctx context.Context, obj *model.Country, first *int32, after *string) ([]*model.CountryAllianceLeave, error) {
+	cid, err := oidOf(obj.ID)
+	if err != nil {
+		return nil, err
+	}
+	before, err := cursorPtr(after)
+	if err != nil {
+		return nil, err
+	}
+	rows, err := r.Colls.Events.CountryAllianceLeave.ListByCountry(ctx, cid, before, limitOf(first, 20))
+	if err != nil {
+		return nil, err
+	}
+	return mapVal(rows, toCountryAllianceLeave), nil
+}
+
 // TaxFlows is the resolver for the taxFlows field.
 func (r *countryResolver) TaxFlows(ctx context.Context, obj *model.Country, from time.Time, to time.Time) ([]*model.CountryTaxFlow, error) {
 	if err := enforceTimeWindow(ctx, from, to, reportTimeWindowDays); err != nil {
@@ -365,6 +543,22 @@ func (r *countryResolver) MoneyFlows(ctx context.Context, obj *model.Country, fr
 		return nil, err
 	}
 	return mapVal(rows, toCountryMoneyFlowReport), nil
+}
+
+// AllianceMoneyFlows is the resolver for the allianceMoneyFlows field.
+func (r *countryResolver) AllianceMoneyFlows(ctx context.Context, obj *model.Country, from time.Time, to time.Time) ([]*model.CountryAllianceMoneyFlowReport, error) {
+	if err := enforceTimeWindow(ctx, from, to, reportTimeWindowDays); err != nil {
+		return nil, err
+	}
+	cid, err := oidOf(obj.ID)
+	if err != nil {
+		return nil, err
+	}
+	rows, err := r.Colls.Processed.Reports.CountryAllianceMoneyFlow.GetByCountryRange(ctx, cid, from, to)
+	if err != nil {
+		return nil, err
+	}
+	return mapVal(rows, toCountryAllianceMoneyFlowReport), nil
 }
 
 // FlipEvents is the resolver for the flipEvents field.
@@ -442,6 +636,11 @@ func (r *damageResolver) User(ctx context.Context, obj *model.Damage) (*model.Us
 // Country is the resolver for the country field.
 func (r *damageResolver) Country(ctx context.Context, obj *model.Damage) (*model.Country, error) {
 	return loadCountry(ctx, obj.CountryID)
+}
+
+// Alliance is the resolver for the alliance field.
+func (r *damageResolver) Alliance(ctx context.Context, obj *model.Damage) (*model.Alliance, error) {
+	return loadAllianceP(ctx, obj.AllianceID)
 }
 
 // Mu is the resolver for the mu field.
@@ -1455,6 +1654,14 @@ func (r *userResolver) BattleParticipation(ctx context.Context, obj *model.User)
 	return toUserBattleParticipation(p), nil
 }
 
+// Alliance returns AllianceResolver implementation.
+func (r *Resolver) Alliance() AllianceResolver { return &allianceResolver{r} }
+
+// AllianceBattleParticipation returns AllianceBattleParticipationResolver implementation.
+func (r *Resolver) AllianceBattleParticipation() AllianceBattleParticipationResolver {
+	return &allianceBattleParticipationResolver{r}
+}
+
 // Battle returns BattleResolver implementation.
 func (r *Resolver) Battle() BattleResolver { return &battleResolver{r} }
 
@@ -1491,6 +1698,8 @@ func (r *Resolver) TradeOffer() TradeOfferResolver { return &tradeOfferResolver{
 // User returns UserResolver implementation.
 func (r *Resolver) User() UserResolver { return &userResolver{r} }
 
+type allianceResolver struct{ *Resolver }
+type allianceBattleParticipationResolver struct{ *Resolver }
 type battleResolver struct{ *Resolver }
 type companyResolver struct{ *Resolver }
 type countryResolver struct{ *Resolver }

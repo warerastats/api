@@ -102,6 +102,11 @@ func (r *queryResolver) TradeOffer(ctx context.Context, id string) (*model.Trade
 	return toTradeOffer(o), nil
 }
 
+// Alliance is the resolver for the alliance field.
+func (r *queryResolver) Alliance(ctx context.Context, id string) (*model.Alliance, error) {
+	return loadAlliance(ctx, id)
+}
+
 // Search is the resolver for the search field.
 func (r *queryResolver) Search(ctx context.Context, term string, limit *int32) ([]model.SearchResult, error) {
 	n := limitOf(limit, 10)
@@ -134,6 +139,13 @@ func (r *queryResolver) Search(ctx context.Context, term string, limit *int32) (
 	}
 	for i := range mus {
 		out = append(out, toMu(&mus[i]))
+	}
+	alliances, err := r.Colls.Trackers.Alliance.Search(ctx, term, n)
+	if err != nil {
+		return nil, err
+	}
+	for i := range alliances {
+		out = append(out, toAlliance(&alliances[i]))
 	}
 	return out, nil
 }

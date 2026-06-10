@@ -31,6 +31,10 @@ func NewExecutableSchema(cfg Config) graphql.ExecutableSchema {
 type Config = graphql.Config[ResolverRoot, DirectiveRoot, ComplexityRoot]
 
 type ResolverRoot interface {
+	Alliance() AllianceResolver
+	AllianceBattleParticipation() AllianceBattleParticipationResolver
+	AllianceMoneyFlowCounterpart() AllianceMoneyFlowCounterpartResolver
+	AllianceMoneyFlowReport() AllianceMoneyFlowReportResolver
 	Battle() BattleResolver
 	BattleDamageReport() BattleDamageReportResolver
 	BattleOrderChange() BattleOrderChangeResolver
@@ -39,6 +43,10 @@ type ResolverRoot interface {
 	CompanyItemCodeChange() CompanyItemCodeChangeResolver
 	CompanyRegionChange() CompanyRegionChangeResolver
 	Country() CountryResolver
+	CountryAllianceJoin() CountryAllianceJoinResolver
+	CountryAllianceLeave() CountryAllianceLeaveResolver
+	CountryAllianceMoneyFlowCounterpart() CountryAllianceMoneyFlowCounterpartResolver
+	CountryAllianceMoneyFlowReport() CountryAllianceMoneyFlowReportResolver
 	CountryFlipEvent() CountryFlipEventResolver
 	CountryFlipState() CountryFlipStateResolver
 	CountryInventory() CountryInventoryResolver
@@ -59,6 +67,8 @@ type ResolverRoot interface {
 	LootTransaction() LootTransactionResolver
 	MarketTransaction() MarketTransactionResolver
 	Mu() MuResolver
+	MuAllianceMoneyFlowCounterpart() MuAllianceMoneyFlowCounterpartResolver
+	MuAllianceMoneyFlowReport() MuAllianceMoneyFlowReportResolver
 	MuCountryMoneyFlowCounterpart() MuCountryMoneyFlowCounterpartResolver
 	MuCountryMoneyFlowReport() MuCountryMoneyFlowReportResolver
 	MuMercenaryReputationChange() MuMercenaryReputationChangeResolver
@@ -107,23 +117,78 @@ type ComplexityRoot struct {
 		HasNextPage func(childComplexity int) int
 	}
 
+	Alliance struct {
+		Battles       func(childComplexity int, first *int32, after *string, filter *model.BattleFilter) int
+		Countries     func(childComplexity int) int
+		DamageReports func(childComplexity int, from *time.Time, to *time.Time, entityKind *model.EntityKind, entityIds []string) int
+		ID            func(childComplexity int) int
+		MoneyFlows    func(childComplexity int, from time.Time, to time.Time) int
+		Name          func(childComplexity int) int
+		Participation func(childComplexity int) int
+		TopDamage     func(childComplexity int, limit *int32) int
+		WealthReports func(childComplexity int, from time.Time, to time.Time) int
+	}
+
+	AllianceBattleParticipation struct {
+		Alliance    func(childComplexity int) int
+		BattleCount func(childComplexity int) int
+		TotalDamage func(childComplexity int) int
+	}
+
+	AllianceMoneyFlowCounterpart struct {
+		Alliance     func(childComplexity int) int
+		InEquipment  func(childComplexity int) int
+		InItems      func(childComplexity int) int
+		InWages      func(childComplexity int) int
+		OutEquipment func(childComplexity int) int
+		OutItems     func(childComplexity int) int
+		OutWages     func(childComplexity int) int
+	}
+
+	AllianceMoneyFlowReport struct {
+		Alliance                    func(childComplexity int) int
+		Counterparts                func(childComplexity int) int
+		DayStart                    func(childComplexity int) int
+		ID                          func(childComplexity int) int
+		InEquipment                 func(childComplexity int) int
+		InEquipmentInAlliance       func(childComplexity int) int
+		InEquipmentOutsideAlliance  func(childComplexity int) int
+		InItems                     func(childComplexity int) int
+		InItemsInAlliance           func(childComplexity int) int
+		InItemsOutsideAlliance      func(childComplexity int) int
+		InWages                     func(childComplexity int) int
+		InWagesInAlliance           func(childComplexity int) int
+		InWagesOutsideAlliance      func(childComplexity int) int
+		OutEquipment                func(childComplexity int) int
+		OutEquipmentInAlliance      func(childComplexity int) int
+		OutEquipmentOutsideAlliance func(childComplexity int) int
+		OutItems                    func(childComplexity int) int
+		OutItemsInAlliance          func(childComplexity int) int
+		OutItemsOutsideAlliance     func(childComplexity int) int
+		OutWages                    func(childComplexity int) int
+		OutWagesInAlliance          func(childComplexity int) int
+		OutWagesOutsideAlliance     func(childComplexity int) int
+	}
+
 	Battle struct {
-		AttackerCountry func(childComplexity int) int
-		AttackerDamages func(childComplexity int) int
-		AttackerRegion  func(childComplexity int) int
-		DamageReports   func(childComplexity int, from *time.Time, to *time.Time, entityKind *model.EntityKind, entityIds []string) int
-		Damages         func(childComplexity int, first *int32, after *string, side *enums.Side, userID *string) int
-		DefenderCountry func(childComplexity int) int
-		DefenderDamages func(childComplexity int) int
-		DefenderRegion  func(childComplexity int) int
-		EndedAt         func(childComplexity int) int
-		ID              func(childComplexity int) int
-		IsActive        func(childComplexity int) int
-		LastUpdated     func(childComplexity int) int
-		Mus             func(childComplexity int) int
-		OrderChanges    func(childComplexity int, first *int32, after *string) int
-		TopDamage       func(childComplexity int, limit *int32) int
-		WinnerSide      func(childComplexity int) int
+		AttackerAlliance func(childComplexity int) int
+		AttackerCountry  func(childComplexity int) int
+		AttackerDamages  func(childComplexity int) int
+		AttackerRegion   func(childComplexity int) int
+		DamageReports    func(childComplexity int, from *time.Time, to *time.Time, entityKind *model.EntityKind, entityIds []string) int
+		Damages          func(childComplexity int, first *int32, after *string, side *enums.Side, userID *string) int
+		DefenderAlliance func(childComplexity int) int
+		DefenderCountry  func(childComplexity int) int
+		DefenderDamages  func(childComplexity int) int
+		DefenderRegion   func(childComplexity int) int
+		EndedAt          func(childComplexity int) int
+		ID               func(childComplexity int) int
+		IsActive         func(childComplexity int) int
+		LastUpdated      func(childComplexity int) int
+		Mus              func(childComplexity int) int
+		OrderChanges     func(childComplexity int, first *int32, after *string) int
+		TopDamage        func(childComplexity int, limit *int32) int
+		WinnerSide       func(childComplexity int) int
 	}
 
 	BattleDamageReport struct {
@@ -196,6 +261,10 @@ type ComplexityRoot struct {
 	}
 
 	Country struct {
+		Alliance              func(childComplexity int) int
+		AllianceJoinHistory   func(childComplexity int, first *int32, after *string) int
+		AllianceLeaveHistory  func(childComplexity int, first *int32, after *string) int
+		AllianceMoneyFlows    func(childComplexity int, from time.Time, to time.Time) int
 		Battles               func(childComplexity int, first *int32, after *string, filter *model.BattleFilter) int
 		Code                  func(childComplexity int) int
 		FlipEvents            func(childComplexity int, from time.Time, to time.Time, first *int32, after *string) int
@@ -217,6 +286,55 @@ type ComplexityRoot struct {
 		UserCount             func(childComplexity int) int
 		Users                 func(childComplexity int, first *int32, after *string) int
 		WealthReports         func(childComplexity int, from time.Time, to time.Time) int
+	}
+
+	CountryAllianceJoin struct {
+		Alliance func(childComplexity int) int
+		At       func(childComplexity int) int
+		Country  func(childComplexity int) int
+		ID       func(childComplexity int) int
+	}
+
+	CountryAllianceLeave struct {
+		At           func(childComplexity int) int
+		Country      func(childComplexity int) int
+		ID           func(childComplexity int) int
+		PrevAlliance func(childComplexity int) int
+	}
+
+	CountryAllianceMoneyFlowCounterpart struct {
+		Alliance     func(childComplexity int) int
+		InEquipment  func(childComplexity int) int
+		InItems      func(childComplexity int) int
+		InWages      func(childComplexity int) int
+		OutEquipment func(childComplexity int) int
+		OutItems     func(childComplexity int) int
+		OutWages     func(childComplexity int) int
+	}
+
+	CountryAllianceMoneyFlowReport struct {
+		Counterparts                func(childComplexity int) int
+		Country                     func(childComplexity int) int
+		DayStart                    func(childComplexity int) int
+		ID                          func(childComplexity int) int
+		InEquipment                 func(childComplexity int) int
+		InEquipmentInAlliance       func(childComplexity int) int
+		InEquipmentOutsideAlliance  func(childComplexity int) int
+		InItems                     func(childComplexity int) int
+		InItemsInAlliance           func(childComplexity int) int
+		InItemsOutsideAlliance      func(childComplexity int) int
+		InWages                     func(childComplexity int) int
+		InWagesInAlliance           func(childComplexity int) int
+		InWagesOutsideAlliance      func(childComplexity int) int
+		OutEquipment                func(childComplexity int) int
+		OutEquipmentInAlliance      func(childComplexity int) int
+		OutEquipmentOutsideAlliance func(childComplexity int) int
+		OutItems                    func(childComplexity int) int
+		OutItemsInAlliance          func(childComplexity int) int
+		OutItemsOutsideAlliance     func(childComplexity int) int
+		OutWages                    func(childComplexity int) int
+		OutWagesInAlliance          func(childComplexity int) int
+		OutWagesOutsideAlliance     func(childComplexity int) int
 	}
 
 	CountryFlipEvent struct {
@@ -314,6 +432,7 @@ type ComplexityRoot struct {
 	}
 
 	Damage struct {
+		Alliance     func(childComplexity int) int
 		Ammo         func(childComplexity int) int
 		At           func(childComplexity int) int
 		Battle       func(childComplexity int) int
@@ -551,6 +670,41 @@ type ComplexityRoot struct {
 		WealthReports         func(childComplexity int, from time.Time, to time.Time) int
 	}
 
+	MuAllianceMoneyFlowCounterpart struct {
+		Alliance     func(childComplexity int) int
+		InEquipment  func(childComplexity int) int
+		InItems      func(childComplexity int) int
+		InWages      func(childComplexity int) int
+		OutEquipment func(childComplexity int) int
+		OutItems     func(childComplexity int) int
+		OutWages     func(childComplexity int) int
+	}
+
+	MuAllianceMoneyFlowReport struct {
+		Counterparts                  func(childComplexity int) int
+		DayStart                      func(childComplexity int) int
+		ID                            func(childComplexity int) int
+		InEquipment                   func(childComplexity int) int
+		InEquipmentInsideMuAlliance   func(childComplexity int) int
+		InEquipmentOutsideMuAlliance  func(childComplexity int) int
+		InItems                       func(childComplexity int) int
+		InItemsInsideMuAlliance       func(childComplexity int) int
+		InItemsOutsideMuAlliance      func(childComplexity int) int
+		InWages                       func(childComplexity int) int
+		InWagesInsideMuAlliance       func(childComplexity int) int
+		InWagesOutsideMuAlliance      func(childComplexity int) int
+		Mu                            func(childComplexity int) int
+		OutEquipment                  func(childComplexity int) int
+		OutEquipmentInsideMuAlliance  func(childComplexity int) int
+		OutEquipmentOutsideMuAlliance func(childComplexity int) int
+		OutItems                      func(childComplexity int) int
+		OutItemsInsideMuAlliance      func(childComplexity int) int
+		OutItemsOutsideMuAlliance     func(childComplexity int) int
+		OutWages                      func(childComplexity int) int
+		OutWagesInsideMuAlliance      func(childComplexity int) int
+		OutWagesOutsideMuAlliance     func(childComplexity int) int
+	}
+
 	MuCountryMoneyFlowCounterpart struct {
 		Country      func(childComplexity int) int
 		InEquipment  func(childComplexity int) int
@@ -686,6 +840,7 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
+		Alliance              func(childComplexity int, id string) int
 		Battle                func(childComplexity int, id string) int
 		Battles               func(childComplexity int, first *int32, after *string, filter *model.BattleFilter) int
 		CasesReports          func(childComplexity int) int
@@ -1012,9 +1167,29 @@ type ComplexityRoot struct {
 	}
 }
 
+type AllianceResolver interface {
+	Countries(ctx context.Context, obj *model.Alliance) ([]*model.Country, error)
+	Battles(ctx context.Context, obj *model.Alliance, first *int32, after *string, filter *model.BattleFilter) ([]*model.Battle, error)
+	Participation(ctx context.Context, obj *model.Alliance) (*model.AllianceBattleParticipation, error)
+	TopDamage(ctx context.Context, obj *model.Alliance, limit *int32) ([]*model.DamageRanking, error)
+	WealthReports(ctx context.Context, obj *model.Alliance, from time.Time, to time.Time) ([]*model.EntityWealthReport, error)
+	MoneyFlows(ctx context.Context, obj *model.Alliance, from time.Time, to time.Time) ([]*model.AllianceMoneyFlowReport, error)
+	DamageReports(ctx context.Context, obj *model.Alliance, from *time.Time, to *time.Time, entityKind *model.EntityKind, entityIds []string) ([]*model.BattleDamageReport, error)
+}
+type AllianceBattleParticipationResolver interface {
+	Alliance(ctx context.Context, obj *model.AllianceBattleParticipation) (*model.Alliance, error)
+}
+type AllianceMoneyFlowCounterpartResolver interface {
+	Alliance(ctx context.Context, obj *model.AllianceMoneyFlowCounterpart) (*model.Alliance, error)
+}
+type AllianceMoneyFlowReportResolver interface {
+	Alliance(ctx context.Context, obj *model.AllianceMoneyFlowReport) (*model.Alliance, error)
+}
 type BattleResolver interface {
 	AttackerCountry(ctx context.Context, obj *model.Battle) (*model.Country, error)
 	DefenderCountry(ctx context.Context, obj *model.Battle) (*model.Country, error)
+	AttackerAlliance(ctx context.Context, obj *model.Battle) (*model.Alliance, error)
+	DefenderAlliance(ctx context.Context, obj *model.Battle) (*model.Alliance, error)
 	AttackerRegion(ctx context.Context, obj *model.Battle) (*model.Region, error)
 	DefenderRegion(ctx context.Context, obj *model.Battle) (*model.Region, error)
 	Damages(ctx context.Context, obj *model.Battle, first *int32, after *string, side *enums.Side, userID *string) ([]*model.Damage, error)
@@ -1051,6 +1226,7 @@ type CompanyRegionChangeResolver interface {
 }
 type CountryResolver interface {
 	RulingParty(ctx context.Context, obj *model.Country) (*model.Party, error)
+	Alliance(ctx context.Context, obj *model.Country) (*model.Alliance, error)
 	Users(ctx context.Context, obj *model.Country, first *int32, after *string) ([]*model.User, error)
 	UserCount(ctx context.Context, obj *model.Country) (int32, error)
 	Parties(ctx context.Context, obj *model.Country, first *int32, after *string) ([]*model.Party, error)
@@ -1059,12 +1235,29 @@ type CountryResolver interface {
 	OrderChanges(ctx context.Context, obj *model.Country, first *int32, after *string) ([]*model.BattleOrderChange, error)
 	RulingPartyHistory(ctx context.Context, obj *model.Country, first *int32, after *string) ([]*model.CountryRulingPartyChange, error)
 	SpecialisationHistory(ctx context.Context, obj *model.Country, first *int32, after *string) ([]*model.CountrySpecialisationChange, error)
+	AllianceJoinHistory(ctx context.Context, obj *model.Country, first *int32, after *string) ([]*model.CountryAllianceJoin, error)
+	AllianceLeaveHistory(ctx context.Context, obj *model.Country, first *int32, after *string) ([]*model.CountryAllianceLeave, error)
 	TaxFlows(ctx context.Context, obj *model.Country, from time.Time, to time.Time) ([]*model.CountryTaxFlow, error)
 	MoneyFlows(ctx context.Context, obj *model.Country, from time.Time, to time.Time) ([]*model.CountryMoneyFlowReport, error)
+	AllianceMoneyFlows(ctx context.Context, obj *model.Country, from time.Time, to time.Time) ([]*model.CountryAllianceMoneyFlowReport, error)
 	FlipEvents(ctx context.Context, obj *model.Country, from time.Time, to time.Time, first *int32, after *string) ([]*model.CountryFlipEvent, error)
 	FlipState(ctx context.Context, obj *model.Country) (*model.CountryFlipState, error)
 	Inventory(ctx context.Context, obj *model.Country) (*model.CountryInventory, error)
 	WealthReports(ctx context.Context, obj *model.Country, from time.Time, to time.Time) ([]*model.EntityWealthReport, error)
+}
+type CountryAllianceJoinResolver interface {
+	Country(ctx context.Context, obj *model.CountryAllianceJoin) (*model.Country, error)
+	Alliance(ctx context.Context, obj *model.CountryAllianceJoin) (*model.Alliance, error)
+}
+type CountryAllianceLeaveResolver interface {
+	Country(ctx context.Context, obj *model.CountryAllianceLeave) (*model.Country, error)
+	PrevAlliance(ctx context.Context, obj *model.CountryAllianceLeave) (*model.Alliance, error)
+}
+type CountryAllianceMoneyFlowCounterpartResolver interface {
+	Alliance(ctx context.Context, obj *model.CountryAllianceMoneyFlowCounterpart) (*model.Alliance, error)
+}
+type CountryAllianceMoneyFlowReportResolver interface {
+	Country(ctx context.Context, obj *model.CountryAllianceMoneyFlowReport) (*model.Country, error)
 }
 type CountryFlipEventResolver interface {
 	Country(ctx context.Context, obj *model.CountryFlipEvent) (*model.Country, error)
@@ -1100,6 +1293,7 @@ type DamageResolver interface {
 	Battle(ctx context.Context, obj *model.Damage) (*model.Battle, error)
 	User(ctx context.Context, obj *model.Damage) (*model.User, error)
 	Country(ctx context.Context, obj *model.Damage) (*model.Country, error)
+	Alliance(ctx context.Context, obj *model.Damage) (*model.Alliance, error)
 	Mu(ctx context.Context, obj *model.Damage) (*model.Mu, error)
 	Party(ctx context.Context, obj *model.Damage) (*model.Party, error)
 	Skill(ctx context.Context, obj *model.Damage) (*model.Skill, error)
@@ -1157,6 +1351,12 @@ type MuResolver interface {
 	OwnerHistory(ctx context.Context, obj *model.Mu, first *int32, after *string) ([]*model.MuOwnerChange, error)
 	MercReputationHistory(ctx context.Context, obj *model.Mu, first *int32, after *string) ([]*model.MuMercenaryReputationChange, error)
 	WealthReports(ctx context.Context, obj *model.Mu, from time.Time, to time.Time) ([]*model.EntityWealthReport, error)
+}
+type MuAllianceMoneyFlowCounterpartResolver interface {
+	Alliance(ctx context.Context, obj *model.MuAllianceMoneyFlowCounterpart) (*model.Alliance, error)
+}
+type MuAllianceMoneyFlowReportResolver interface {
+	Mu(ctx context.Context, obj *model.MuAllianceMoneyFlowReport) (*model.Mu, error)
 }
 type MuCountryMoneyFlowCounterpartResolver interface {
 	Country(ctx context.Context, obj *model.MuCountryMoneyFlowCounterpart) (*model.Country, error)
@@ -1216,6 +1416,7 @@ type QueryResolver interface {
 	Item(ctx context.Context, id string) (*model.Item, error)
 	Company(ctx context.Context, id string) (*model.Company, error)
 	TradeOffer(ctx context.Context, id string) (*model.TradeOffer, error)
+	Alliance(ctx context.Context, id string) (*model.Alliance, error)
 	Search(ctx context.Context, term string, limit *int32) ([]model.SearchResult, error)
 	Battles(ctx context.Context, first *int32, after *string, filter *model.BattleFilter) ([]*model.Battle, error)
 	Countries(ctx context.Context) ([]*model.Country, error)
@@ -1401,6 +1602,287 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.ActivityConnection.HasNextPage(childComplexity), true
 
+	case "Alliance.battles":
+		if e.ComplexityRoot.Alliance.Battles == nil {
+			break
+		}
+
+		args, err := ec.field_Alliance_battles_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Alliance.Battles(childComplexity, args["first"].(*int32), args["after"].(*string), args["filter"].(*model.BattleFilter)), true
+	case "Alliance.countries":
+		if e.ComplexityRoot.Alliance.Countries == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Alliance.Countries(childComplexity), true
+	case "Alliance.damageReports":
+		if e.ComplexityRoot.Alliance.DamageReports == nil {
+			break
+		}
+
+		args, err := ec.field_Alliance_damageReports_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Alliance.DamageReports(childComplexity, args["from"].(*time.Time), args["to"].(*time.Time), args["entityKind"].(*model.EntityKind), args["entityIds"].([]string)), true
+	case "Alliance.id":
+		if e.ComplexityRoot.Alliance.ID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Alliance.ID(childComplexity), true
+	case "Alliance.moneyFlows":
+		if e.ComplexityRoot.Alliance.MoneyFlows == nil {
+			break
+		}
+
+		args, err := ec.field_Alliance_moneyFlows_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Alliance.MoneyFlows(childComplexity, args["from"].(time.Time), args["to"].(time.Time)), true
+	case "Alliance.name":
+		if e.ComplexityRoot.Alliance.Name == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Alliance.Name(childComplexity), true
+	case "Alliance.participation":
+		if e.ComplexityRoot.Alliance.Participation == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Alliance.Participation(childComplexity), true
+	case "Alliance.topDamage":
+		if e.ComplexityRoot.Alliance.TopDamage == nil {
+			break
+		}
+
+		args, err := ec.field_Alliance_topDamage_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Alliance.TopDamage(childComplexity, args["limit"].(*int32)), true
+	case "Alliance.wealthReports":
+		if e.ComplexityRoot.Alliance.WealthReports == nil {
+			break
+		}
+
+		args, err := ec.field_Alliance_wealthReports_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Alliance.WealthReports(childComplexity, args["from"].(time.Time), args["to"].(time.Time)), true
+
+	case "AllianceBattleParticipation.alliance":
+		if e.ComplexityRoot.AllianceBattleParticipation.Alliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AllianceBattleParticipation.Alliance(childComplexity), true
+	case "AllianceBattleParticipation.battleCount":
+		if e.ComplexityRoot.AllianceBattleParticipation.BattleCount == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AllianceBattleParticipation.BattleCount(childComplexity), true
+	case "AllianceBattleParticipation.totalDamage":
+		if e.ComplexityRoot.AllianceBattleParticipation.TotalDamage == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AllianceBattleParticipation.TotalDamage(childComplexity), true
+
+	case "AllianceMoneyFlowCounterpart.alliance":
+		if e.ComplexityRoot.AllianceMoneyFlowCounterpart.Alliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AllianceMoneyFlowCounterpart.Alliance(childComplexity), true
+	case "AllianceMoneyFlowCounterpart.inEquipment":
+		if e.ComplexityRoot.AllianceMoneyFlowCounterpart.InEquipment == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AllianceMoneyFlowCounterpart.InEquipment(childComplexity), true
+	case "AllianceMoneyFlowCounterpart.inItems":
+		if e.ComplexityRoot.AllianceMoneyFlowCounterpart.InItems == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AllianceMoneyFlowCounterpart.InItems(childComplexity), true
+	case "AllianceMoneyFlowCounterpart.inWages":
+		if e.ComplexityRoot.AllianceMoneyFlowCounterpart.InWages == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AllianceMoneyFlowCounterpart.InWages(childComplexity), true
+	case "AllianceMoneyFlowCounterpart.outEquipment":
+		if e.ComplexityRoot.AllianceMoneyFlowCounterpart.OutEquipment == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AllianceMoneyFlowCounterpart.OutEquipment(childComplexity), true
+	case "AllianceMoneyFlowCounterpart.outItems":
+		if e.ComplexityRoot.AllianceMoneyFlowCounterpart.OutItems == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AllianceMoneyFlowCounterpart.OutItems(childComplexity), true
+	case "AllianceMoneyFlowCounterpart.outWages":
+		if e.ComplexityRoot.AllianceMoneyFlowCounterpart.OutWages == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AllianceMoneyFlowCounterpart.OutWages(childComplexity), true
+
+	case "AllianceMoneyFlowReport.alliance":
+		if e.ComplexityRoot.AllianceMoneyFlowReport.Alliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AllianceMoneyFlowReport.Alliance(childComplexity), true
+	case "AllianceMoneyFlowReport.counterparts":
+		if e.ComplexityRoot.AllianceMoneyFlowReport.Counterparts == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AllianceMoneyFlowReport.Counterparts(childComplexity), true
+	case "AllianceMoneyFlowReport.dayStart":
+		if e.ComplexityRoot.AllianceMoneyFlowReport.DayStart == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AllianceMoneyFlowReport.DayStart(childComplexity), true
+	case "AllianceMoneyFlowReport.id":
+		if e.ComplexityRoot.AllianceMoneyFlowReport.ID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AllianceMoneyFlowReport.ID(childComplexity), true
+	case "AllianceMoneyFlowReport.inEquipment":
+		if e.ComplexityRoot.AllianceMoneyFlowReport.InEquipment == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AllianceMoneyFlowReport.InEquipment(childComplexity), true
+	case "AllianceMoneyFlowReport.inEquipmentInAlliance":
+		if e.ComplexityRoot.AllianceMoneyFlowReport.InEquipmentInAlliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AllianceMoneyFlowReport.InEquipmentInAlliance(childComplexity), true
+	case "AllianceMoneyFlowReport.inEquipmentOutsideAlliance":
+		if e.ComplexityRoot.AllianceMoneyFlowReport.InEquipmentOutsideAlliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AllianceMoneyFlowReport.InEquipmentOutsideAlliance(childComplexity), true
+	case "AllianceMoneyFlowReport.inItems":
+		if e.ComplexityRoot.AllianceMoneyFlowReport.InItems == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AllianceMoneyFlowReport.InItems(childComplexity), true
+	case "AllianceMoneyFlowReport.inItemsInAlliance":
+		if e.ComplexityRoot.AllianceMoneyFlowReport.InItemsInAlliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AllianceMoneyFlowReport.InItemsInAlliance(childComplexity), true
+	case "AllianceMoneyFlowReport.inItemsOutsideAlliance":
+		if e.ComplexityRoot.AllianceMoneyFlowReport.InItemsOutsideAlliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AllianceMoneyFlowReport.InItemsOutsideAlliance(childComplexity), true
+	case "AllianceMoneyFlowReport.inWages":
+		if e.ComplexityRoot.AllianceMoneyFlowReport.InWages == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AllianceMoneyFlowReport.InWages(childComplexity), true
+	case "AllianceMoneyFlowReport.inWagesInAlliance":
+		if e.ComplexityRoot.AllianceMoneyFlowReport.InWagesInAlliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AllianceMoneyFlowReport.InWagesInAlliance(childComplexity), true
+	case "AllianceMoneyFlowReport.inWagesOutsideAlliance":
+		if e.ComplexityRoot.AllianceMoneyFlowReport.InWagesOutsideAlliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AllianceMoneyFlowReport.InWagesOutsideAlliance(childComplexity), true
+	case "AllianceMoneyFlowReport.outEquipment":
+		if e.ComplexityRoot.AllianceMoneyFlowReport.OutEquipment == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AllianceMoneyFlowReport.OutEquipment(childComplexity), true
+	case "AllianceMoneyFlowReport.outEquipmentInAlliance":
+		if e.ComplexityRoot.AllianceMoneyFlowReport.OutEquipmentInAlliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AllianceMoneyFlowReport.OutEquipmentInAlliance(childComplexity), true
+	case "AllianceMoneyFlowReport.outEquipmentOutsideAlliance":
+		if e.ComplexityRoot.AllianceMoneyFlowReport.OutEquipmentOutsideAlliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AllianceMoneyFlowReport.OutEquipmentOutsideAlliance(childComplexity), true
+	case "AllianceMoneyFlowReport.outItems":
+		if e.ComplexityRoot.AllianceMoneyFlowReport.OutItems == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AllianceMoneyFlowReport.OutItems(childComplexity), true
+	case "AllianceMoneyFlowReport.outItemsInAlliance":
+		if e.ComplexityRoot.AllianceMoneyFlowReport.OutItemsInAlliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AllianceMoneyFlowReport.OutItemsInAlliance(childComplexity), true
+	case "AllianceMoneyFlowReport.outItemsOutsideAlliance":
+		if e.ComplexityRoot.AllianceMoneyFlowReport.OutItemsOutsideAlliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AllianceMoneyFlowReport.OutItemsOutsideAlliance(childComplexity), true
+	case "AllianceMoneyFlowReport.outWages":
+		if e.ComplexityRoot.AllianceMoneyFlowReport.OutWages == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AllianceMoneyFlowReport.OutWages(childComplexity), true
+	case "AllianceMoneyFlowReport.outWagesInAlliance":
+		if e.ComplexityRoot.AllianceMoneyFlowReport.OutWagesInAlliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AllianceMoneyFlowReport.OutWagesInAlliance(childComplexity), true
+	case "AllianceMoneyFlowReport.outWagesOutsideAlliance":
+		if e.ComplexityRoot.AllianceMoneyFlowReport.OutWagesOutsideAlliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AllianceMoneyFlowReport.OutWagesOutsideAlliance(childComplexity), true
+
+	case "Battle.attackerAlliance":
+		if e.ComplexityRoot.Battle.AttackerAlliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Battle.AttackerAlliance(childComplexity), true
 	case "Battle.attackerCountry":
 		if e.ComplexityRoot.Battle.AttackerCountry == nil {
 			break
@@ -1441,6 +1923,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Battle.Damages(childComplexity, args["first"].(*int32), args["after"].(*string), args["side"].(*enums.Side), args["userId"].(*string)), true
+	case "Battle.defenderAlliance":
+		if e.ComplexityRoot.Battle.DefenderAlliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Battle.DefenderAlliance(childComplexity), true
 	case "Battle.defenderCountry":
 		if e.ComplexityRoot.Battle.DefenderCountry == nil {
 			break
@@ -1806,6 +2294,45 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.CompanyRegionChange.Region(childComplexity), true
 
+	case "Country.alliance":
+		if e.ComplexityRoot.Country.Alliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Country.Alliance(childComplexity), true
+	case "Country.allianceJoinHistory":
+		if e.ComplexityRoot.Country.AllianceJoinHistory == nil {
+			break
+		}
+
+		args, err := ec.field_Country_allianceJoinHistory_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Country.AllianceJoinHistory(childComplexity, args["first"].(*int32), args["after"].(*string)), true
+	case "Country.allianceLeaveHistory":
+		if e.ComplexityRoot.Country.AllianceLeaveHistory == nil {
+			break
+		}
+
+		args, err := ec.field_Country_allianceLeaveHistory_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Country.AllianceLeaveHistory(childComplexity, args["first"].(*int32), args["after"].(*string)), true
+	case "Country.allianceMoneyFlows":
+		if e.ComplexityRoot.Country.AllianceMoneyFlows == nil {
+			break
+		}
+
+		args, err := ec.field_Country_allianceMoneyFlows_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Country.AllianceMoneyFlows(childComplexity, args["from"].(time.Time), args["to"].(time.Time)), true
 	case "Country.battles":
 		if e.ComplexityRoot.Country.Battles == nil {
 			break
@@ -1982,6 +2509,232 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Country.WealthReports(childComplexity, args["from"].(time.Time), args["to"].(time.Time)), true
+
+	case "CountryAllianceJoin.alliance":
+		if e.ComplexityRoot.CountryAllianceJoin.Alliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CountryAllianceJoin.Alliance(childComplexity), true
+	case "CountryAllianceJoin.at":
+		if e.ComplexityRoot.CountryAllianceJoin.At == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CountryAllianceJoin.At(childComplexity), true
+	case "CountryAllianceJoin.country":
+		if e.ComplexityRoot.CountryAllianceJoin.Country == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CountryAllianceJoin.Country(childComplexity), true
+	case "CountryAllianceJoin.id":
+		if e.ComplexityRoot.CountryAllianceJoin.ID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CountryAllianceJoin.ID(childComplexity), true
+
+	case "CountryAllianceLeave.at":
+		if e.ComplexityRoot.CountryAllianceLeave.At == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CountryAllianceLeave.At(childComplexity), true
+	case "CountryAllianceLeave.country":
+		if e.ComplexityRoot.CountryAllianceLeave.Country == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CountryAllianceLeave.Country(childComplexity), true
+	case "CountryAllianceLeave.id":
+		if e.ComplexityRoot.CountryAllianceLeave.ID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CountryAllianceLeave.ID(childComplexity), true
+	case "CountryAllianceLeave.prevAlliance":
+		if e.ComplexityRoot.CountryAllianceLeave.PrevAlliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CountryAllianceLeave.PrevAlliance(childComplexity), true
+
+	case "CountryAllianceMoneyFlowCounterpart.alliance":
+		if e.ComplexityRoot.CountryAllianceMoneyFlowCounterpart.Alliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CountryAllianceMoneyFlowCounterpart.Alliance(childComplexity), true
+	case "CountryAllianceMoneyFlowCounterpart.inEquipment":
+		if e.ComplexityRoot.CountryAllianceMoneyFlowCounterpart.InEquipment == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CountryAllianceMoneyFlowCounterpart.InEquipment(childComplexity), true
+	case "CountryAllianceMoneyFlowCounterpart.inItems":
+		if e.ComplexityRoot.CountryAllianceMoneyFlowCounterpart.InItems == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CountryAllianceMoneyFlowCounterpart.InItems(childComplexity), true
+	case "CountryAllianceMoneyFlowCounterpart.inWages":
+		if e.ComplexityRoot.CountryAllianceMoneyFlowCounterpart.InWages == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CountryAllianceMoneyFlowCounterpart.InWages(childComplexity), true
+	case "CountryAllianceMoneyFlowCounterpart.outEquipment":
+		if e.ComplexityRoot.CountryAllianceMoneyFlowCounterpart.OutEquipment == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CountryAllianceMoneyFlowCounterpart.OutEquipment(childComplexity), true
+	case "CountryAllianceMoneyFlowCounterpart.outItems":
+		if e.ComplexityRoot.CountryAllianceMoneyFlowCounterpart.OutItems == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CountryAllianceMoneyFlowCounterpart.OutItems(childComplexity), true
+	case "CountryAllianceMoneyFlowCounterpart.outWages":
+		if e.ComplexityRoot.CountryAllianceMoneyFlowCounterpart.OutWages == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CountryAllianceMoneyFlowCounterpart.OutWages(childComplexity), true
+
+	case "CountryAllianceMoneyFlowReport.counterparts":
+		if e.ComplexityRoot.CountryAllianceMoneyFlowReport.Counterparts == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CountryAllianceMoneyFlowReport.Counterparts(childComplexity), true
+	case "CountryAllianceMoneyFlowReport.country":
+		if e.ComplexityRoot.CountryAllianceMoneyFlowReport.Country == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CountryAllianceMoneyFlowReport.Country(childComplexity), true
+	case "CountryAllianceMoneyFlowReport.dayStart":
+		if e.ComplexityRoot.CountryAllianceMoneyFlowReport.DayStart == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CountryAllianceMoneyFlowReport.DayStart(childComplexity), true
+	case "CountryAllianceMoneyFlowReport.id":
+		if e.ComplexityRoot.CountryAllianceMoneyFlowReport.ID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CountryAllianceMoneyFlowReport.ID(childComplexity), true
+	case "CountryAllianceMoneyFlowReport.inEquipment":
+		if e.ComplexityRoot.CountryAllianceMoneyFlowReport.InEquipment == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CountryAllianceMoneyFlowReport.InEquipment(childComplexity), true
+	case "CountryAllianceMoneyFlowReport.inEquipmentInAlliance":
+		if e.ComplexityRoot.CountryAllianceMoneyFlowReport.InEquipmentInAlliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CountryAllianceMoneyFlowReport.InEquipmentInAlliance(childComplexity), true
+	case "CountryAllianceMoneyFlowReport.inEquipmentOutsideAlliance":
+		if e.ComplexityRoot.CountryAllianceMoneyFlowReport.InEquipmentOutsideAlliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CountryAllianceMoneyFlowReport.InEquipmentOutsideAlliance(childComplexity), true
+	case "CountryAllianceMoneyFlowReport.inItems":
+		if e.ComplexityRoot.CountryAllianceMoneyFlowReport.InItems == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CountryAllianceMoneyFlowReport.InItems(childComplexity), true
+	case "CountryAllianceMoneyFlowReport.inItemsInAlliance":
+		if e.ComplexityRoot.CountryAllianceMoneyFlowReport.InItemsInAlliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CountryAllianceMoneyFlowReport.InItemsInAlliance(childComplexity), true
+	case "CountryAllianceMoneyFlowReport.inItemsOutsideAlliance":
+		if e.ComplexityRoot.CountryAllianceMoneyFlowReport.InItemsOutsideAlliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CountryAllianceMoneyFlowReport.InItemsOutsideAlliance(childComplexity), true
+	case "CountryAllianceMoneyFlowReport.inWages":
+		if e.ComplexityRoot.CountryAllianceMoneyFlowReport.InWages == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CountryAllianceMoneyFlowReport.InWages(childComplexity), true
+	case "CountryAllianceMoneyFlowReport.inWagesInAlliance":
+		if e.ComplexityRoot.CountryAllianceMoneyFlowReport.InWagesInAlliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CountryAllianceMoneyFlowReport.InWagesInAlliance(childComplexity), true
+	case "CountryAllianceMoneyFlowReport.inWagesOutsideAlliance":
+		if e.ComplexityRoot.CountryAllianceMoneyFlowReport.InWagesOutsideAlliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CountryAllianceMoneyFlowReport.InWagesOutsideAlliance(childComplexity), true
+	case "CountryAllianceMoneyFlowReport.outEquipment":
+		if e.ComplexityRoot.CountryAllianceMoneyFlowReport.OutEquipment == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CountryAllianceMoneyFlowReport.OutEquipment(childComplexity), true
+	case "CountryAllianceMoneyFlowReport.outEquipmentInAlliance":
+		if e.ComplexityRoot.CountryAllianceMoneyFlowReport.OutEquipmentInAlliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CountryAllianceMoneyFlowReport.OutEquipmentInAlliance(childComplexity), true
+	case "CountryAllianceMoneyFlowReport.outEquipmentOutsideAlliance":
+		if e.ComplexityRoot.CountryAllianceMoneyFlowReport.OutEquipmentOutsideAlliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CountryAllianceMoneyFlowReport.OutEquipmentOutsideAlliance(childComplexity), true
+	case "CountryAllianceMoneyFlowReport.outItems":
+		if e.ComplexityRoot.CountryAllianceMoneyFlowReport.OutItems == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CountryAllianceMoneyFlowReport.OutItems(childComplexity), true
+	case "CountryAllianceMoneyFlowReport.outItemsInAlliance":
+		if e.ComplexityRoot.CountryAllianceMoneyFlowReport.OutItemsInAlliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CountryAllianceMoneyFlowReport.OutItemsInAlliance(childComplexity), true
+	case "CountryAllianceMoneyFlowReport.outItemsOutsideAlliance":
+		if e.ComplexityRoot.CountryAllianceMoneyFlowReport.OutItemsOutsideAlliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CountryAllianceMoneyFlowReport.OutItemsOutsideAlliance(childComplexity), true
+	case "CountryAllianceMoneyFlowReport.outWages":
+		if e.ComplexityRoot.CountryAllianceMoneyFlowReport.OutWages == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CountryAllianceMoneyFlowReport.OutWages(childComplexity), true
+	case "CountryAllianceMoneyFlowReport.outWagesInAlliance":
+		if e.ComplexityRoot.CountryAllianceMoneyFlowReport.OutWagesInAlliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CountryAllianceMoneyFlowReport.OutWagesInAlliance(childComplexity), true
+	case "CountryAllianceMoneyFlowReport.outWagesOutsideAlliance":
+		if e.ComplexityRoot.CountryAllianceMoneyFlowReport.OutWagesOutsideAlliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CountryAllianceMoneyFlowReport.OutWagesOutsideAlliance(childComplexity), true
 
 	case "CountryFlipEvent.at":
 		if e.ComplexityRoot.CountryFlipEvent.At == nil {
@@ -2394,6 +3147,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.CraftTransaction.User(childComplexity), true
 
+	case "Damage.alliance":
+		if e.ComplexityRoot.Damage.Alliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Damage.Alliance(childComplexity), true
 	case "Damage.ammo":
 		if e.ComplexityRoot.Damage.Ammo == nil {
 			break
@@ -3403,6 +4162,182 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.Mu.WealthReports(childComplexity, args["from"].(time.Time), args["to"].(time.Time)), true
 
+	case "MuAllianceMoneyFlowCounterpart.alliance":
+		if e.ComplexityRoot.MuAllianceMoneyFlowCounterpart.Alliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MuAllianceMoneyFlowCounterpart.Alliance(childComplexity), true
+	case "MuAllianceMoneyFlowCounterpart.inEquipment":
+		if e.ComplexityRoot.MuAllianceMoneyFlowCounterpart.InEquipment == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MuAllianceMoneyFlowCounterpart.InEquipment(childComplexity), true
+	case "MuAllianceMoneyFlowCounterpart.inItems":
+		if e.ComplexityRoot.MuAllianceMoneyFlowCounterpart.InItems == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MuAllianceMoneyFlowCounterpart.InItems(childComplexity), true
+	case "MuAllianceMoneyFlowCounterpart.inWages":
+		if e.ComplexityRoot.MuAllianceMoneyFlowCounterpart.InWages == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MuAllianceMoneyFlowCounterpart.InWages(childComplexity), true
+	case "MuAllianceMoneyFlowCounterpart.outEquipment":
+		if e.ComplexityRoot.MuAllianceMoneyFlowCounterpart.OutEquipment == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MuAllianceMoneyFlowCounterpart.OutEquipment(childComplexity), true
+	case "MuAllianceMoneyFlowCounterpart.outItems":
+		if e.ComplexityRoot.MuAllianceMoneyFlowCounterpart.OutItems == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MuAllianceMoneyFlowCounterpart.OutItems(childComplexity), true
+	case "MuAllianceMoneyFlowCounterpart.outWages":
+		if e.ComplexityRoot.MuAllianceMoneyFlowCounterpart.OutWages == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MuAllianceMoneyFlowCounterpart.OutWages(childComplexity), true
+
+	case "MuAllianceMoneyFlowReport.counterparts":
+		if e.ComplexityRoot.MuAllianceMoneyFlowReport.Counterparts == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MuAllianceMoneyFlowReport.Counterparts(childComplexity), true
+	case "MuAllianceMoneyFlowReport.dayStart":
+		if e.ComplexityRoot.MuAllianceMoneyFlowReport.DayStart == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MuAllianceMoneyFlowReport.DayStart(childComplexity), true
+	case "MuAllianceMoneyFlowReport.id":
+		if e.ComplexityRoot.MuAllianceMoneyFlowReport.ID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MuAllianceMoneyFlowReport.ID(childComplexity), true
+	case "MuAllianceMoneyFlowReport.inEquipment":
+		if e.ComplexityRoot.MuAllianceMoneyFlowReport.InEquipment == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MuAllianceMoneyFlowReport.InEquipment(childComplexity), true
+	case "MuAllianceMoneyFlowReport.inEquipmentInsideMuAlliance":
+		if e.ComplexityRoot.MuAllianceMoneyFlowReport.InEquipmentInsideMuAlliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MuAllianceMoneyFlowReport.InEquipmentInsideMuAlliance(childComplexity), true
+	case "MuAllianceMoneyFlowReport.inEquipmentOutsideMuAlliance":
+		if e.ComplexityRoot.MuAllianceMoneyFlowReport.InEquipmentOutsideMuAlliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MuAllianceMoneyFlowReport.InEquipmentOutsideMuAlliance(childComplexity), true
+	case "MuAllianceMoneyFlowReport.inItems":
+		if e.ComplexityRoot.MuAllianceMoneyFlowReport.InItems == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MuAllianceMoneyFlowReport.InItems(childComplexity), true
+	case "MuAllianceMoneyFlowReport.inItemsInsideMuAlliance":
+		if e.ComplexityRoot.MuAllianceMoneyFlowReport.InItemsInsideMuAlliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MuAllianceMoneyFlowReport.InItemsInsideMuAlliance(childComplexity), true
+	case "MuAllianceMoneyFlowReport.inItemsOutsideMuAlliance":
+		if e.ComplexityRoot.MuAllianceMoneyFlowReport.InItemsOutsideMuAlliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MuAllianceMoneyFlowReport.InItemsOutsideMuAlliance(childComplexity), true
+	case "MuAllianceMoneyFlowReport.inWages":
+		if e.ComplexityRoot.MuAllianceMoneyFlowReport.InWages == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MuAllianceMoneyFlowReport.InWages(childComplexity), true
+	case "MuAllianceMoneyFlowReport.inWagesInsideMuAlliance":
+		if e.ComplexityRoot.MuAllianceMoneyFlowReport.InWagesInsideMuAlliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MuAllianceMoneyFlowReport.InWagesInsideMuAlliance(childComplexity), true
+	case "MuAllianceMoneyFlowReport.inWagesOutsideMuAlliance":
+		if e.ComplexityRoot.MuAllianceMoneyFlowReport.InWagesOutsideMuAlliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MuAllianceMoneyFlowReport.InWagesOutsideMuAlliance(childComplexity), true
+	case "MuAllianceMoneyFlowReport.mu":
+		if e.ComplexityRoot.MuAllianceMoneyFlowReport.Mu == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MuAllianceMoneyFlowReport.Mu(childComplexity), true
+	case "MuAllianceMoneyFlowReport.outEquipment":
+		if e.ComplexityRoot.MuAllianceMoneyFlowReport.OutEquipment == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MuAllianceMoneyFlowReport.OutEquipment(childComplexity), true
+	case "MuAllianceMoneyFlowReport.outEquipmentInsideMuAlliance":
+		if e.ComplexityRoot.MuAllianceMoneyFlowReport.OutEquipmentInsideMuAlliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MuAllianceMoneyFlowReport.OutEquipmentInsideMuAlliance(childComplexity), true
+	case "MuAllianceMoneyFlowReport.outEquipmentOutsideMuAlliance":
+		if e.ComplexityRoot.MuAllianceMoneyFlowReport.OutEquipmentOutsideMuAlliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MuAllianceMoneyFlowReport.OutEquipmentOutsideMuAlliance(childComplexity), true
+	case "MuAllianceMoneyFlowReport.outItems":
+		if e.ComplexityRoot.MuAllianceMoneyFlowReport.OutItems == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MuAllianceMoneyFlowReport.OutItems(childComplexity), true
+	case "MuAllianceMoneyFlowReport.outItemsInsideMuAlliance":
+		if e.ComplexityRoot.MuAllianceMoneyFlowReport.OutItemsInsideMuAlliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MuAllianceMoneyFlowReport.OutItemsInsideMuAlliance(childComplexity), true
+	case "MuAllianceMoneyFlowReport.outItemsOutsideMuAlliance":
+		if e.ComplexityRoot.MuAllianceMoneyFlowReport.OutItemsOutsideMuAlliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MuAllianceMoneyFlowReport.OutItemsOutsideMuAlliance(childComplexity), true
+	case "MuAllianceMoneyFlowReport.outWages":
+		if e.ComplexityRoot.MuAllianceMoneyFlowReport.OutWages == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MuAllianceMoneyFlowReport.OutWages(childComplexity), true
+	case "MuAllianceMoneyFlowReport.outWagesInsideMuAlliance":
+		if e.ComplexityRoot.MuAllianceMoneyFlowReport.OutWagesInsideMuAlliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MuAllianceMoneyFlowReport.OutWagesInsideMuAlliance(childComplexity), true
+	case "MuAllianceMoneyFlowReport.outWagesOutsideMuAlliance":
+		if e.ComplexityRoot.MuAllianceMoneyFlowReport.OutWagesOutsideMuAlliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MuAllianceMoneyFlowReport.OutWagesOutsideMuAlliance(childComplexity), true
+
 	case "MuCountryMoneyFlowCounterpart.country":
 		if e.ComplexityRoot.MuCountryMoneyFlowCounterpart.Country == nil {
 			break
@@ -4004,6 +4939,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.PartyNameChange.Party(childComplexity), true
 
+	case "Query.alliance":
+		if e.ComplexityRoot.Query.Alliance == nil {
+			break
+		}
+
+		args, err := ec.field_Query_alliance_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.Alliance(childComplexity, args["id"].(string)), true
 	case "Query.battle":
 		if e.ComplexityRoot.Query.Battle == nil {
 			break
@@ -5810,6 +6756,112 @@ func (ec *executionContext) childFields_ActivityConnection(ctx context.Context, 
 	return nil, fmt.Errorf("no field named %q was found under type ActivityConnection", field.Name)
 }
 
+func (ec *executionContext) childFields_Alliance(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "id":
+		return ec.fieldContext_Alliance_id(ctx, field)
+	case "name":
+		return ec.fieldContext_Alliance_name(ctx, field)
+	case "countries":
+		return ec.fieldContext_Alliance_countries(ctx, field)
+	case "battles":
+		return ec.fieldContext_Alliance_battles(ctx, field)
+	case "participation":
+		return ec.fieldContext_Alliance_participation(ctx, field)
+	case "topDamage":
+		return ec.fieldContext_Alliance_topDamage(ctx, field)
+	case "wealthReports":
+		return ec.fieldContext_Alliance_wealthReports(ctx, field)
+	case "moneyFlows":
+		return ec.fieldContext_Alliance_moneyFlows(ctx, field)
+	case "damageReports":
+		return ec.fieldContext_Alliance_damageReports(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type Alliance", field.Name)
+}
+
+func (ec *executionContext) childFields_AllianceBattleParticipation(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "alliance":
+		return ec.fieldContext_AllianceBattleParticipation_alliance(ctx, field)
+	case "totalDamage":
+		return ec.fieldContext_AllianceBattleParticipation_totalDamage(ctx, field)
+	case "battleCount":
+		return ec.fieldContext_AllianceBattleParticipation_battleCount(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type AllianceBattleParticipation", field.Name)
+}
+
+func (ec *executionContext) childFields_AllianceMoneyFlowCounterpart(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "inEquipment":
+		return ec.fieldContext_AllianceMoneyFlowCounterpart_inEquipment(ctx, field)
+	case "outEquipment":
+		return ec.fieldContext_AllianceMoneyFlowCounterpart_outEquipment(ctx, field)
+	case "inItems":
+		return ec.fieldContext_AllianceMoneyFlowCounterpart_inItems(ctx, field)
+	case "outItems":
+		return ec.fieldContext_AllianceMoneyFlowCounterpart_outItems(ctx, field)
+	case "inWages":
+		return ec.fieldContext_AllianceMoneyFlowCounterpart_inWages(ctx, field)
+	case "outWages":
+		return ec.fieldContext_AllianceMoneyFlowCounterpart_outWages(ctx, field)
+	case "alliance":
+		return ec.fieldContext_AllianceMoneyFlowCounterpart_alliance(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type AllianceMoneyFlowCounterpart", field.Name)
+}
+
+func (ec *executionContext) childFields_AllianceMoneyFlowReport(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "id":
+		return ec.fieldContext_AllianceMoneyFlowReport_id(ctx, field)
+	case "dayStart":
+		return ec.fieldContext_AllianceMoneyFlowReport_dayStart(ctx, field)
+	case "inEquipment":
+		return ec.fieldContext_AllianceMoneyFlowReport_inEquipment(ctx, field)
+	case "outEquipment":
+		return ec.fieldContext_AllianceMoneyFlowReport_outEquipment(ctx, field)
+	case "inItems":
+		return ec.fieldContext_AllianceMoneyFlowReport_inItems(ctx, field)
+	case "outItems":
+		return ec.fieldContext_AllianceMoneyFlowReport_outItems(ctx, field)
+	case "inWages":
+		return ec.fieldContext_AllianceMoneyFlowReport_inWages(ctx, field)
+	case "outWages":
+		return ec.fieldContext_AllianceMoneyFlowReport_outWages(ctx, field)
+	case "inEquipmentInAlliance":
+		return ec.fieldContext_AllianceMoneyFlowReport_inEquipmentInAlliance(ctx, field)
+	case "outEquipmentInAlliance":
+		return ec.fieldContext_AllianceMoneyFlowReport_outEquipmentInAlliance(ctx, field)
+	case "inItemsInAlliance":
+		return ec.fieldContext_AllianceMoneyFlowReport_inItemsInAlliance(ctx, field)
+	case "outItemsInAlliance":
+		return ec.fieldContext_AllianceMoneyFlowReport_outItemsInAlliance(ctx, field)
+	case "inWagesInAlliance":
+		return ec.fieldContext_AllianceMoneyFlowReport_inWagesInAlliance(ctx, field)
+	case "outWagesInAlliance":
+		return ec.fieldContext_AllianceMoneyFlowReport_outWagesInAlliance(ctx, field)
+	case "inEquipmentOutsideAlliance":
+		return ec.fieldContext_AllianceMoneyFlowReport_inEquipmentOutsideAlliance(ctx, field)
+	case "outEquipmentOutsideAlliance":
+		return ec.fieldContext_AllianceMoneyFlowReport_outEquipmentOutsideAlliance(ctx, field)
+	case "inItemsOutsideAlliance":
+		return ec.fieldContext_AllianceMoneyFlowReport_inItemsOutsideAlliance(ctx, field)
+	case "outItemsOutsideAlliance":
+		return ec.fieldContext_AllianceMoneyFlowReport_outItemsOutsideAlliance(ctx, field)
+	case "inWagesOutsideAlliance":
+		return ec.fieldContext_AllianceMoneyFlowReport_inWagesOutsideAlliance(ctx, field)
+	case "outWagesOutsideAlliance":
+		return ec.fieldContext_AllianceMoneyFlowReport_outWagesOutsideAlliance(ctx, field)
+	case "counterparts":
+		return ec.fieldContext_AllianceMoneyFlowReport_counterparts(ctx, field)
+	case "alliance":
+		return ec.fieldContext_AllianceMoneyFlowReport_alliance(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type AllianceMoneyFlowReport", field.Name)
+}
+
 func (ec *executionContext) childFields_Battle(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 	switch field.Name {
 	case "id":
@@ -5830,6 +6882,10 @@ func (ec *executionContext) childFields_Battle(ctx context.Context, field graphq
 		return ec.fieldContext_Battle_attackerCountry(ctx, field)
 	case "defenderCountry":
 		return ec.fieldContext_Battle_defenderCountry(ctx, field)
+	case "attackerAlliance":
+		return ec.fieldContext_Battle_attackerAlliance(ctx, field)
+	case "defenderAlliance":
+		return ec.fieldContext_Battle_defenderAlliance(ctx, field)
 	case "attackerRegion":
 		return ec.fieldContext_Battle_attackerRegion(ctx, field)
 	case "defenderRegion":
@@ -5988,6 +7044,8 @@ func (ec *executionContext) childFields_Country(ctx context.Context, field graph
 		return ec.fieldContext_Country_specialisation(ctx, field)
 	case "rulingParty":
 		return ec.fieldContext_Country_rulingParty(ctx, field)
+	case "alliance":
+		return ec.fieldContext_Country_alliance(ctx, field)
 	case "users":
 		return ec.fieldContext_Country_users(ctx, field)
 	case "userCount":
@@ -6004,10 +7062,16 @@ func (ec *executionContext) childFields_Country(ctx context.Context, field graph
 		return ec.fieldContext_Country_rulingPartyHistory(ctx, field)
 	case "specialisationHistory":
 		return ec.fieldContext_Country_specialisationHistory(ctx, field)
+	case "allianceJoinHistory":
+		return ec.fieldContext_Country_allianceJoinHistory(ctx, field)
+	case "allianceLeaveHistory":
+		return ec.fieldContext_Country_allianceLeaveHistory(ctx, field)
 	case "taxFlows":
 		return ec.fieldContext_Country_taxFlows(ctx, field)
 	case "moneyFlows":
 		return ec.fieldContext_Country_moneyFlows(ctx, field)
+	case "allianceMoneyFlows":
+		return ec.fieldContext_Country_allianceMoneyFlows(ctx, field)
 	case "flipEvents":
 		return ec.fieldContext_Country_flipEvents(ctx, field)
 	case "flipState":
@@ -6018,6 +7082,104 @@ func (ec *executionContext) childFields_Country(ctx context.Context, field graph
 		return ec.fieldContext_Country_wealthReports(ctx, field)
 	}
 	return nil, fmt.Errorf("no field named %q was found under type Country", field.Name)
+}
+
+func (ec *executionContext) childFields_CountryAllianceJoin(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "id":
+		return ec.fieldContext_CountryAllianceJoin_id(ctx, field)
+	case "at":
+		return ec.fieldContext_CountryAllianceJoin_at(ctx, field)
+	case "country":
+		return ec.fieldContext_CountryAllianceJoin_country(ctx, field)
+	case "alliance":
+		return ec.fieldContext_CountryAllianceJoin_alliance(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type CountryAllianceJoin", field.Name)
+}
+
+func (ec *executionContext) childFields_CountryAllianceLeave(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "id":
+		return ec.fieldContext_CountryAllianceLeave_id(ctx, field)
+	case "at":
+		return ec.fieldContext_CountryAllianceLeave_at(ctx, field)
+	case "country":
+		return ec.fieldContext_CountryAllianceLeave_country(ctx, field)
+	case "prevAlliance":
+		return ec.fieldContext_CountryAllianceLeave_prevAlliance(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type CountryAllianceLeave", field.Name)
+}
+
+func (ec *executionContext) childFields_CountryAllianceMoneyFlowCounterpart(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "inEquipment":
+		return ec.fieldContext_CountryAllianceMoneyFlowCounterpart_inEquipment(ctx, field)
+	case "outEquipment":
+		return ec.fieldContext_CountryAllianceMoneyFlowCounterpart_outEquipment(ctx, field)
+	case "inItems":
+		return ec.fieldContext_CountryAllianceMoneyFlowCounterpart_inItems(ctx, field)
+	case "outItems":
+		return ec.fieldContext_CountryAllianceMoneyFlowCounterpart_outItems(ctx, field)
+	case "inWages":
+		return ec.fieldContext_CountryAllianceMoneyFlowCounterpart_inWages(ctx, field)
+	case "outWages":
+		return ec.fieldContext_CountryAllianceMoneyFlowCounterpart_outWages(ctx, field)
+	case "alliance":
+		return ec.fieldContext_CountryAllianceMoneyFlowCounterpart_alliance(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type CountryAllianceMoneyFlowCounterpart", field.Name)
+}
+
+func (ec *executionContext) childFields_CountryAllianceMoneyFlowReport(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "id":
+		return ec.fieldContext_CountryAllianceMoneyFlowReport_id(ctx, field)
+	case "dayStart":
+		return ec.fieldContext_CountryAllianceMoneyFlowReport_dayStart(ctx, field)
+	case "inEquipment":
+		return ec.fieldContext_CountryAllianceMoneyFlowReport_inEquipment(ctx, field)
+	case "outEquipment":
+		return ec.fieldContext_CountryAllianceMoneyFlowReport_outEquipment(ctx, field)
+	case "inItems":
+		return ec.fieldContext_CountryAllianceMoneyFlowReport_inItems(ctx, field)
+	case "outItems":
+		return ec.fieldContext_CountryAllianceMoneyFlowReport_outItems(ctx, field)
+	case "inWages":
+		return ec.fieldContext_CountryAllianceMoneyFlowReport_inWages(ctx, field)
+	case "outWages":
+		return ec.fieldContext_CountryAllianceMoneyFlowReport_outWages(ctx, field)
+	case "inEquipmentInAlliance":
+		return ec.fieldContext_CountryAllianceMoneyFlowReport_inEquipmentInAlliance(ctx, field)
+	case "outEquipmentInAlliance":
+		return ec.fieldContext_CountryAllianceMoneyFlowReport_outEquipmentInAlliance(ctx, field)
+	case "inItemsInAlliance":
+		return ec.fieldContext_CountryAllianceMoneyFlowReport_inItemsInAlliance(ctx, field)
+	case "outItemsInAlliance":
+		return ec.fieldContext_CountryAllianceMoneyFlowReport_outItemsInAlliance(ctx, field)
+	case "inWagesInAlliance":
+		return ec.fieldContext_CountryAllianceMoneyFlowReport_inWagesInAlliance(ctx, field)
+	case "outWagesInAlliance":
+		return ec.fieldContext_CountryAllianceMoneyFlowReport_outWagesInAlliance(ctx, field)
+	case "inEquipmentOutsideAlliance":
+		return ec.fieldContext_CountryAllianceMoneyFlowReport_inEquipmentOutsideAlliance(ctx, field)
+	case "outEquipmentOutsideAlliance":
+		return ec.fieldContext_CountryAllianceMoneyFlowReport_outEquipmentOutsideAlliance(ctx, field)
+	case "inItemsOutsideAlliance":
+		return ec.fieldContext_CountryAllianceMoneyFlowReport_inItemsOutsideAlliance(ctx, field)
+	case "outItemsOutsideAlliance":
+		return ec.fieldContext_CountryAllianceMoneyFlowReport_outItemsOutsideAlliance(ctx, field)
+	case "inWagesOutsideAlliance":
+		return ec.fieldContext_CountryAllianceMoneyFlowReport_inWagesOutsideAlliance(ctx, field)
+	case "outWagesOutsideAlliance":
+		return ec.fieldContext_CountryAllianceMoneyFlowReport_outWagesOutsideAlliance(ctx, field)
+	case "counterparts":
+		return ec.fieldContext_CountryAllianceMoneyFlowReport_counterparts(ctx, field)
+	case "country":
+		return ec.fieldContext_CountryAllianceMoneyFlowReport_country(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type CountryAllianceMoneyFlowReport", field.Name)
 }
 
 func (ec *executionContext) childFields_CountryFlipEvent(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
@@ -6214,6 +7376,8 @@ func (ec *executionContext) childFields_Damage(ctx context.Context, field graphq
 		return ec.fieldContext_Damage_user(ctx, field)
 	case "country":
 		return ec.fieldContext_Damage_country(ctx, field)
+	case "alliance":
+		return ec.fieldContext_Damage_alliance(ctx, field)
 	case "mu":
 		return ec.fieldContext_Damage_mu(ctx, field)
 	case "party":
@@ -6642,6 +7806,26 @@ func (ec *executionContext) childFields_Mu(ctx context.Context, field graphql.Co
 		return ec.fieldContext_Mu_wealthReports(ctx, field)
 	}
 	return nil, fmt.Errorf("no field named %q was found under type Mu", field.Name)
+}
+
+func (ec *executionContext) childFields_MuAllianceMoneyFlowCounterpart(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "inEquipment":
+		return ec.fieldContext_MuAllianceMoneyFlowCounterpart_inEquipment(ctx, field)
+	case "outEquipment":
+		return ec.fieldContext_MuAllianceMoneyFlowCounterpart_outEquipment(ctx, field)
+	case "inItems":
+		return ec.fieldContext_MuAllianceMoneyFlowCounterpart_inItems(ctx, field)
+	case "outItems":
+		return ec.fieldContext_MuAllianceMoneyFlowCounterpart_outItems(ctx, field)
+	case "inWages":
+		return ec.fieldContext_MuAllianceMoneyFlowCounterpart_inWages(ctx, field)
+	case "outWages":
+		return ec.fieldContext_MuAllianceMoneyFlowCounterpart_outWages(ctx, field)
+	case "alliance":
+		return ec.fieldContext_MuAllianceMoneyFlowCounterpart_alliance(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type MuAllianceMoneyFlowCounterpart", field.Name)
 }
 
 func (ec *executionContext) childFields_MuCountryMoneyFlowCounterpart(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
@@ -7562,6 +8746,132 @@ func (ec *executionContext) childFields___Type(ctx context.Context, field graphq
 
 // region    ***************************** args.gotpl *****************************
 
+func (ec *executionContext) field_Alliance_battles_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "first",
+		func(ctx context.Context, v any) (*int32, error) {
+			return ec.unmarshalOInt2ᚖint32(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["first"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "after",
+		func(ctx context.Context, v any) (*string, error) {
+			return ec.unmarshalOID2ᚖstring(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["after"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "filter",
+		func(ctx context.Context, v any) (*model.BattleFilter, error) {
+			return ec.unmarshalOBattleFilter2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐBattleFilter(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["filter"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Alliance_damageReports_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "from",
+		func(ctx context.Context, v any) (*time.Time, error) {
+			return ec.unmarshalODateTime2ᚖtimeᚐTime(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["from"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "to",
+		func(ctx context.Context, v any) (*time.Time, error) {
+			return ec.unmarshalODateTime2ᚖtimeᚐTime(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["to"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "entityKind",
+		func(ctx context.Context, v any) (*model.EntityKind, error) {
+			return ec.unmarshalOEntityKind2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐEntityKind(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["entityKind"] = arg2
+	arg3, err := graphql.ProcessArgField(ctx, rawArgs, "entityIds",
+		func(ctx context.Context, v any) ([]string, error) {
+			return ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["entityIds"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_Alliance_moneyFlows_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "from",
+		func(ctx context.Context, v any) (time.Time, error) {
+			return ec.unmarshalNDateTime2timeᚐTime(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["from"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "to",
+		func(ctx context.Context, v any) (time.Time, error) {
+			return ec.unmarshalNDateTime2timeᚐTime(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["to"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Alliance_topDamage_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "limit",
+		func(ctx context.Context, v any) (*int32, error) {
+			return ec.unmarshalOInt2ᚖint32(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["limit"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Alliance_wealthReports_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "from",
+		func(ctx context.Context, v any) (time.Time, error) {
+			return ec.unmarshalNDateTime2timeᚐTime(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["from"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "to",
+		func(ctx context.Context, v any) (time.Time, error) {
+			return ec.unmarshalNDateTime2timeᚐTime(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["to"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Battle_damageReports_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -7715,6 +9025,72 @@ func (ec *executionContext) field_Company_regionHistory_args(ctx context.Context
 		return nil, err
 	}
 	args["after"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Country_allianceJoinHistory_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "first",
+		func(ctx context.Context, v any) (*int32, error) {
+			return ec.unmarshalOInt2ᚖint32(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["first"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "after",
+		func(ctx context.Context, v any) (*string, error) {
+			return ec.unmarshalOID2ᚖstring(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["after"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Country_allianceLeaveHistory_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "first",
+		func(ctx context.Context, v any) (*int32, error) {
+			return ec.unmarshalOInt2ᚖint32(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["first"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "after",
+		func(ctx context.Context, v any) (*string, error) {
+			return ec.unmarshalOID2ᚖstring(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["after"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Country_allianceMoneyFlows_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "from",
+		func(ctx context.Context, v any) (time.Time, error) {
+			return ec.unmarshalNDateTime2timeᚐTime(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["from"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "to",
+		func(ctx context.Context, v any) (time.Time, error) {
+			return ec.unmarshalNDateTime2timeᚐTime(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["to"] = arg1
 	return args, nil
 }
 
@@ -8311,6 +9687,20 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		return nil, err
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_alliance_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNID2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -9495,6 +10885,1108 @@ func (ec *executionContext) fieldContext_ActivityConnection_hasNextPage(_ contex
 	return graphql.NewScalarFieldContext("ActivityConnection", field, false, false, errors.New("field of type Boolean does not have child fields"))
 }
 
+func (ec *executionContext) _Alliance_id(ctx context.Context, field graphql.CollectedField, obj *model.Alliance) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Alliance_id(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNID2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Alliance_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("Alliance", field, false, false, errors.New("field of type ID does not have child fields"))
+}
+
+func (ec *executionContext) _Alliance_name(ctx context.Context, field graphql.CollectedField, obj *model.Alliance) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Alliance_name(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Name, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Alliance_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("Alliance", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _Alliance_countries(ctx context.Context, field graphql.CollectedField, obj *model.Alliance) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Alliance_countries(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.Alliance().Countries(ctx, obj)
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []*model.Country) graphql.Marshaler {
+			return ec.marshalNCountry2ᚕᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐCountryᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Alliance_countries(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Alliance",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_Country(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Alliance_battles(ctx context.Context, field graphql.CollectedField, obj *model.Alliance) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Alliance_battles(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Alliance().Battles(ctx, obj, fc.Args["first"].(*int32), fc.Args["after"].(*string), fc.Args["filter"].(*model.BattleFilter))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []*model.Battle) graphql.Marshaler {
+			return ec.marshalNBattle2ᚕᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐBattleᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Alliance_battles(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Alliance",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_Battle(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Alliance_battles_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Alliance_participation(ctx context.Context, field graphql.CollectedField, obj *model.Alliance) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Alliance_participation(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.Alliance().Participation(ctx, obj)
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.AllianceBattleParticipation) graphql.Marshaler {
+			return ec.marshalOAllianceBattleParticipation2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐAllianceBattleParticipation(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_Alliance_participation(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Alliance",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_AllianceBattleParticipation(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Alliance_topDamage(ctx context.Context, field graphql.CollectedField, obj *model.Alliance) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Alliance_topDamage(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Alliance().TopDamage(ctx, obj, fc.Args["limit"].(*int32))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []*model.DamageRanking) graphql.Marshaler {
+			return ec.marshalNDamageRanking2ᚕᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐDamageRankingᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Alliance_topDamage(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Alliance",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_DamageRanking(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Alliance_topDamage_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Alliance_wealthReports(ctx context.Context, field graphql.CollectedField, obj *model.Alliance) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Alliance_wealthReports(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Alliance().WealthReports(ctx, obj, fc.Args["from"].(time.Time), fc.Args["to"].(time.Time))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []*model.EntityWealthReport) graphql.Marshaler {
+			return ec.marshalNEntityWealthReport2ᚕᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐEntityWealthReportᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Alliance_wealthReports(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Alliance",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_EntityWealthReport(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Alliance_wealthReports_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Alliance_moneyFlows(ctx context.Context, field graphql.CollectedField, obj *model.Alliance) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Alliance_moneyFlows(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Alliance().MoneyFlows(ctx, obj, fc.Args["from"].(time.Time), fc.Args["to"].(time.Time))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []*model.AllianceMoneyFlowReport) graphql.Marshaler {
+			return ec.marshalNAllianceMoneyFlowReport2ᚕᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐAllianceMoneyFlowReportᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Alliance_moneyFlows(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Alliance",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_AllianceMoneyFlowReport(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Alliance_moneyFlows_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Alliance_damageReports(ctx context.Context, field graphql.CollectedField, obj *model.Alliance) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Alliance_damageReports(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Alliance().DamageReports(ctx, obj, fc.Args["from"].(*time.Time), fc.Args["to"].(*time.Time), fc.Args["entityKind"].(*model.EntityKind), fc.Args["entityIds"].([]string))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []*model.BattleDamageReport) graphql.Marshaler {
+			return ec.marshalNBattleDamageReport2ᚕᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐBattleDamageReportᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Alliance_damageReports(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Alliance",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_BattleDamageReport(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Alliance_damageReports_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AllianceBattleParticipation_alliance(ctx context.Context, field graphql.CollectedField, obj *model.AllianceBattleParticipation) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_AllianceBattleParticipation_alliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.AllianceBattleParticipation().Alliance(ctx, obj)
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.Alliance) graphql.Marshaler {
+			return ec.marshalNAlliance2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐAlliance(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_AllianceBattleParticipation_alliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AllianceBattleParticipation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_Alliance(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AllianceBattleParticipation_totalDamage(ctx context.Context, field graphql.CollectedField, obj *model.AllianceBattleParticipation) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_AllianceBattleParticipation_totalDamage(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.TotalDamage, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v int64) graphql.Marshaler {
+			return ec.marshalNInt642int64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_AllianceBattleParticipation_totalDamage(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("AllianceBattleParticipation", field, false, false, errors.New("field of type Int64 does not have child fields"))
+}
+
+func (ec *executionContext) _AllianceBattleParticipation_battleCount(ctx context.Context, field graphql.CollectedField, obj *model.AllianceBattleParticipation) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_AllianceBattleParticipation_battleCount(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.BattleCount, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v int32) graphql.Marshaler {
+			return ec.marshalNInt2int32(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_AllianceBattleParticipation_battleCount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("AllianceBattleParticipation", field, false, false, errors.New("field of type Int does not have child fields"))
+}
+
+func (ec *executionContext) _AllianceMoneyFlowCounterpart_inEquipment(ctx context.Context, field graphql.CollectedField, obj *model.AllianceMoneyFlowCounterpart) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_AllianceMoneyFlowCounterpart_inEquipment(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InEquipment, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_AllianceMoneyFlowCounterpart_inEquipment(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("AllianceMoneyFlowCounterpart", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _AllianceMoneyFlowCounterpart_outEquipment(ctx context.Context, field graphql.CollectedField, obj *model.AllianceMoneyFlowCounterpart) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_AllianceMoneyFlowCounterpart_outEquipment(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutEquipment, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_AllianceMoneyFlowCounterpart_outEquipment(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("AllianceMoneyFlowCounterpart", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _AllianceMoneyFlowCounterpart_inItems(ctx context.Context, field graphql.CollectedField, obj *model.AllianceMoneyFlowCounterpart) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_AllianceMoneyFlowCounterpart_inItems(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InItems, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_AllianceMoneyFlowCounterpart_inItems(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("AllianceMoneyFlowCounterpart", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _AllianceMoneyFlowCounterpart_outItems(ctx context.Context, field graphql.CollectedField, obj *model.AllianceMoneyFlowCounterpart) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_AllianceMoneyFlowCounterpart_outItems(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutItems, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_AllianceMoneyFlowCounterpart_outItems(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("AllianceMoneyFlowCounterpart", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _AllianceMoneyFlowCounterpart_inWages(ctx context.Context, field graphql.CollectedField, obj *model.AllianceMoneyFlowCounterpart) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_AllianceMoneyFlowCounterpart_inWages(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InWages, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_AllianceMoneyFlowCounterpart_inWages(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("AllianceMoneyFlowCounterpart", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _AllianceMoneyFlowCounterpart_outWages(ctx context.Context, field graphql.CollectedField, obj *model.AllianceMoneyFlowCounterpart) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_AllianceMoneyFlowCounterpart_outWages(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutWages, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_AllianceMoneyFlowCounterpart_outWages(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("AllianceMoneyFlowCounterpart", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _AllianceMoneyFlowCounterpart_alliance(ctx context.Context, field graphql.CollectedField, obj *model.AllianceMoneyFlowCounterpart) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_AllianceMoneyFlowCounterpart_alliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.AllianceMoneyFlowCounterpart().Alliance(ctx, obj)
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.Alliance) graphql.Marshaler {
+			return ec.marshalNAlliance2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐAlliance(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_AllianceMoneyFlowCounterpart_alliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AllianceMoneyFlowCounterpart",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_Alliance(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AllianceMoneyFlowReport_id(ctx context.Context, field graphql.CollectedField, obj *model.AllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_AllianceMoneyFlowReport_id(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNID2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_AllianceMoneyFlowReport_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("AllianceMoneyFlowReport", field, false, false, errors.New("field of type ID does not have child fields"))
+}
+
+func (ec *executionContext) _AllianceMoneyFlowReport_dayStart(ctx context.Context, field graphql.CollectedField, obj *model.AllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_AllianceMoneyFlowReport_dayStart(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.DayStart, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_AllianceMoneyFlowReport_dayStart(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("AllianceMoneyFlowReport", field, false, false, errors.New("field of type DateTime does not have child fields"))
+}
+
+func (ec *executionContext) _AllianceMoneyFlowReport_inEquipment(ctx context.Context, field graphql.CollectedField, obj *model.AllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_AllianceMoneyFlowReport_inEquipment(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InEquipment, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_AllianceMoneyFlowReport_inEquipment(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("AllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _AllianceMoneyFlowReport_outEquipment(ctx context.Context, field graphql.CollectedField, obj *model.AllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_AllianceMoneyFlowReport_outEquipment(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutEquipment, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_AllianceMoneyFlowReport_outEquipment(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("AllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _AllianceMoneyFlowReport_inItems(ctx context.Context, field graphql.CollectedField, obj *model.AllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_AllianceMoneyFlowReport_inItems(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InItems, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_AllianceMoneyFlowReport_inItems(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("AllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _AllianceMoneyFlowReport_outItems(ctx context.Context, field graphql.CollectedField, obj *model.AllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_AllianceMoneyFlowReport_outItems(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutItems, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_AllianceMoneyFlowReport_outItems(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("AllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _AllianceMoneyFlowReport_inWages(ctx context.Context, field graphql.CollectedField, obj *model.AllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_AllianceMoneyFlowReport_inWages(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InWages, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_AllianceMoneyFlowReport_inWages(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("AllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _AllianceMoneyFlowReport_outWages(ctx context.Context, field graphql.CollectedField, obj *model.AllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_AllianceMoneyFlowReport_outWages(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutWages, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_AllianceMoneyFlowReport_outWages(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("AllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _AllianceMoneyFlowReport_inEquipmentInAlliance(ctx context.Context, field graphql.CollectedField, obj *model.AllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_AllianceMoneyFlowReport_inEquipmentInAlliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InEquipmentInAlliance, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_AllianceMoneyFlowReport_inEquipmentInAlliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("AllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _AllianceMoneyFlowReport_outEquipmentInAlliance(ctx context.Context, field graphql.CollectedField, obj *model.AllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_AllianceMoneyFlowReport_outEquipmentInAlliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutEquipmentInAlliance, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_AllianceMoneyFlowReport_outEquipmentInAlliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("AllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _AllianceMoneyFlowReport_inItemsInAlliance(ctx context.Context, field graphql.CollectedField, obj *model.AllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_AllianceMoneyFlowReport_inItemsInAlliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InItemsInAlliance, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_AllianceMoneyFlowReport_inItemsInAlliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("AllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _AllianceMoneyFlowReport_outItemsInAlliance(ctx context.Context, field graphql.CollectedField, obj *model.AllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_AllianceMoneyFlowReport_outItemsInAlliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutItemsInAlliance, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_AllianceMoneyFlowReport_outItemsInAlliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("AllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _AllianceMoneyFlowReport_inWagesInAlliance(ctx context.Context, field graphql.CollectedField, obj *model.AllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_AllianceMoneyFlowReport_inWagesInAlliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InWagesInAlliance, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_AllianceMoneyFlowReport_inWagesInAlliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("AllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _AllianceMoneyFlowReport_outWagesInAlliance(ctx context.Context, field graphql.CollectedField, obj *model.AllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_AllianceMoneyFlowReport_outWagesInAlliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutWagesInAlliance, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_AllianceMoneyFlowReport_outWagesInAlliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("AllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _AllianceMoneyFlowReport_inEquipmentOutsideAlliance(ctx context.Context, field graphql.CollectedField, obj *model.AllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_AllianceMoneyFlowReport_inEquipmentOutsideAlliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InEquipmentOutsideAlliance, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_AllianceMoneyFlowReport_inEquipmentOutsideAlliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("AllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _AllianceMoneyFlowReport_outEquipmentOutsideAlliance(ctx context.Context, field graphql.CollectedField, obj *model.AllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_AllianceMoneyFlowReport_outEquipmentOutsideAlliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutEquipmentOutsideAlliance, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_AllianceMoneyFlowReport_outEquipmentOutsideAlliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("AllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _AllianceMoneyFlowReport_inItemsOutsideAlliance(ctx context.Context, field graphql.CollectedField, obj *model.AllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_AllianceMoneyFlowReport_inItemsOutsideAlliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InItemsOutsideAlliance, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_AllianceMoneyFlowReport_inItemsOutsideAlliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("AllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _AllianceMoneyFlowReport_outItemsOutsideAlliance(ctx context.Context, field graphql.CollectedField, obj *model.AllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_AllianceMoneyFlowReport_outItemsOutsideAlliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutItemsOutsideAlliance, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_AllianceMoneyFlowReport_outItemsOutsideAlliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("AllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _AllianceMoneyFlowReport_inWagesOutsideAlliance(ctx context.Context, field graphql.CollectedField, obj *model.AllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_AllianceMoneyFlowReport_inWagesOutsideAlliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InWagesOutsideAlliance, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_AllianceMoneyFlowReport_inWagesOutsideAlliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("AllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _AllianceMoneyFlowReport_outWagesOutsideAlliance(ctx context.Context, field graphql.CollectedField, obj *model.AllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_AllianceMoneyFlowReport_outWagesOutsideAlliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutWagesOutsideAlliance, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_AllianceMoneyFlowReport_outWagesOutsideAlliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("AllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _AllianceMoneyFlowReport_counterparts(ctx context.Context, field graphql.CollectedField, obj *model.AllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_AllianceMoneyFlowReport_counterparts(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Counterparts, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []*model.AllianceMoneyFlowCounterpart) graphql.Marshaler {
+			return ec.marshalNAllianceMoneyFlowCounterpart2ᚕᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐAllianceMoneyFlowCounterpartᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_AllianceMoneyFlowReport_counterparts(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AllianceMoneyFlowReport",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_AllianceMoneyFlowCounterpart(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AllianceMoneyFlowReport_alliance(ctx context.Context, field graphql.CollectedField, obj *model.AllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_AllianceMoneyFlowReport_alliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.AllianceMoneyFlowReport().Alliance(ctx, obj)
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.Alliance) graphql.Marshaler {
+			return ec.marshalNAlliance2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐAlliance(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_AllianceMoneyFlowReport_alliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AllianceMoneyFlowReport",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_Alliance(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Battle_id(ctx context.Context, field graphql.CollectedField, obj *model.Battle) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -9715,6 +12207,70 @@ func (ec *executionContext) fieldContext_Battle_defenderCountry(_ context.Contex
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return ec.childFields_Country(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Battle_attackerAlliance(ctx context.Context, field graphql.CollectedField, obj *model.Battle) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Battle_attackerAlliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.Battle().AttackerAlliance(ctx, obj)
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.Alliance) graphql.Marshaler {
+			return ec.marshalOAlliance2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐAlliance(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_Battle_attackerAlliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Battle",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_Alliance(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Battle_defenderAlliance(ctx context.Context, field graphql.CollectedField, obj *model.Battle) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Battle_defenderAlliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.Battle().DefenderAlliance(ctx, obj)
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.Alliance) graphql.Marshaler {
+			return ec.marshalOAlliance2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐAlliance(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_Battle_defenderAlliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Battle",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_Alliance(ctx, field)
 		},
 	}
 	return fc, nil
@@ -11365,6 +13921,38 @@ func (ec *executionContext) fieldContext_Country_rulingParty(_ context.Context, 
 	return fc, nil
 }
 
+func (ec *executionContext) _Country_alliance(ctx context.Context, field graphql.CollectedField, obj *model.Country) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Country_alliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.Country().Alliance(ctx, obj)
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.Alliance) graphql.Marshaler {
+			return ec.marshalOAlliance2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐAlliance(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_Country_alliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Country",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_Alliance(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Country_users(ctx context.Context, field graphql.CollectedField, obj *model.Country) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -11684,6 +14272,94 @@ func (ec *executionContext) fieldContext_Country_specialisationHistory(ctx conte
 	return fc, nil
 }
 
+func (ec *executionContext) _Country_allianceJoinHistory(ctx context.Context, field graphql.CollectedField, obj *model.Country) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Country_allianceJoinHistory(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Country().AllianceJoinHistory(ctx, obj, fc.Args["first"].(*int32), fc.Args["after"].(*string))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []*model.CountryAllianceJoin) graphql.Marshaler {
+			return ec.marshalNCountryAllianceJoin2ᚕᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐCountryAllianceJoinᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Country_allianceJoinHistory(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Country",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_CountryAllianceJoin(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Country_allianceJoinHistory_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Country_allianceLeaveHistory(ctx context.Context, field graphql.CollectedField, obj *model.Country) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Country_allianceLeaveHistory(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Country().AllianceLeaveHistory(ctx, obj, fc.Args["first"].(*int32), fc.Args["after"].(*string))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []*model.CountryAllianceLeave) graphql.Marshaler {
+			return ec.marshalNCountryAllianceLeave2ᚕᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐCountryAllianceLeaveᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Country_allianceLeaveHistory(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Country",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_CountryAllianceLeave(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Country_allianceLeaveHistory_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Country_taxFlows(ctx context.Context, field graphql.CollectedField, obj *model.Country) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -11766,6 +14442,50 @@ func (ec *executionContext) fieldContext_Country_moneyFlows(ctx context.Context,
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Country_moneyFlows_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Country_allianceMoneyFlows(ctx context.Context, field graphql.CollectedField, obj *model.Country) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Country_allianceMoneyFlows(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Country().AllianceMoneyFlows(ctx, obj, fc.Args["from"].(time.Time), fc.Args["to"].(time.Time))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []*model.CountryAllianceMoneyFlowReport) graphql.Marshaler {
+			return ec.marshalNCountryAllianceMoneyFlowReport2ᚕᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐCountryAllianceMoneyFlowReportᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Country_allianceMoneyFlows(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Country",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_CountryAllianceMoneyFlowReport(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Country_allianceMoneyFlows_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -11920,6 +14640,920 @@ func (ec *executionContext) fieldContext_Country_wealthReports(ctx context.Conte
 	if fc.Args, err = ec.field_Country_wealthReports_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CountryAllianceJoin_id(ctx context.Context, field graphql.CollectedField, obj *model.CountryAllianceJoin) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CountryAllianceJoin_id(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNID2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CountryAllianceJoin_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CountryAllianceJoin", field, false, false, errors.New("field of type ID does not have child fields"))
+}
+
+func (ec *executionContext) _CountryAllianceJoin_at(ctx context.Context, field graphql.CollectedField, obj *model.CountryAllianceJoin) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CountryAllianceJoin_at(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.At, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CountryAllianceJoin_at(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CountryAllianceJoin", field, false, false, errors.New("field of type DateTime does not have child fields"))
+}
+
+func (ec *executionContext) _CountryAllianceJoin_country(ctx context.Context, field graphql.CollectedField, obj *model.CountryAllianceJoin) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CountryAllianceJoin_country(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.CountryAllianceJoin().Country(ctx, obj)
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.Country) graphql.Marshaler {
+			return ec.marshalNCountry2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐCountry(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CountryAllianceJoin_country(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CountryAllianceJoin",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_Country(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CountryAllianceJoin_alliance(ctx context.Context, field graphql.CollectedField, obj *model.CountryAllianceJoin) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CountryAllianceJoin_alliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.CountryAllianceJoin().Alliance(ctx, obj)
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.Alliance) graphql.Marshaler {
+			return ec.marshalNAlliance2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐAlliance(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CountryAllianceJoin_alliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CountryAllianceJoin",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_Alliance(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CountryAllianceLeave_id(ctx context.Context, field graphql.CollectedField, obj *model.CountryAllianceLeave) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CountryAllianceLeave_id(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNID2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CountryAllianceLeave_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CountryAllianceLeave", field, false, false, errors.New("field of type ID does not have child fields"))
+}
+
+func (ec *executionContext) _CountryAllianceLeave_at(ctx context.Context, field graphql.CollectedField, obj *model.CountryAllianceLeave) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CountryAllianceLeave_at(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.At, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CountryAllianceLeave_at(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CountryAllianceLeave", field, false, false, errors.New("field of type DateTime does not have child fields"))
+}
+
+func (ec *executionContext) _CountryAllianceLeave_country(ctx context.Context, field graphql.CollectedField, obj *model.CountryAllianceLeave) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CountryAllianceLeave_country(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.CountryAllianceLeave().Country(ctx, obj)
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.Country) graphql.Marshaler {
+			return ec.marshalNCountry2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐCountry(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CountryAllianceLeave_country(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CountryAllianceLeave",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_Country(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CountryAllianceLeave_prevAlliance(ctx context.Context, field graphql.CollectedField, obj *model.CountryAllianceLeave) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CountryAllianceLeave_prevAlliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.CountryAllianceLeave().PrevAlliance(ctx, obj)
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.Alliance) graphql.Marshaler {
+			return ec.marshalOAlliance2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐAlliance(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_CountryAllianceLeave_prevAlliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CountryAllianceLeave",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_Alliance(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CountryAllianceMoneyFlowCounterpart_inEquipment(ctx context.Context, field graphql.CollectedField, obj *model.CountryAllianceMoneyFlowCounterpart) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CountryAllianceMoneyFlowCounterpart_inEquipment(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InEquipment, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CountryAllianceMoneyFlowCounterpart_inEquipment(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CountryAllianceMoneyFlowCounterpart", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _CountryAllianceMoneyFlowCounterpart_outEquipment(ctx context.Context, field graphql.CollectedField, obj *model.CountryAllianceMoneyFlowCounterpart) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CountryAllianceMoneyFlowCounterpart_outEquipment(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutEquipment, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CountryAllianceMoneyFlowCounterpart_outEquipment(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CountryAllianceMoneyFlowCounterpart", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _CountryAllianceMoneyFlowCounterpart_inItems(ctx context.Context, field graphql.CollectedField, obj *model.CountryAllianceMoneyFlowCounterpart) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CountryAllianceMoneyFlowCounterpart_inItems(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InItems, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CountryAllianceMoneyFlowCounterpart_inItems(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CountryAllianceMoneyFlowCounterpart", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _CountryAllianceMoneyFlowCounterpart_outItems(ctx context.Context, field graphql.CollectedField, obj *model.CountryAllianceMoneyFlowCounterpart) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CountryAllianceMoneyFlowCounterpart_outItems(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutItems, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CountryAllianceMoneyFlowCounterpart_outItems(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CountryAllianceMoneyFlowCounterpart", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _CountryAllianceMoneyFlowCounterpart_inWages(ctx context.Context, field graphql.CollectedField, obj *model.CountryAllianceMoneyFlowCounterpart) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CountryAllianceMoneyFlowCounterpart_inWages(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InWages, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CountryAllianceMoneyFlowCounterpart_inWages(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CountryAllianceMoneyFlowCounterpart", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _CountryAllianceMoneyFlowCounterpart_outWages(ctx context.Context, field graphql.CollectedField, obj *model.CountryAllianceMoneyFlowCounterpart) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CountryAllianceMoneyFlowCounterpart_outWages(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutWages, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CountryAllianceMoneyFlowCounterpart_outWages(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CountryAllianceMoneyFlowCounterpart", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _CountryAllianceMoneyFlowCounterpart_alliance(ctx context.Context, field graphql.CollectedField, obj *model.CountryAllianceMoneyFlowCounterpart) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CountryAllianceMoneyFlowCounterpart_alliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.CountryAllianceMoneyFlowCounterpart().Alliance(ctx, obj)
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.Alliance) graphql.Marshaler {
+			return ec.marshalNAlliance2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐAlliance(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CountryAllianceMoneyFlowCounterpart_alliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CountryAllianceMoneyFlowCounterpart",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_Alliance(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CountryAllianceMoneyFlowReport_id(ctx context.Context, field graphql.CollectedField, obj *model.CountryAllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CountryAllianceMoneyFlowReport_id(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNID2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CountryAllianceMoneyFlowReport_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CountryAllianceMoneyFlowReport", field, false, false, errors.New("field of type ID does not have child fields"))
+}
+
+func (ec *executionContext) _CountryAllianceMoneyFlowReport_dayStart(ctx context.Context, field graphql.CollectedField, obj *model.CountryAllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CountryAllianceMoneyFlowReport_dayStart(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.DayStart, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CountryAllianceMoneyFlowReport_dayStart(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CountryAllianceMoneyFlowReport", field, false, false, errors.New("field of type DateTime does not have child fields"))
+}
+
+func (ec *executionContext) _CountryAllianceMoneyFlowReport_inEquipment(ctx context.Context, field graphql.CollectedField, obj *model.CountryAllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CountryAllianceMoneyFlowReport_inEquipment(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InEquipment, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CountryAllianceMoneyFlowReport_inEquipment(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CountryAllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _CountryAllianceMoneyFlowReport_outEquipment(ctx context.Context, field graphql.CollectedField, obj *model.CountryAllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CountryAllianceMoneyFlowReport_outEquipment(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutEquipment, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CountryAllianceMoneyFlowReport_outEquipment(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CountryAllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _CountryAllianceMoneyFlowReport_inItems(ctx context.Context, field graphql.CollectedField, obj *model.CountryAllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CountryAllianceMoneyFlowReport_inItems(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InItems, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CountryAllianceMoneyFlowReport_inItems(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CountryAllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _CountryAllianceMoneyFlowReport_outItems(ctx context.Context, field graphql.CollectedField, obj *model.CountryAllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CountryAllianceMoneyFlowReport_outItems(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutItems, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CountryAllianceMoneyFlowReport_outItems(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CountryAllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _CountryAllianceMoneyFlowReport_inWages(ctx context.Context, field graphql.CollectedField, obj *model.CountryAllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CountryAllianceMoneyFlowReport_inWages(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InWages, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CountryAllianceMoneyFlowReport_inWages(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CountryAllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _CountryAllianceMoneyFlowReport_outWages(ctx context.Context, field graphql.CollectedField, obj *model.CountryAllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CountryAllianceMoneyFlowReport_outWages(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutWages, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CountryAllianceMoneyFlowReport_outWages(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CountryAllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _CountryAllianceMoneyFlowReport_inEquipmentInAlliance(ctx context.Context, field graphql.CollectedField, obj *model.CountryAllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CountryAllianceMoneyFlowReport_inEquipmentInAlliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InEquipmentInAlliance, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CountryAllianceMoneyFlowReport_inEquipmentInAlliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CountryAllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _CountryAllianceMoneyFlowReport_outEquipmentInAlliance(ctx context.Context, field graphql.CollectedField, obj *model.CountryAllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CountryAllianceMoneyFlowReport_outEquipmentInAlliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutEquipmentInAlliance, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CountryAllianceMoneyFlowReport_outEquipmentInAlliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CountryAllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _CountryAllianceMoneyFlowReport_inItemsInAlliance(ctx context.Context, field graphql.CollectedField, obj *model.CountryAllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CountryAllianceMoneyFlowReport_inItemsInAlliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InItemsInAlliance, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CountryAllianceMoneyFlowReport_inItemsInAlliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CountryAllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _CountryAllianceMoneyFlowReport_outItemsInAlliance(ctx context.Context, field graphql.CollectedField, obj *model.CountryAllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CountryAllianceMoneyFlowReport_outItemsInAlliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutItemsInAlliance, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CountryAllianceMoneyFlowReport_outItemsInAlliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CountryAllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _CountryAllianceMoneyFlowReport_inWagesInAlliance(ctx context.Context, field graphql.CollectedField, obj *model.CountryAllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CountryAllianceMoneyFlowReport_inWagesInAlliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InWagesInAlliance, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CountryAllianceMoneyFlowReport_inWagesInAlliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CountryAllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _CountryAllianceMoneyFlowReport_outWagesInAlliance(ctx context.Context, field graphql.CollectedField, obj *model.CountryAllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CountryAllianceMoneyFlowReport_outWagesInAlliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutWagesInAlliance, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CountryAllianceMoneyFlowReport_outWagesInAlliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CountryAllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _CountryAllianceMoneyFlowReport_inEquipmentOutsideAlliance(ctx context.Context, field graphql.CollectedField, obj *model.CountryAllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CountryAllianceMoneyFlowReport_inEquipmentOutsideAlliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InEquipmentOutsideAlliance, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CountryAllianceMoneyFlowReport_inEquipmentOutsideAlliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CountryAllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _CountryAllianceMoneyFlowReport_outEquipmentOutsideAlliance(ctx context.Context, field graphql.CollectedField, obj *model.CountryAllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CountryAllianceMoneyFlowReport_outEquipmentOutsideAlliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutEquipmentOutsideAlliance, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CountryAllianceMoneyFlowReport_outEquipmentOutsideAlliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CountryAllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _CountryAllianceMoneyFlowReport_inItemsOutsideAlliance(ctx context.Context, field graphql.CollectedField, obj *model.CountryAllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CountryAllianceMoneyFlowReport_inItemsOutsideAlliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InItemsOutsideAlliance, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CountryAllianceMoneyFlowReport_inItemsOutsideAlliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CountryAllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _CountryAllianceMoneyFlowReport_outItemsOutsideAlliance(ctx context.Context, field graphql.CollectedField, obj *model.CountryAllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CountryAllianceMoneyFlowReport_outItemsOutsideAlliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutItemsOutsideAlliance, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CountryAllianceMoneyFlowReport_outItemsOutsideAlliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CountryAllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _CountryAllianceMoneyFlowReport_inWagesOutsideAlliance(ctx context.Context, field graphql.CollectedField, obj *model.CountryAllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CountryAllianceMoneyFlowReport_inWagesOutsideAlliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InWagesOutsideAlliance, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CountryAllianceMoneyFlowReport_inWagesOutsideAlliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CountryAllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _CountryAllianceMoneyFlowReport_outWagesOutsideAlliance(ctx context.Context, field graphql.CollectedField, obj *model.CountryAllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CountryAllianceMoneyFlowReport_outWagesOutsideAlliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutWagesOutsideAlliance, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CountryAllianceMoneyFlowReport_outWagesOutsideAlliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CountryAllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _CountryAllianceMoneyFlowReport_counterparts(ctx context.Context, field graphql.CollectedField, obj *model.CountryAllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CountryAllianceMoneyFlowReport_counterparts(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Counterparts, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []*model.CountryAllianceMoneyFlowCounterpart) graphql.Marshaler {
+			return ec.marshalNCountryAllianceMoneyFlowCounterpart2ᚕᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐCountryAllianceMoneyFlowCounterpartᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CountryAllianceMoneyFlowReport_counterparts(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CountryAllianceMoneyFlowReport",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_CountryAllianceMoneyFlowCounterpart(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CountryAllianceMoneyFlowReport_country(ctx context.Context, field graphql.CollectedField, obj *model.CountryAllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CountryAllianceMoneyFlowReport_country(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.CountryAllianceMoneyFlowReport().Country(ctx, obj)
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.Country) graphql.Marshaler {
+			return ec.marshalNCountry2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐCountry(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CountryAllianceMoneyFlowReport_country(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CountryAllianceMoneyFlowReport",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_Country(ctx, field)
+		},
 	}
 	return fc, nil
 }
@@ -13829,6 +17463,38 @@ func (ec *executionContext) fieldContext_Damage_country(_ context.Context, field
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return ec.childFields_Country(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Damage_alliance(ctx context.Context, field graphql.CollectedField, obj *model.Damage) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Damage_alliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.Damage().Alliance(ctx, obj)
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.Alliance) graphql.Marshaler {
+			return ec.marshalOAlliance2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐAlliance(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_Damage_alliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Damage",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_Alliance(ctx, field)
 		},
 	}
 	return fc, nil
@@ -17748,6 +21414,700 @@ func (ec *executionContext) fieldContext_Mu_wealthReports(ctx context.Context, f
 	return fc, nil
 }
 
+func (ec *executionContext) _MuAllianceMoneyFlowCounterpart_inEquipment(ctx context.Context, field graphql.CollectedField, obj *model.MuAllianceMoneyFlowCounterpart) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MuAllianceMoneyFlowCounterpart_inEquipment(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InEquipment, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MuAllianceMoneyFlowCounterpart_inEquipment(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MuAllianceMoneyFlowCounterpart", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _MuAllianceMoneyFlowCounterpart_outEquipment(ctx context.Context, field graphql.CollectedField, obj *model.MuAllianceMoneyFlowCounterpart) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MuAllianceMoneyFlowCounterpart_outEquipment(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutEquipment, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MuAllianceMoneyFlowCounterpart_outEquipment(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MuAllianceMoneyFlowCounterpart", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _MuAllianceMoneyFlowCounterpart_inItems(ctx context.Context, field graphql.CollectedField, obj *model.MuAllianceMoneyFlowCounterpart) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MuAllianceMoneyFlowCounterpart_inItems(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InItems, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MuAllianceMoneyFlowCounterpart_inItems(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MuAllianceMoneyFlowCounterpart", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _MuAllianceMoneyFlowCounterpart_outItems(ctx context.Context, field graphql.CollectedField, obj *model.MuAllianceMoneyFlowCounterpart) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MuAllianceMoneyFlowCounterpart_outItems(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutItems, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MuAllianceMoneyFlowCounterpart_outItems(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MuAllianceMoneyFlowCounterpart", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _MuAllianceMoneyFlowCounterpart_inWages(ctx context.Context, field graphql.CollectedField, obj *model.MuAllianceMoneyFlowCounterpart) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MuAllianceMoneyFlowCounterpart_inWages(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InWages, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MuAllianceMoneyFlowCounterpart_inWages(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MuAllianceMoneyFlowCounterpart", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _MuAllianceMoneyFlowCounterpart_outWages(ctx context.Context, field graphql.CollectedField, obj *model.MuAllianceMoneyFlowCounterpart) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MuAllianceMoneyFlowCounterpart_outWages(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutWages, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MuAllianceMoneyFlowCounterpart_outWages(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MuAllianceMoneyFlowCounterpart", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _MuAllianceMoneyFlowCounterpart_alliance(ctx context.Context, field graphql.CollectedField, obj *model.MuAllianceMoneyFlowCounterpart) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MuAllianceMoneyFlowCounterpart_alliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.MuAllianceMoneyFlowCounterpart().Alliance(ctx, obj)
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.Alliance) graphql.Marshaler {
+			return ec.marshalNAlliance2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐAlliance(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MuAllianceMoneyFlowCounterpart_alliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MuAllianceMoneyFlowCounterpart",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_Alliance(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MuAllianceMoneyFlowReport_id(ctx context.Context, field graphql.CollectedField, obj *model.MuAllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MuAllianceMoneyFlowReport_id(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNID2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MuAllianceMoneyFlowReport_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MuAllianceMoneyFlowReport", field, false, false, errors.New("field of type ID does not have child fields"))
+}
+
+func (ec *executionContext) _MuAllianceMoneyFlowReport_dayStart(ctx context.Context, field graphql.CollectedField, obj *model.MuAllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MuAllianceMoneyFlowReport_dayStart(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.DayStart, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MuAllianceMoneyFlowReport_dayStart(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MuAllianceMoneyFlowReport", field, false, false, errors.New("field of type DateTime does not have child fields"))
+}
+
+func (ec *executionContext) _MuAllianceMoneyFlowReport_inEquipment(ctx context.Context, field graphql.CollectedField, obj *model.MuAllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MuAllianceMoneyFlowReport_inEquipment(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InEquipment, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MuAllianceMoneyFlowReport_inEquipment(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MuAllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _MuAllianceMoneyFlowReport_outEquipment(ctx context.Context, field graphql.CollectedField, obj *model.MuAllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MuAllianceMoneyFlowReport_outEquipment(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutEquipment, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MuAllianceMoneyFlowReport_outEquipment(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MuAllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _MuAllianceMoneyFlowReport_inItems(ctx context.Context, field graphql.CollectedField, obj *model.MuAllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MuAllianceMoneyFlowReport_inItems(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InItems, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MuAllianceMoneyFlowReport_inItems(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MuAllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _MuAllianceMoneyFlowReport_outItems(ctx context.Context, field graphql.CollectedField, obj *model.MuAllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MuAllianceMoneyFlowReport_outItems(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutItems, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MuAllianceMoneyFlowReport_outItems(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MuAllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _MuAllianceMoneyFlowReport_inWages(ctx context.Context, field graphql.CollectedField, obj *model.MuAllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MuAllianceMoneyFlowReport_inWages(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InWages, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MuAllianceMoneyFlowReport_inWages(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MuAllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _MuAllianceMoneyFlowReport_outWages(ctx context.Context, field graphql.CollectedField, obj *model.MuAllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MuAllianceMoneyFlowReport_outWages(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutWages, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MuAllianceMoneyFlowReport_outWages(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MuAllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _MuAllianceMoneyFlowReport_inEquipmentInsideMuAlliance(ctx context.Context, field graphql.CollectedField, obj *model.MuAllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MuAllianceMoneyFlowReport_inEquipmentInsideMuAlliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InEquipmentInsideMuAlliance, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MuAllianceMoneyFlowReport_inEquipmentInsideMuAlliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MuAllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _MuAllianceMoneyFlowReport_outEquipmentInsideMuAlliance(ctx context.Context, field graphql.CollectedField, obj *model.MuAllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MuAllianceMoneyFlowReport_outEquipmentInsideMuAlliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutEquipmentInsideMuAlliance, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MuAllianceMoneyFlowReport_outEquipmentInsideMuAlliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MuAllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _MuAllianceMoneyFlowReport_inItemsInsideMuAlliance(ctx context.Context, field graphql.CollectedField, obj *model.MuAllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MuAllianceMoneyFlowReport_inItemsInsideMuAlliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InItemsInsideMuAlliance, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MuAllianceMoneyFlowReport_inItemsInsideMuAlliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MuAllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _MuAllianceMoneyFlowReport_outItemsInsideMuAlliance(ctx context.Context, field graphql.CollectedField, obj *model.MuAllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MuAllianceMoneyFlowReport_outItemsInsideMuAlliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutItemsInsideMuAlliance, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MuAllianceMoneyFlowReport_outItemsInsideMuAlliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MuAllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _MuAllianceMoneyFlowReport_inWagesInsideMuAlliance(ctx context.Context, field graphql.CollectedField, obj *model.MuAllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MuAllianceMoneyFlowReport_inWagesInsideMuAlliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InWagesInsideMuAlliance, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MuAllianceMoneyFlowReport_inWagesInsideMuAlliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MuAllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _MuAllianceMoneyFlowReport_outWagesInsideMuAlliance(ctx context.Context, field graphql.CollectedField, obj *model.MuAllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MuAllianceMoneyFlowReport_outWagesInsideMuAlliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutWagesInsideMuAlliance, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MuAllianceMoneyFlowReport_outWagesInsideMuAlliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MuAllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _MuAllianceMoneyFlowReport_inEquipmentOutsideMuAlliance(ctx context.Context, field graphql.CollectedField, obj *model.MuAllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MuAllianceMoneyFlowReport_inEquipmentOutsideMuAlliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InEquipmentOutsideMuAlliance, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MuAllianceMoneyFlowReport_inEquipmentOutsideMuAlliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MuAllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _MuAllianceMoneyFlowReport_outEquipmentOutsideMuAlliance(ctx context.Context, field graphql.CollectedField, obj *model.MuAllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MuAllianceMoneyFlowReport_outEquipmentOutsideMuAlliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutEquipmentOutsideMuAlliance, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MuAllianceMoneyFlowReport_outEquipmentOutsideMuAlliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MuAllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _MuAllianceMoneyFlowReport_inItemsOutsideMuAlliance(ctx context.Context, field graphql.CollectedField, obj *model.MuAllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MuAllianceMoneyFlowReport_inItemsOutsideMuAlliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InItemsOutsideMuAlliance, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MuAllianceMoneyFlowReport_inItemsOutsideMuAlliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MuAllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _MuAllianceMoneyFlowReport_outItemsOutsideMuAlliance(ctx context.Context, field graphql.CollectedField, obj *model.MuAllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MuAllianceMoneyFlowReport_outItemsOutsideMuAlliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutItemsOutsideMuAlliance, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MuAllianceMoneyFlowReport_outItemsOutsideMuAlliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MuAllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _MuAllianceMoneyFlowReport_inWagesOutsideMuAlliance(ctx context.Context, field graphql.CollectedField, obj *model.MuAllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MuAllianceMoneyFlowReport_inWagesOutsideMuAlliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InWagesOutsideMuAlliance, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MuAllianceMoneyFlowReport_inWagesOutsideMuAlliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MuAllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _MuAllianceMoneyFlowReport_outWagesOutsideMuAlliance(ctx context.Context, field graphql.CollectedField, obj *model.MuAllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MuAllianceMoneyFlowReport_outWagesOutsideMuAlliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutWagesOutsideMuAlliance, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MuAllianceMoneyFlowReport_outWagesOutsideMuAlliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MuAllianceMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _MuAllianceMoneyFlowReport_counterparts(ctx context.Context, field graphql.CollectedField, obj *model.MuAllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MuAllianceMoneyFlowReport_counterparts(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Counterparts, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []*model.MuAllianceMoneyFlowCounterpart) graphql.Marshaler {
+			return ec.marshalNMuAllianceMoneyFlowCounterpart2ᚕᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐMuAllianceMoneyFlowCounterpartᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MuAllianceMoneyFlowReport_counterparts(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MuAllianceMoneyFlowReport",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_MuAllianceMoneyFlowCounterpart(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MuAllianceMoneyFlowReport_mu(ctx context.Context, field graphql.CollectedField, obj *model.MuAllianceMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MuAllianceMoneyFlowReport_mu(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.MuAllianceMoneyFlowReport().Mu(ctx, obj)
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.Mu) graphql.Marshaler {
+			return ec.marshalNMu2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐMu(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MuAllianceMoneyFlowReport_mu(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MuAllianceMoneyFlowReport",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_Mu(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _MuCountryMoneyFlowCounterpart_inEquipment(ctx context.Context, field graphql.CollectedField, obj *model.MuCountryMoneyFlowCounterpart) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -20608,6 +24968,50 @@ func (ec *executionContext) fieldContext_Query_tradeOffer(ctx context.Context, f
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_tradeOffer_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_alliance(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Query_alliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().Alliance(ctx, fc.Args["id"].(string))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.Alliance) graphql.Marshaler {
+			return ec.marshalOAlliance2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐAlliance(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_Query_alliance(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_Alliance(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_alliance_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -28550,6 +32954,13 @@ func (ec *executionContext) _Entity(ctx context.Context, sel ast.SelectionSet, o
 			return graphql.Null
 		}
 		return ec._Country(ctx, sel, obj)
+	case model.Alliance:
+		return ec._Alliance(ctx, sel, &obj)
+	case *model.Alliance:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._Alliance(ctx, sel, obj)
 	default:
 		if typedObj, ok := obj.(graphql.Marshaler); ok {
 			return typedObj
@@ -28591,6 +33002,13 @@ func (ec *executionContext) _SearchResult(ctx context.Context, sel ast.Selection
 			return graphql.Null
 		}
 		return ec._Country(ctx, sel, obj)
+	case model.Alliance:
+		return ec._Alliance(ctx, sel, &obj)
+	case *model.Alliance:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._Alliance(ctx, sel, obj)
 	default:
 		if typedObj, ok := obj.(graphql.Marshaler); ok {
 			return typedObj
@@ -28627,6 +33045,654 @@ func (ec *executionContext) _ActivityConnection(ctx context.Context, sel ast.Sel
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var allianceImplementors = []string{"Alliance", "SearchResult", "Entity"}
+
+func (ec *executionContext) _Alliance(ctx context.Context, sel ast.SelectionSet, obj *model.Alliance) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, allianceImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Alliance")
+		case "id":
+			out.Values[i] = ec._Alliance_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "name":
+			out.Values[i] = ec._Alliance_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "countries":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Alliance_countries(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "battles":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Alliance_battles(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "participation":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Alliance_participation(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "topDamage":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Alliance_topDamage(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "wealthReports":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Alliance_wealthReports(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "moneyFlows":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Alliance_moneyFlows(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "damageReports":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Alliance_damageReports(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var allianceBattleParticipationImplementors = []string{"AllianceBattleParticipation"}
+
+func (ec *executionContext) _AllianceBattleParticipation(ctx context.Context, sel ast.SelectionSet, obj *model.AllianceBattleParticipation) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, allianceBattleParticipationImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AllianceBattleParticipation")
+		case "alliance":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._AllianceBattleParticipation_alliance(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "totalDamage":
+			out.Values[i] = ec._AllianceBattleParticipation_totalDamage(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "battleCount":
+			out.Values[i] = ec._AllianceBattleParticipation_battleCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var allianceMoneyFlowCounterpartImplementors = []string{"AllianceMoneyFlowCounterpart"}
+
+func (ec *executionContext) _AllianceMoneyFlowCounterpart(ctx context.Context, sel ast.SelectionSet, obj *model.AllianceMoneyFlowCounterpart) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, allianceMoneyFlowCounterpartImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AllianceMoneyFlowCounterpart")
+		case "inEquipment":
+			out.Values[i] = ec._AllianceMoneyFlowCounterpart_inEquipment(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outEquipment":
+			out.Values[i] = ec._AllianceMoneyFlowCounterpart_outEquipment(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inItems":
+			out.Values[i] = ec._AllianceMoneyFlowCounterpart_inItems(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outItems":
+			out.Values[i] = ec._AllianceMoneyFlowCounterpart_outItems(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inWages":
+			out.Values[i] = ec._AllianceMoneyFlowCounterpart_inWages(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outWages":
+			out.Values[i] = ec._AllianceMoneyFlowCounterpart_outWages(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "alliance":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._AllianceMoneyFlowCounterpart_alliance(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var allianceMoneyFlowReportImplementors = []string{"AllianceMoneyFlowReport"}
+
+func (ec *executionContext) _AllianceMoneyFlowReport(ctx context.Context, sel ast.SelectionSet, obj *model.AllianceMoneyFlowReport) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, allianceMoneyFlowReportImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AllianceMoneyFlowReport")
+		case "id":
+			out.Values[i] = ec._AllianceMoneyFlowReport_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "dayStart":
+			out.Values[i] = ec._AllianceMoneyFlowReport_dayStart(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inEquipment":
+			out.Values[i] = ec._AllianceMoneyFlowReport_inEquipment(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outEquipment":
+			out.Values[i] = ec._AllianceMoneyFlowReport_outEquipment(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inItems":
+			out.Values[i] = ec._AllianceMoneyFlowReport_inItems(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outItems":
+			out.Values[i] = ec._AllianceMoneyFlowReport_outItems(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inWages":
+			out.Values[i] = ec._AllianceMoneyFlowReport_inWages(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outWages":
+			out.Values[i] = ec._AllianceMoneyFlowReport_outWages(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inEquipmentInAlliance":
+			out.Values[i] = ec._AllianceMoneyFlowReport_inEquipmentInAlliance(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outEquipmentInAlliance":
+			out.Values[i] = ec._AllianceMoneyFlowReport_outEquipmentInAlliance(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inItemsInAlliance":
+			out.Values[i] = ec._AllianceMoneyFlowReport_inItemsInAlliance(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outItemsInAlliance":
+			out.Values[i] = ec._AllianceMoneyFlowReport_outItemsInAlliance(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inWagesInAlliance":
+			out.Values[i] = ec._AllianceMoneyFlowReport_inWagesInAlliance(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outWagesInAlliance":
+			out.Values[i] = ec._AllianceMoneyFlowReport_outWagesInAlliance(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inEquipmentOutsideAlliance":
+			out.Values[i] = ec._AllianceMoneyFlowReport_inEquipmentOutsideAlliance(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outEquipmentOutsideAlliance":
+			out.Values[i] = ec._AllianceMoneyFlowReport_outEquipmentOutsideAlliance(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inItemsOutsideAlliance":
+			out.Values[i] = ec._AllianceMoneyFlowReport_inItemsOutsideAlliance(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outItemsOutsideAlliance":
+			out.Values[i] = ec._AllianceMoneyFlowReport_outItemsOutsideAlliance(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inWagesOutsideAlliance":
+			out.Values[i] = ec._AllianceMoneyFlowReport_inWagesOutsideAlliance(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outWagesOutsideAlliance":
+			out.Values[i] = ec._AllianceMoneyFlowReport_outWagesOutsideAlliance(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "counterparts":
+			out.Values[i] = ec._AllianceMoneyFlowReport_counterparts(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "alliance":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._AllianceMoneyFlowReport_alliance(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -28733,6 +33799,72 @@ func (ec *executionContext) _Battle(ctx context.Context, sel ast.SelectionSet, o
 					}
 				}()
 				res = ec._Battle_defenderCountry(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "attackerAlliance":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Battle_attackerAlliance(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "defenderAlliance":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Battle_defenderAlliance(ctx, field, obj)
 				return res
 			}
 
@@ -30012,6 +35144,39 @@ func (ec *executionContext) _Country(ctx context.Context, sel ast.SelectionSet, 
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "alliance":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Country_alliance(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "users":
 			field := field
 
@@ -30300,6 +35465,78 @@ func (ec *executionContext) _Country(ctx context.Context, sel ast.SelectionSet, 
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "allianceJoinHistory":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Country_allianceJoinHistory(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "allianceLeaveHistory":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Country_allianceLeaveHistory(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "taxFlows":
 			field := field
 
@@ -30346,6 +35583,42 @@ func (ec *executionContext) _Country(ctx context.Context, sel ast.SelectionSet, 
 					}
 				}()
 				res = ec._Country_moneyFlows(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "allianceMoneyFlows":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Country_allianceMoneyFlows(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -30484,6 +35757,510 @@ func (ec *executionContext) _Country(ctx context.Context, sel ast.SelectionSet, 
 					}
 				}()
 				res = ec._Country_wealthReports(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var countryAllianceJoinImplementors = []string{"CountryAllianceJoin"}
+
+func (ec *executionContext) _CountryAllianceJoin(ctx context.Context, sel ast.SelectionSet, obj *model.CountryAllianceJoin) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, countryAllianceJoinImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CountryAllianceJoin")
+		case "id":
+			out.Values[i] = ec._CountryAllianceJoin_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "at":
+			out.Values[i] = ec._CountryAllianceJoin_at(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "country":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CountryAllianceJoin_country(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "alliance":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CountryAllianceJoin_alliance(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var countryAllianceLeaveImplementors = []string{"CountryAllianceLeave"}
+
+func (ec *executionContext) _CountryAllianceLeave(ctx context.Context, sel ast.SelectionSet, obj *model.CountryAllianceLeave) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, countryAllianceLeaveImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CountryAllianceLeave")
+		case "id":
+			out.Values[i] = ec._CountryAllianceLeave_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "at":
+			out.Values[i] = ec._CountryAllianceLeave_at(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "country":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CountryAllianceLeave_country(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "prevAlliance":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CountryAllianceLeave_prevAlliance(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var countryAllianceMoneyFlowCounterpartImplementors = []string{"CountryAllianceMoneyFlowCounterpart"}
+
+func (ec *executionContext) _CountryAllianceMoneyFlowCounterpart(ctx context.Context, sel ast.SelectionSet, obj *model.CountryAllianceMoneyFlowCounterpart) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, countryAllianceMoneyFlowCounterpartImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CountryAllianceMoneyFlowCounterpart")
+		case "inEquipment":
+			out.Values[i] = ec._CountryAllianceMoneyFlowCounterpart_inEquipment(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outEquipment":
+			out.Values[i] = ec._CountryAllianceMoneyFlowCounterpart_outEquipment(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inItems":
+			out.Values[i] = ec._CountryAllianceMoneyFlowCounterpart_inItems(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outItems":
+			out.Values[i] = ec._CountryAllianceMoneyFlowCounterpart_outItems(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inWages":
+			out.Values[i] = ec._CountryAllianceMoneyFlowCounterpart_inWages(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outWages":
+			out.Values[i] = ec._CountryAllianceMoneyFlowCounterpart_outWages(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "alliance":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CountryAllianceMoneyFlowCounterpart_alliance(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var countryAllianceMoneyFlowReportImplementors = []string{"CountryAllianceMoneyFlowReport"}
+
+func (ec *executionContext) _CountryAllianceMoneyFlowReport(ctx context.Context, sel ast.SelectionSet, obj *model.CountryAllianceMoneyFlowReport) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, countryAllianceMoneyFlowReportImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CountryAllianceMoneyFlowReport")
+		case "id":
+			out.Values[i] = ec._CountryAllianceMoneyFlowReport_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "dayStart":
+			out.Values[i] = ec._CountryAllianceMoneyFlowReport_dayStart(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inEquipment":
+			out.Values[i] = ec._CountryAllianceMoneyFlowReport_inEquipment(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outEquipment":
+			out.Values[i] = ec._CountryAllianceMoneyFlowReport_outEquipment(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inItems":
+			out.Values[i] = ec._CountryAllianceMoneyFlowReport_inItems(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outItems":
+			out.Values[i] = ec._CountryAllianceMoneyFlowReport_outItems(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inWages":
+			out.Values[i] = ec._CountryAllianceMoneyFlowReport_inWages(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outWages":
+			out.Values[i] = ec._CountryAllianceMoneyFlowReport_outWages(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inEquipmentInAlliance":
+			out.Values[i] = ec._CountryAllianceMoneyFlowReport_inEquipmentInAlliance(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outEquipmentInAlliance":
+			out.Values[i] = ec._CountryAllianceMoneyFlowReport_outEquipmentInAlliance(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inItemsInAlliance":
+			out.Values[i] = ec._CountryAllianceMoneyFlowReport_inItemsInAlliance(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outItemsInAlliance":
+			out.Values[i] = ec._CountryAllianceMoneyFlowReport_outItemsInAlliance(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inWagesInAlliance":
+			out.Values[i] = ec._CountryAllianceMoneyFlowReport_inWagesInAlliance(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outWagesInAlliance":
+			out.Values[i] = ec._CountryAllianceMoneyFlowReport_outWagesInAlliance(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inEquipmentOutsideAlliance":
+			out.Values[i] = ec._CountryAllianceMoneyFlowReport_inEquipmentOutsideAlliance(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outEquipmentOutsideAlliance":
+			out.Values[i] = ec._CountryAllianceMoneyFlowReport_outEquipmentOutsideAlliance(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inItemsOutsideAlliance":
+			out.Values[i] = ec._CountryAllianceMoneyFlowReport_inItemsOutsideAlliance(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outItemsOutsideAlliance":
+			out.Values[i] = ec._CountryAllianceMoneyFlowReport_outItemsOutsideAlliance(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inWagesOutsideAlliance":
+			out.Values[i] = ec._CountryAllianceMoneyFlowReport_inWagesOutsideAlliance(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outWagesOutsideAlliance":
+			out.Values[i] = ec._CountryAllianceMoneyFlowReport_outWagesOutsideAlliance(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "counterparts":
+			out.Values[i] = ec._CountryAllianceMoneyFlowReport_counterparts(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "country":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CountryAllianceMoneyFlowReport_country(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -31651,6 +37428,39 @@ func (ec *executionContext) _Damage(ctx context.Context, sel ast.SelectionSet, o
 					}
 				}()
 				res = ec._Damage_country(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "alliance":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Damage_alliance(ctx, field, obj)
 				return res
 			}
 
@@ -34408,6 +40218,281 @@ func (ec *executionContext) _Mu(ctx context.Context, sel ast.SelectionSet, obj *
 	return out
 }
 
+var muAllianceMoneyFlowCounterpartImplementors = []string{"MuAllianceMoneyFlowCounterpart"}
+
+func (ec *executionContext) _MuAllianceMoneyFlowCounterpart(ctx context.Context, sel ast.SelectionSet, obj *model.MuAllianceMoneyFlowCounterpart) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, muAllianceMoneyFlowCounterpartImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("MuAllianceMoneyFlowCounterpart")
+		case "inEquipment":
+			out.Values[i] = ec._MuAllianceMoneyFlowCounterpart_inEquipment(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outEquipment":
+			out.Values[i] = ec._MuAllianceMoneyFlowCounterpart_outEquipment(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inItems":
+			out.Values[i] = ec._MuAllianceMoneyFlowCounterpart_inItems(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outItems":
+			out.Values[i] = ec._MuAllianceMoneyFlowCounterpart_outItems(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inWages":
+			out.Values[i] = ec._MuAllianceMoneyFlowCounterpart_inWages(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outWages":
+			out.Values[i] = ec._MuAllianceMoneyFlowCounterpart_outWages(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "alliance":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._MuAllianceMoneyFlowCounterpart_alliance(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var muAllianceMoneyFlowReportImplementors = []string{"MuAllianceMoneyFlowReport"}
+
+func (ec *executionContext) _MuAllianceMoneyFlowReport(ctx context.Context, sel ast.SelectionSet, obj *model.MuAllianceMoneyFlowReport) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, muAllianceMoneyFlowReportImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("MuAllianceMoneyFlowReport")
+		case "id":
+			out.Values[i] = ec._MuAllianceMoneyFlowReport_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "dayStart":
+			out.Values[i] = ec._MuAllianceMoneyFlowReport_dayStart(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inEquipment":
+			out.Values[i] = ec._MuAllianceMoneyFlowReport_inEquipment(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outEquipment":
+			out.Values[i] = ec._MuAllianceMoneyFlowReport_outEquipment(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inItems":
+			out.Values[i] = ec._MuAllianceMoneyFlowReport_inItems(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outItems":
+			out.Values[i] = ec._MuAllianceMoneyFlowReport_outItems(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inWages":
+			out.Values[i] = ec._MuAllianceMoneyFlowReport_inWages(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outWages":
+			out.Values[i] = ec._MuAllianceMoneyFlowReport_outWages(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inEquipmentInsideMuAlliance":
+			out.Values[i] = ec._MuAllianceMoneyFlowReport_inEquipmentInsideMuAlliance(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outEquipmentInsideMuAlliance":
+			out.Values[i] = ec._MuAllianceMoneyFlowReport_outEquipmentInsideMuAlliance(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inItemsInsideMuAlliance":
+			out.Values[i] = ec._MuAllianceMoneyFlowReport_inItemsInsideMuAlliance(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outItemsInsideMuAlliance":
+			out.Values[i] = ec._MuAllianceMoneyFlowReport_outItemsInsideMuAlliance(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inWagesInsideMuAlliance":
+			out.Values[i] = ec._MuAllianceMoneyFlowReport_inWagesInsideMuAlliance(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outWagesInsideMuAlliance":
+			out.Values[i] = ec._MuAllianceMoneyFlowReport_outWagesInsideMuAlliance(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inEquipmentOutsideMuAlliance":
+			out.Values[i] = ec._MuAllianceMoneyFlowReport_inEquipmentOutsideMuAlliance(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outEquipmentOutsideMuAlliance":
+			out.Values[i] = ec._MuAllianceMoneyFlowReport_outEquipmentOutsideMuAlliance(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inItemsOutsideMuAlliance":
+			out.Values[i] = ec._MuAllianceMoneyFlowReport_inItemsOutsideMuAlliance(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outItemsOutsideMuAlliance":
+			out.Values[i] = ec._MuAllianceMoneyFlowReport_outItemsOutsideMuAlliance(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inWagesOutsideMuAlliance":
+			out.Values[i] = ec._MuAllianceMoneyFlowReport_inWagesOutsideMuAlliance(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outWagesOutsideMuAlliance":
+			out.Values[i] = ec._MuAllianceMoneyFlowReport_outWagesOutsideMuAlliance(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "counterparts":
+			out.Values[i] = ec._MuAllianceMoneyFlowReport_counterparts(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "mu":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._MuAllianceMoneyFlowReport_mu(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var muCountryMoneyFlowCounterpartImplementors = []string{"MuCountryMoneyFlowCounterpart"}
 
 func (ec *executionContext) _MuCountryMoneyFlowCounterpart(ctx context.Context, sel ast.SelectionSet, obj *model.MuCountryMoneyFlowCounterpart) graphql.Marshaler {
@@ -36319,6 +42404,25 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_tradeOffer(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "alliance":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_alliance(ctx, field)
 				return res
 			}
 
@@ -41537,6 +47641,72 @@ func (ec *executionContext) marshalNActivityConnection2ᚖgithubᚗcomᚋwareras
 	return ec._ActivityConnection(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNAlliance2githubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐAlliance(ctx context.Context, sel ast.SelectionSet, v model.Alliance) graphql.Marshaler {
+	return ec._Alliance(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNAlliance2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐAlliance(ctx context.Context, sel ast.SelectionSet, v *model.Alliance) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Alliance(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNAllianceMoneyFlowCounterpart2ᚕᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐAllianceMoneyFlowCounterpartᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.AllianceMoneyFlowCounterpart) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNAllianceMoneyFlowCounterpart2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐAllianceMoneyFlowCounterpart(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNAllianceMoneyFlowCounterpart2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐAllianceMoneyFlowCounterpart(ctx context.Context, sel ast.SelectionSet, v *model.AllianceMoneyFlowCounterpart) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._AllianceMoneyFlowCounterpart(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNAllianceMoneyFlowReport2ᚕᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐAllianceMoneyFlowReportᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.AllianceMoneyFlowReport) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNAllianceMoneyFlowReport2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐAllianceMoneyFlowReport(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNAllianceMoneyFlowReport2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐAllianceMoneyFlowReport(ctx context.Context, sel ast.SelectionSet, v *model.AllianceMoneyFlowReport) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._AllianceMoneyFlowReport(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNBattle2githubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐBattle(ctx context.Context, sel ast.SelectionSet, v model.Battle) graphql.Marshaler {
 	return ec._Battle(ctx, sel, &v)
 }
@@ -41797,6 +47967,110 @@ func (ec *executionContext) marshalNCountry2ᚖgithubᚗcomᚋwarerastatsᚋapi�
 		return graphql.Null
 	}
 	return ec._Country(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNCountryAllianceJoin2ᚕᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐCountryAllianceJoinᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CountryAllianceJoin) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNCountryAllianceJoin2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐCountryAllianceJoin(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNCountryAllianceJoin2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐCountryAllianceJoin(ctx context.Context, sel ast.SelectionSet, v *model.CountryAllianceJoin) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CountryAllianceJoin(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNCountryAllianceLeave2ᚕᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐCountryAllianceLeaveᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CountryAllianceLeave) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNCountryAllianceLeave2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐCountryAllianceLeave(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNCountryAllianceLeave2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐCountryAllianceLeave(ctx context.Context, sel ast.SelectionSet, v *model.CountryAllianceLeave) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CountryAllianceLeave(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNCountryAllianceMoneyFlowCounterpart2ᚕᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐCountryAllianceMoneyFlowCounterpartᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CountryAllianceMoneyFlowCounterpart) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNCountryAllianceMoneyFlowCounterpart2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐCountryAllianceMoneyFlowCounterpart(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNCountryAllianceMoneyFlowCounterpart2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐCountryAllianceMoneyFlowCounterpart(ctx context.Context, sel ast.SelectionSet, v *model.CountryAllianceMoneyFlowCounterpart) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CountryAllianceMoneyFlowCounterpart(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNCountryAllianceMoneyFlowReport2ᚕᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐCountryAllianceMoneyFlowReportᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CountryAllianceMoneyFlowReport) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNCountryAllianceMoneyFlowReport2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐCountryAllianceMoneyFlowReport(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNCountryAllianceMoneyFlowReport2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐCountryAllianceMoneyFlowReport(ctx context.Context, sel ast.SelectionSet, v *model.CountryAllianceMoneyFlowReport) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CountryAllianceMoneyFlowReport(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNCountryFlipEvent2ᚕᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐCountryFlipEventᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CountryFlipEvent) graphql.Marshaler {
@@ -42626,6 +48900,32 @@ func (ec *executionContext) marshalNMu2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgra
 		return graphql.Null
 	}
 	return ec._Mu(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNMuAllianceMoneyFlowCounterpart2ᚕᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐMuAllianceMoneyFlowCounterpartᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.MuAllianceMoneyFlowCounterpart) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNMuAllianceMoneyFlowCounterpart2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐMuAllianceMoneyFlowCounterpart(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNMuAllianceMoneyFlowCounterpart2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐMuAllianceMoneyFlowCounterpart(ctx context.Context, sel ast.SelectionSet, v *model.MuAllianceMoneyFlowCounterpart) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._MuAllianceMoneyFlowCounterpart(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNMuCountryMoneyFlowCounterpart2ᚕᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐMuCountryMoneyFlowCounterpartᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.MuCountryMoneyFlowCounterpart) graphql.Marshaler {
@@ -43803,6 +50103,20 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalOAlliance2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐAlliance(ctx context.Context, sel ast.SelectionSet, v *model.Alliance) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Alliance(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOAllianceBattleParticipation2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐAllianceBattleParticipation(ctx context.Context, sel ast.SelectionSet, v *model.AllianceBattleParticipation) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._AllianceBattleParticipation(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOBattle2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐBattle(ctx context.Context, sel ast.SelectionSet, v *model.Battle) graphql.Marshaler {

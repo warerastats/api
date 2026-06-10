@@ -37,6 +37,26 @@ func (r *companyRegionChangeResolver) Region(ctx context.Context, obj *model.Com
 }
 
 // Country is the resolver for the country field.
+func (r *countryAllianceJoinResolver) Country(ctx context.Context, obj *model.CountryAllianceJoin) (*model.Country, error) {
+	return loadCountry(ctx, obj.CountryID)
+}
+
+// Alliance is the resolver for the alliance field.
+func (r *countryAllianceJoinResolver) Alliance(ctx context.Context, obj *model.CountryAllianceJoin) (*model.Alliance, error) {
+	return loadAlliance(ctx, obj.AllianceID)
+}
+
+// Country is the resolver for the country field.
+func (r *countryAllianceLeaveResolver) Country(ctx context.Context, obj *model.CountryAllianceLeave) (*model.Country, error) {
+	return loadCountry(ctx, obj.CountryID)
+}
+
+// PrevAlliance is the resolver for the prevAlliance field.
+func (r *countryAllianceLeaveResolver) PrevAlliance(ctx context.Context, obj *model.CountryAllianceLeave) (*model.Alliance, error) {
+	return loadAllianceP(ctx, obj.PrevAllianceID)
+}
+
+// Country is the resolver for the country field.
 func (r *countryRulingPartyChangeResolver) Country(ctx context.Context, obj *model.CountryRulingPartyChange) (*model.Country, error) {
 	return loadCountry(ctx, obj.CountryID)
 }
@@ -196,6 +216,16 @@ func (r *Resolver) CompanyRegionChange() CompanyRegionChangeResolver {
 	return &companyRegionChangeResolver{r}
 }
 
+// CountryAllianceJoin returns CountryAllianceJoinResolver implementation.
+func (r *Resolver) CountryAllianceJoin() CountryAllianceJoinResolver {
+	return &countryAllianceJoinResolver{r}
+}
+
+// CountryAllianceLeave returns CountryAllianceLeaveResolver implementation.
+func (r *Resolver) CountryAllianceLeave() CountryAllianceLeaveResolver {
+	return &countryAllianceLeaveResolver{r}
+}
+
 // CountryRulingPartyChange returns CountryRulingPartyChangeResolver implementation.
 func (r *Resolver) CountryRulingPartyChange() CountryRulingPartyChangeResolver {
 	return &countryRulingPartyChangeResolver{r}
@@ -278,6 +308,8 @@ func (r *Resolver) UserSkillChange() UserSkillChangeResolver { return &userSkill
 type battleOrderChangeResolver struct{ *Resolver }
 type companyItemCodeChangeResolver struct{ *Resolver }
 type companyRegionChangeResolver struct{ *Resolver }
+type countryAllianceJoinResolver struct{ *Resolver }
+type countryAllianceLeaveResolver struct{ *Resolver }
 type countryRulingPartyChangeResolver struct{ *Resolver }
 type countrySpecialisationChangeResolver struct{ *Resolver }
 type employeeWageChangeResolver struct{ *Resolver }

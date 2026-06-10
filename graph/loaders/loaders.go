@@ -18,14 +18,15 @@ type ctxKey struct{}
 
 // Loaders holds one batched loader per FK-resolved entity, scoped to a request.
 type Loaders struct {
-	User    *dataloadgen.Loader[string, *trackers.User]
-	Country *dataloadgen.Loader[string, *trackers.Country]
-	Party   *dataloadgen.Loader[string, *trackers.Party]
-	Mu      *dataloadgen.Loader[string, *trackers.Mu]
-	Region  *dataloadgen.Loader[string, *trackers.Region]
-	Item    *dataloadgen.Loader[string, *trackers.Item]
-	Battle  *dataloadgen.Loader[string, *trackers.Battle]
-	Company *dataloadgen.Loader[string, *trackers.Company]
+	User     *dataloadgen.Loader[string, *trackers.User]
+	Country  *dataloadgen.Loader[string, *trackers.Country]
+	Party    *dataloadgen.Loader[string, *trackers.Party]
+	Mu       *dataloadgen.Loader[string, *trackers.Mu]
+	Region   *dataloadgen.Loader[string, *trackers.Region]
+	Item     *dataloadgen.Loader[string, *trackers.Item]
+	Battle   *dataloadgen.Loader[string, *trackers.Battle]
+	Company  *dataloadgen.Loader[string, *trackers.Company]
+	Alliance *dataloadgen.Loader[string, *trackers.Alliance]
 }
 
 // newLoaders builds a fresh loader set bound to the given collections.
@@ -63,6 +64,10 @@ func newLoaders(colls *models.Collections) *Loaders {
 
 		Company: dataloadgen.NewLoader(func(ctx context.Context, keys []string) ([]*trackers.Company, []error) {
 			return batch(ctx, keys, colls.Trackers.Company.GetMany, func(c trackers.Company) bson.ObjectID { return c.ID })
+		}, opt),
+
+		Alliance: dataloadgen.NewLoader(func(ctx context.Context, keys []string) ([]*trackers.Alliance, []error) {
+			return batch(ctx, keys, colls.Trackers.Alliance.GetMany, func(a trackers.Alliance) bson.ObjectID { return a.ID })
 		}, opt),
 	}
 }

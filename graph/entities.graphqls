@@ -56,6 +56,7 @@ type Country {
 
   # forward
   rulingParty: Party
+  alliance: Alliance
 
   # reverse
   users(first: Int = 20, after: ID): [User!]!
@@ -68,10 +69,13 @@ type Country {
   orderChanges(first: Int = 20, after: ID): [BattleOrderChange!]!
   rulingPartyHistory(first: Int = 20, after: ID): [CountryRulingPartyChange!]!
   specialisationHistory(first: Int = 20, after: ID): [CountrySpecialisationChange!]!
+  allianceJoinHistory(first: Int = 20, after: ID): [CountryAllianceJoin!]!
+  allianceLeaveHistory(first: Int = 20, after: ID): [CountryAllianceLeave!]!
 
   # derived
   taxFlows(from: DateTime!, to: DateTime!): [CountryTaxFlow!]!
   moneyFlows(from: DateTime!, to: DateTime!): [CountryMoneyFlowReport!]!
+  allianceMoneyFlows(from: DateTime!, to: DateTime!): [CountryAllianceMoneyFlowReport!]!
   flipEvents(from: DateTime!, to: DateTime!, first: Int = 50, after: ID): [CountryFlipEvent!]!
   flipState: CountryFlipState
   inventory: CountryInventory
@@ -193,6 +197,8 @@ type Battle {
   # forward
   attackerCountry: Country
   defenderCountry: Country
+  attackerAlliance: Alliance
+  defenderAlliance: Alliance
   attackerRegion: Region
   defenderRegion: Region
 
@@ -232,6 +238,7 @@ type Damage {
   battle: Battle
   user: User
   country: Country
+  alliance: Alliance
   mu: Mu
   party: Party
   skill: Skill
@@ -316,4 +323,27 @@ type TradeOffer {
   user: User
   country: Country
   mu: Mu
+}
+
+type Alliance {
+  id: ID!
+  name: String!
+
+  # reverse
+  countries: [Country!]!
+  battles(first: Int = 20, after: ID, filter: BattleFilter = ALL): [Battle!]!
+  participation: AllianceBattleParticipation
+  topDamage(limit: Int = 10): [DamageRanking!]!
+
+  # derived
+  wealthReports(from: DateTime!, to: DateTime!): [EntityWealthReport!]!
+  moneyFlows(from: DateTime!, to: DateTime!): [AllianceMoneyFlowReport!]!
+  damageReports(from: DateTime, to: DateTime, entityKind: EntityKind, entityIds: [ID!]): [BattleDamageReport!]!
+}
+
+# Live cumulative battle damage rollup for an alliance (computed per query).
+type AllianceBattleParticipation {
+  alliance: Alliance!
+  totalDamage: Int64!
+  battleCount: Int!
 }

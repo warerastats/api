@@ -98,6 +98,7 @@ type Country struct {
 
 	Specialisation *string
 	RulingPartyID  *string
+	AllianceID     *string
 }
 
 func (Country) IsSearchResult() {}
@@ -150,6 +151,14 @@ type Mu struct {
 func (Mu) IsSearchResult() {}
 func (Mu) IsEntity()       {}
 
+type Alliance struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+func (Alliance) IsSearchResult() {}
+func (Alliance) IsEntity()       {}
+
 type Battle struct {
 	ID              string      `json:"id"`
 	AttackerDamages int32       `json:"attackerDamages"`
@@ -159,10 +168,12 @@ type Battle struct {
 	EndedAt         *time.Time  `json:"endedAt"`
 	LastUpdated     time.Time   `json:"lastUpdated"`
 
-	AttackerCountryID string
-	DefenderCountryID string
-	AttackerRegionID  *string
-	DefenderRegionID  string
+	AttackerCountryID  string
+	DefenderCountryID  string
+	AttackerAllianceID *string
+	DefenderAllianceID *string
+	AttackerRegionID   *string
+	DefenderRegionID   string
 }
 
 type Item struct {
@@ -183,18 +194,19 @@ type Damage struct {
 	At           time.Time  `json:"at"`
 	Ammo         *string    `json:"ammo"`
 
-	BattleID  string
-	UserID    string
-	CountryID string
-	MuID      *string
-	PartyID   *string
-	SkillID   string
-	WeaponID  *string
-	HelmetID  *string
-	ChestID   *string
-	PantsID   *string
-	BootsID   *string
-	GlovesID  *string
+	BattleID   string
+	UserID     string
+	CountryID  string
+	AllianceID *string
+	MuID       *string
+	PartyID    *string
+	SkillID    string
+	WeaponID   *string
+	HelmetID   *string
+	ChestID    *string
+	PantsID    *string
+	BootsID    *string
+	GlovesID   *string
 }
 
 type Skill struct {
@@ -412,6 +424,26 @@ type CountrySpecialisationChange struct {
 	At        time.Time `json:"at"`
 	ItemCode  *string   `json:"itemCode"`
 	CountryID string
+}
+
+type CountryAllianceJoin struct {
+	ID         string    `json:"id"`
+	At         time.Time `json:"at"`
+	CountryID  string
+	AllianceID string
+}
+
+type CountryAllianceLeave struct {
+	ID             string    `json:"id"`
+	At             time.Time `json:"at"`
+	CountryID      string
+	PrevAllianceID *string
+}
+
+type AllianceBattleParticipation struct {
+	AllianceID  string
+	TotalDamage int64 `json:"totalDamage"`
+	BattleCount int32 `json:"battleCount"`
 }
 
 type RegionOwnerChange struct {
@@ -659,6 +691,111 @@ type MuCountryMoneyFlowReport struct {
 	OutWagesCrossBorderOutsideMuCountry     float64                          `json:"outWagesCrossBorderOutsideMuCountry"`
 	Counterparts                            []*MuCountryMoneyFlowCounterpart `json:"counterparts"`
 	MuID                                    string
+}
+
+type CountryAllianceMoneyFlowCounterpart struct {
+	InEquipment  float64 `json:"inEquipment"`
+	OutEquipment float64 `json:"outEquipment"`
+	InItems      float64 `json:"inItems"`
+	OutItems     float64 `json:"outItems"`
+	InWages      float64 `json:"inWages"`
+	OutWages     float64 `json:"outWages"`
+	AllianceID   string
+}
+
+type CountryAllianceMoneyFlowReport struct {
+	ID                          string                                 `json:"id"`
+	DayStart                    time.Time                              `json:"dayStart"`
+	InEquipment                 float64                                `json:"inEquipment"`
+	OutEquipment                float64                                `json:"outEquipment"`
+	InItems                     float64                                `json:"inItems"`
+	OutItems                    float64                                `json:"outItems"`
+	InWages                     float64                                `json:"inWages"`
+	OutWages                    float64                                `json:"outWages"`
+	InEquipmentInAlliance       float64                                `json:"inEquipmentInAlliance"`
+	OutEquipmentInAlliance      float64                                `json:"outEquipmentInAlliance"`
+	InItemsInAlliance           float64                                `json:"inItemsInAlliance"`
+	OutItemsInAlliance          float64                                `json:"outItemsInAlliance"`
+	InWagesInAlliance           float64                                `json:"inWagesInAlliance"`
+	OutWagesInAlliance          float64                                `json:"outWagesInAlliance"`
+	InEquipmentOutsideAlliance  float64                                `json:"inEquipmentOutsideAlliance"`
+	OutEquipmentOutsideAlliance float64                                `json:"outEquipmentOutsideAlliance"`
+	InItemsOutsideAlliance      float64                                `json:"inItemsOutsideAlliance"`
+	OutItemsOutsideAlliance     float64                                `json:"outItemsOutsideAlliance"`
+	InWagesOutsideAlliance      float64                                `json:"inWagesOutsideAlliance"`
+	OutWagesOutsideAlliance     float64                                `json:"outWagesOutsideAlliance"`
+	Counterparts                []*CountryAllianceMoneyFlowCounterpart `json:"counterparts"`
+	CountryID                   string
+}
+
+type AllianceMoneyFlowCounterpart struct {
+	InEquipment  float64 `json:"inEquipment"`
+	OutEquipment float64 `json:"outEquipment"`
+	InItems      float64 `json:"inItems"`
+	OutItems     float64 `json:"outItems"`
+	InWages      float64 `json:"inWages"`
+	OutWages     float64 `json:"outWages"`
+	AllianceID   string
+}
+
+type AllianceMoneyFlowReport struct {
+	ID                          string                          `json:"id"`
+	DayStart                    time.Time                       `json:"dayStart"`
+	InEquipment                 float64                         `json:"inEquipment"`
+	OutEquipment                float64                         `json:"outEquipment"`
+	InItems                     float64                         `json:"inItems"`
+	OutItems                    float64                         `json:"outItems"`
+	InWages                     float64                         `json:"inWages"`
+	OutWages                    float64                         `json:"outWages"`
+	InEquipmentInAlliance       float64                         `json:"inEquipmentInAlliance"`
+	OutEquipmentInAlliance      float64                         `json:"outEquipmentInAlliance"`
+	InItemsInAlliance           float64                         `json:"inItemsInAlliance"`
+	OutItemsInAlliance          float64                         `json:"outItemsInAlliance"`
+	InWagesInAlliance           float64                         `json:"inWagesInAlliance"`
+	OutWagesInAlliance          float64                         `json:"outWagesInAlliance"`
+	InEquipmentOutsideAlliance  float64                         `json:"inEquipmentOutsideAlliance"`
+	OutEquipmentOutsideAlliance float64                         `json:"outEquipmentOutsideAlliance"`
+	InItemsOutsideAlliance      float64                         `json:"inItemsOutsideAlliance"`
+	OutItemsOutsideAlliance     float64                         `json:"outItemsOutsideAlliance"`
+	InWagesOutsideAlliance      float64                         `json:"inWagesOutsideAlliance"`
+	OutWagesOutsideAlliance     float64                         `json:"outWagesOutsideAlliance"`
+	Counterparts                []*AllianceMoneyFlowCounterpart `json:"counterparts"`
+	AllianceID                  string
+}
+
+type MuAllianceMoneyFlowCounterpart struct {
+	InEquipment  float64 `json:"inEquipment"`
+	OutEquipment float64 `json:"outEquipment"`
+	InItems      float64 `json:"inItems"`
+	OutItems     float64 `json:"outItems"`
+	InWages      float64 `json:"inWages"`
+	OutWages     float64 `json:"outWages"`
+	AllianceID   string
+}
+
+type MuAllianceMoneyFlowReport struct {
+	ID                            string                            `json:"id"`
+	DayStart                      time.Time                         `json:"dayStart"`
+	InEquipment                   float64                           `json:"inEquipment"`
+	OutEquipment                  float64                           `json:"outEquipment"`
+	InItems                       float64                           `json:"inItems"`
+	OutItems                      float64                           `json:"outItems"`
+	InWages                       float64                           `json:"inWages"`
+	OutWages                      float64                           `json:"outWages"`
+	InEquipmentInsideMuAlliance   float64                           `json:"inEquipmentInsideMuAlliance"`
+	OutEquipmentInsideMuAlliance  float64                           `json:"outEquipmentInsideMuAlliance"`
+	InItemsInsideMuAlliance       float64                           `json:"inItemsInsideMuAlliance"`
+	OutItemsInsideMuAlliance      float64                           `json:"outItemsInsideMuAlliance"`
+	InWagesInsideMuAlliance       float64                           `json:"inWagesInsideMuAlliance"`
+	OutWagesInsideMuAlliance      float64                           `json:"outWagesInsideMuAlliance"`
+	InEquipmentOutsideMuAlliance  float64                           `json:"inEquipmentOutsideMuAlliance"`
+	OutEquipmentOutsideMuAlliance float64                           `json:"outEquipmentOutsideMuAlliance"`
+	InItemsOutsideMuAlliance      float64                           `json:"inItemsOutsideMuAlliance"`
+	OutItemsOutsideMuAlliance     float64                           `json:"outItemsOutsideMuAlliance"`
+	InWagesOutsideMuAlliance      float64                           `json:"inWagesOutsideMuAlliance"`
+	OutWagesOutsideMuAlliance     float64                           `json:"outWagesOutsideMuAlliance"`
+	Counterparts                  []*MuAllianceMoneyFlowCounterpart `json:"counterparts"`
+	MuID                          string
 }
 
 type CountryFlipEvent struct {

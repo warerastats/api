@@ -78,10 +78,11 @@ func (e BattleFilter) MarshalJSON() ([]byte, error) {
 type EntityKind string
 
 const (
-	EntityKindUser    EntityKind = "USER"
-	EntityKindCountry EntityKind = "COUNTRY"
-	EntityKindParty   EntityKind = "PARTY"
-	EntityKindMu      EntityKind = "MU"
+	EntityKindUser     EntityKind = "USER"
+	EntityKindCountry  EntityKind = "COUNTRY"
+	EntityKindParty    EntityKind = "PARTY"
+	EntityKindMu       EntityKind = "MU"
+	EntityKindAlliance EntityKind = "ALLIANCE"
 )
 
 var AllEntityKind = []EntityKind{
@@ -89,11 +90,12 @@ var AllEntityKind = []EntityKind{
 	EntityKindCountry,
 	EntityKindParty,
 	EntityKindMu,
+	EntityKindAlliance,
 }
 
 func (e EntityKind) IsValid() bool {
 	switch e {
-	case EntityKindUser, EntityKindCountry, EntityKindParty, EntityKindMu:
+	case EntityKindUser, EntityKindCountry, EntityKindParty, EntityKindMu, EntityKindAlliance:
 		return true
 	}
 	return false

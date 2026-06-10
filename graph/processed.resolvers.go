@@ -11,6 +11,16 @@ import (
 	"github.com/warerastats/api/graph/model"
 )
 
+// Alliance is the resolver for the alliance field.
+func (r *allianceMoneyFlowCounterpartResolver) Alliance(ctx context.Context, obj *model.AllianceMoneyFlowCounterpart) (*model.Alliance, error) {
+	return loadAlliance(ctx, obj.AllianceID)
+}
+
+// Alliance is the resolver for the alliance field.
+func (r *allianceMoneyFlowReportResolver) Alliance(ctx context.Context, obj *model.AllianceMoneyFlowReport) (*model.Alliance, error) {
+	return loadAlliance(ctx, obj.AllianceID)
+}
+
 // Battle is the resolver for the battle field.
 func (r *battleDamageReportResolver) Battle(ctx context.Context, obj *model.BattleDamageReport) (*model.Battle, error) {
 	return loadBattle(ctx, obj.BattleID)
@@ -19,6 +29,16 @@ func (r *battleDamageReportResolver) Battle(ctx context.Context, obj *model.Batt
 // Entity is the resolver for the entity field.
 func (r *battleDamageReportResolver) Entity(ctx context.Context, obj *model.BattleDamageReport) (model.Entity, error) {
 	return loadEntity(ctx, obj.EntityType, obj.EntityID)
+}
+
+// Alliance is the resolver for the alliance field.
+func (r *countryAllianceMoneyFlowCounterpartResolver) Alliance(ctx context.Context, obj *model.CountryAllianceMoneyFlowCounterpart) (*model.Alliance, error) {
+	return loadAlliance(ctx, obj.AllianceID)
+}
+
+// Country is the resolver for the country field.
+func (r *countryAllianceMoneyFlowReportResolver) Country(ctx context.Context, obj *model.CountryAllianceMoneyFlowReport) (*model.Country, error) {
+	return loadCountry(ctx, obj.CountryID)
 }
 
 // Country is the resolver for the country field.
@@ -73,6 +93,16 @@ func (r *entityWealthReportResolver) Entity(ctx context.Context, obj *model.Enti
 // PctChange24h is the resolver for the pctChange24h field.
 func (r *inflationPointResolver) PctChange24h(ctx context.Context, obj *model.InflationPoint) (float64, error) {
 	return obj.PctChange, nil
+}
+
+// Alliance is the resolver for the alliance field.
+func (r *muAllianceMoneyFlowCounterpartResolver) Alliance(ctx context.Context, obj *model.MuAllianceMoneyFlowCounterpart) (*model.Alliance, error) {
+	return loadAlliance(ctx, obj.AllianceID)
+}
+
+// Mu is the resolver for the mu field.
+func (r *muAllianceMoneyFlowReportResolver) Mu(ctx context.Context, obj *model.MuAllianceMoneyFlowReport) (*model.Mu, error) {
+	return loadMu(ctx, obj.MuID)
 }
 
 // Country is the resolver for the country field.
@@ -144,9 +174,29 @@ func (r *wagePaidUserResolver) User(ctx context.Context, obj *model.WagePaidUser
 	return loadUser(ctx, obj.UserID)
 }
 
+// AllianceMoneyFlowCounterpart returns AllianceMoneyFlowCounterpartResolver implementation.
+func (r *Resolver) AllianceMoneyFlowCounterpart() AllianceMoneyFlowCounterpartResolver {
+	return &allianceMoneyFlowCounterpartResolver{r}
+}
+
+// AllianceMoneyFlowReport returns AllianceMoneyFlowReportResolver implementation.
+func (r *Resolver) AllianceMoneyFlowReport() AllianceMoneyFlowReportResolver {
+	return &allianceMoneyFlowReportResolver{r}
+}
+
 // BattleDamageReport returns BattleDamageReportResolver implementation.
 func (r *Resolver) BattleDamageReport() BattleDamageReportResolver {
 	return &battleDamageReportResolver{r}
+}
+
+// CountryAllianceMoneyFlowCounterpart returns CountryAllianceMoneyFlowCounterpartResolver implementation.
+func (r *Resolver) CountryAllianceMoneyFlowCounterpart() CountryAllianceMoneyFlowCounterpartResolver {
+	return &countryAllianceMoneyFlowCounterpartResolver{r}
+}
+
+// CountryAllianceMoneyFlowReport returns CountryAllianceMoneyFlowReportResolver implementation.
+func (r *Resolver) CountryAllianceMoneyFlowReport() CountryAllianceMoneyFlowReportResolver {
+	return &countryAllianceMoneyFlowReportResolver{r}
 }
 
 // CountryFlipEvent returns CountryFlipEventResolver implementation.
@@ -178,6 +228,16 @@ func (r *Resolver) EntityWealthReport() EntityWealthReportResolver {
 
 // InflationPoint returns InflationPointResolver implementation.
 func (r *Resolver) InflationPoint() InflationPointResolver { return &inflationPointResolver{r} }
+
+// MuAllianceMoneyFlowCounterpart returns MuAllianceMoneyFlowCounterpartResolver implementation.
+func (r *Resolver) MuAllianceMoneyFlowCounterpart() MuAllianceMoneyFlowCounterpartResolver {
+	return &muAllianceMoneyFlowCounterpartResolver{r}
+}
+
+// MuAllianceMoneyFlowReport returns MuAllianceMoneyFlowReportResolver implementation.
+func (r *Resolver) MuAllianceMoneyFlowReport() MuAllianceMoneyFlowReportResolver {
+	return &muAllianceMoneyFlowReportResolver{r}
+}
 
 // MuCountryMoneyFlowCounterpart returns MuCountryMoneyFlowCounterpartResolver implementation.
 func (r *Resolver) MuCountryMoneyFlowCounterpart() MuCountryMoneyFlowCounterpartResolver {
@@ -217,7 +277,11 @@ func (r *Resolver) UserInventory() UserInventoryResolver { return &userInventory
 // WagePaidUser returns WagePaidUserResolver implementation.
 func (r *Resolver) WagePaidUser() WagePaidUserResolver { return &wagePaidUserResolver{r} }
 
+type allianceMoneyFlowCounterpartResolver struct{ *Resolver }
+type allianceMoneyFlowReportResolver struct{ *Resolver }
 type battleDamageReportResolver struct{ *Resolver }
+type countryAllianceMoneyFlowCounterpartResolver struct{ *Resolver }
+type countryAllianceMoneyFlowReportResolver struct{ *Resolver }
 type countryFlipEventResolver struct{ *Resolver }
 type countryFlipStateResolver struct{ *Resolver }
 type countryInventoryResolver struct{ *Resolver }
@@ -226,6 +290,8 @@ type countryMoneyFlowReportResolver struct{ *Resolver }
 type countryTaxFlowResolver struct{ *Resolver }
 type entityWealthReportResolver struct{ *Resolver }
 type inflationPointResolver struct{ *Resolver }
+type muAllianceMoneyFlowCounterpartResolver struct{ *Resolver }
+type muAllianceMoneyFlowReportResolver struct{ *Resolver }
 type muCountryMoneyFlowCounterpartResolver struct{ *Resolver }
 type muCountryMoneyFlowReportResolver struct{ *Resolver }
 type taxHijackResolver struct{ *Resolver }

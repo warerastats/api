@@ -38,13 +38,14 @@ enum EntityKind {
   COUNTRY
   PARTY
   MU
+  ALLIANCE
 }
 
 # A search hit across the named entity families.
-union SearchResult = User | Party | Country | Mu
+union SearchResult = User | Party | Country | Mu | Alliance
 
 # A polymorphic entity reference used by wealth and battle-damage reports.
-union Entity = User | Country | Party | Mu
+union Entity = User | Country | Party | Mu | Alliance
 
 type Query {
   # --- get by id ---
@@ -57,6 +58,7 @@ type Query {
   item(id: ID!): Item
   company(id: ID!): Company
   tradeOffer(id: ID!): TradeOffer
+  alliance(id: ID!): Alliance
 
   # --- search ---
   search(term: String!, limit: Int = 10): [SearchResult!]!
