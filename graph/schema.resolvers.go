@@ -12,7 +12,9 @@ import (
 	"time"
 
 	"github.com/warerastats/api/graph/model"
+	"github.com/warerastats/models/models/stores/transactions"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"golang.org/x/sync/errgroup"
 )
 
 // User is the resolver for the user field.
@@ -228,18 +230,29 @@ func (r *queryResolver) Transactions(ctx context.Context, itemCode string, first
 	}
 	var edges []edge
 
-	trades, err := r.Colls.Transactions.TradeTransaction.ByItemCodePaged(ctx, itemCode, before, limit)
-	if err != nil {
+	// Fetch trades and markets in parallel for better performance
+	var trades []transactions.TradeTransaction
+	var markets []transactions.MarketTransaction
+
+	eg, egCtx := errgroup.WithContext(ctx)
+	eg.Go(func() error {
+		var err error
+		trades, err = r.Colls.Transactions.TradeTransaction.ByItemCodePaged(egCtx, itemCode, before, limit)
+		return err
+	})
+	eg.Go(func() error {
+		var err error
+		markets, err = r.Colls.Transactions.MarketTransaction.ByItemCodePaged(egCtx, itemCode, before, limit)
+		return err
+	})
+	if err := eg.Wait(); err != nil {
 		return nil, err
 	}
+
 	for _, t := range trades {
 		edges = append(edges, edge{t.ID.Hex(), toTrade(t)})
 	}
 
-	markets, err := r.Colls.Transactions.MarketTransaction.ByItemCodePaged(ctx, itemCode, before, limit)
-	if err != nil {
-		return nil, err
-	}
 	for _, t := range markets {
 		edges = append(edges, edge{t.ID.Hex(), toMarket(t)})
 	}

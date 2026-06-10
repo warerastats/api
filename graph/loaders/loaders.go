@@ -31,7 +31,7 @@ type Loaders struct {
 
 // newLoaders builds a fresh loader set bound to the given collections.
 func newLoaders(colls *models.Collections) *Loaders {
-	opt := dataloadgen.WithWait(time.Millisecond)
+	opt := dataloadgen.WithWait(50 * time.Millisecond)
 
 	return &Loaders{
 		User: dataloadgen.NewLoader(func(ctx context.Context, keys []string) ([]*trackers.User, []error) {
@@ -39,7 +39,7 @@ func newLoaders(colls *models.Collections) *Loaders {
 		}, opt),
 
 		Country: dataloadgen.NewLoader(func(ctx context.Context, keys []string) ([]*trackers.Country, []error) {
-			return batch(ctx, keys, getCountries(colls), func(c trackers.Country) bson.ObjectID { return c.ID })
+			return batch(ctx, keys, colls.Trackers.Country.GetMany, func(c trackers.Country) bson.ObjectID { return c.ID })
 		}, opt),
 
 		Party: dataloadgen.NewLoader(func(ctx context.Context, keys []string) ([]*trackers.Party, []error) {
@@ -69,27 +69,6 @@ func newLoaders(colls *models.Collections) *Loaders {
 		Alliance: dataloadgen.NewLoader(func(ctx context.Context, keys []string) ([]*trackers.Alliance, []error) {
 			return batch(ctx, keys, colls.Trackers.Alliance.GetMany, func(a trackers.Alliance) bson.ObjectID { return a.ID })
 		}, opt),
-	}
-}
-
-// getCountries adapts the Country store, which has no GetMany, into the batch shape.
-func getCountries(colls *models.Collections) func(context.Context, []bson.ObjectID) ([]trackers.Country, error) {
-	return func(ctx context.Context, ids []bson.ObjectID) ([]trackers.Country, error) {
-		all, err := colls.Trackers.Country.GetAll(ctx)
-		if err != nil {
-			return nil, err
-		}
-		want := make(map[bson.ObjectID]struct{}, len(ids))
-		for _, id := range ids {
-			want[id] = struct{}{}
-		}
-		out := all[:0]
-		for _, c := range all {
-			if _, ok := want[c.ID]; ok {
-				out = append(out, c)
-			}
-		}
-		return out, nil
 	}
 }
 
