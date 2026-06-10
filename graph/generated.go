@@ -544,6 +544,7 @@ type ComplexityRoot struct {
 		Industrialism func(childComplexity int) int
 		Isolationism  func(childComplexity int) int
 		Militarism    func(childComplexity int) int
+		Unethical     func(childComplexity int) int
 	}
 
 	FlipLot struct {
@@ -3620,6 +3621,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Ethics.Militarism(childComplexity), true
+	case "Ethics.unethical":
+		if e.ComplexityRoot.Ethics.Unethical == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Ethics.Unethical(childComplexity), true
 
 	case "FlipLot.boughtAt":
 		if e.ComplexityRoot.FlipLot.BoughtAt == nil {
@@ -7560,6 +7567,8 @@ func (ec *executionContext) childFields_EquipmentWindowPrice(ctx context.Context
 
 func (ec *executionContext) childFields_Ethics(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 	switch field.Name {
+	case "unethical":
+		return ec.fieldContext_Ethics_unethical(ctx, field)
 	case "militarism":
 		return ec.fieldContext_Ethics_militarism(ctx, field)
 	case "isolationism":
@@ -19134,6 +19143,29 @@ func (ec *executionContext) _EquipmentWindowPrice_updatedAt(ctx context.Context,
 }
 func (ec *executionContext) fieldContext_EquipmentWindowPrice_updatedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	return graphql.NewScalarFieldContext("EquipmentWindowPrice", field, false, false, errors.New("field of type DateTime does not have child fields"))
+}
+
+func (ec *executionContext) _Ethics_unethical(ctx context.Context, field graphql.CollectedField, obj *model.Ethics) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Ethics_unethical(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Unethical, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v bool) graphql.Marshaler {
+			return ec.marshalNBoolean2bool(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Ethics_unethical(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("Ethics", field, false, false, errors.New("field of type Boolean does not have child fields"))
 }
 
 func (ec *executionContext) _Ethics_militarism(ctx context.Context, field graphql.CollectedField, obj *model.Ethics) (ret graphql.Marshaler) {
@@ -38746,6 +38778,11 @@ func (ec *executionContext) _Ethics(ctx context.Context, sel ast.SelectionSet, o
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Ethics")
+		case "unethical":
+			out.Values[i] = ec._Ethics_unethical(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "militarism":
 			out.Values[i] = ec._Ethics_militarism(ctx, field, obj)
 			if out.Values[i] == graphql.Null {

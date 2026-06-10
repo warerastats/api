@@ -43,6 +43,7 @@ type Taxes struct {
 
 // Ethics is a party's four-axis ethics vector.
 type Ethics struct {
+	Unethical     bool  `json:"unethical"`
 	Militarism    int32 `json:"militarism"`
 	Isolationism  int32 `json:"isolationism"`
 	Imperialism   int32 `json:"imperialism"`

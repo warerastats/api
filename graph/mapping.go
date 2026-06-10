@@ -144,6 +144,7 @@ func toParty(p *trackers.Party) *model.Party {
 		Description: p.Description,
 		AvatarURL:   p.AvatarUrl,
 		Ethics: &model.Ethics{
+			Unethical:     p.Ethics.Unethical,
 			Militarism:    int32(p.Ethics.Militarism),
 			Isolationism:  int32(p.Ethics.Isolationism),
 			Imperialism:   int32(p.Ethics.Imperialism),
@@ -442,6 +443,7 @@ func toPartyEthicsChange(e events.PartyEthicsChange) *model.PartyEthicsChange {
 	return &model.PartyEthicsChange{
 		ID: e.ID.Hex(), At: atOf(e.ID), PartyID: e.PartyID.Hex(),
 		Ethics: &model.Ethics{
+			Unethical:     e.Ethics.Unethical,
 			Militarism:    int32(e.Ethics.Militarism),
 			Isolationism:  int32(e.Ethics.Isolationism),
 			Imperialism:   int32(e.Ethics.Imperialism),

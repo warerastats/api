@@ -145,6 +145,7 @@ type Party {
 }
 
 type Ethics {
+  unethical: Boolean!
   militarism: Int!
   isolationism: Int!
   imperialism: Int!
