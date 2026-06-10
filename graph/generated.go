@@ -873,6 +873,7 @@ type ComplexityRoot struct {
 		TopWageEarners        func(childComplexity int, from time.Time, to time.Time, limit *int32) int
 		TopWagePayers         func(childComplexity int, from time.Time, to time.Time, limit *int32) int
 		TradeOffer            func(childComplexity int, id string) int
+		Transactions          func(childComplexity int, itemCode string, first *int32, after *string) int
 		User                  func(childComplexity int, id string) int
 		WageCandles           func(childComplexity int, from time.Time, to time.Time) int
 		WageMarketStates      func(childComplexity int, from time.Time, to time.Time) int
@@ -1425,6 +1426,7 @@ type QueryResolver interface {
 	Parties(ctx context.Context, first *int32, after *string, activeOnly *bool) ([]*model.Party, error)
 	Mus(ctx context.Context, first *int32, after *string, activeOnly *bool) ([]*model.Mu, error)
 	OrderBook(ctx context.Context, itemCode string) (*model.OrderBook, error)
+	Transactions(ctx context.Context, itemCode string, first *int32, after *string) (*model.ActivityConnection, error)
 	ItemCandles(ctx context.Context, itemCode string, from time.Time, to time.Time) ([]*model.ItemCandle, error)
 	LatestItemCandle(ctx context.Context, itemCode string) (*model.ItemCandle, error)
 	WageCandles(ctx context.Context, from time.Time, to time.Time) ([]*model.WageCandle, error)
@@ -5264,6 +5266,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.TradeOffer(childComplexity, args["id"].(string)), true
+	case "Query.transactions":
+		if e.ComplexityRoot.Query.Transactions == nil {
+			break
+		}
+
+		args, err := ec.field_Query_transactions_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.Transactions(childComplexity, args["itemCode"].(string), args["first"].(*int32), args["after"].(*string)), true
 	case "Query.user":
 		if e.ComplexityRoot.Query.User == nil {
 			break
@@ -10198,6 +10211,36 @@ func (ec *executionContext) field_Query_tradeOffer_args(ctx context.Context, raw
 		return nil, err
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_transactions_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "itemCode",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNString2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["itemCode"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "first",
+		func(ctx context.Context, v any) (*int32, error) {
+			return ec.unmarshalOInt2ᚖint32(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["first"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "after",
+		func(ctx context.Context, v any) (*string, error) {
+			return ec.unmarshalOID2ᚖstring(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["after"] = arg2
 	return args, nil
 }
 
@@ -25328,6 +25371,50 @@ func (ec *executionContext) fieldContext_Query_orderBook(ctx context.Context, fi
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_orderBook_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_transactions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Query_transactions(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().Transactions(ctx, fc.Args["itemCode"].(string), fc.Args["first"].(*int32), fc.Args["after"].(*string))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.ActivityConnection) graphql.Marshaler {
+			return ec.marshalNActivityConnection2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐActivityConnection(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Query_transactions(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_ActivityConnection(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_transactions_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -42611,6 +42698,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_orderBook(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "transactions":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_transactions(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}

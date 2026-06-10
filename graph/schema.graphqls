@@ -71,6 +71,7 @@ type Query {
   parties(first: Int = 20, after: ID, activeOnly: Boolean = true): [Party!]!
   mus(first: Int = 20, after: ID, activeOnly: Boolean = true): [Mu!]!
   orderBook(itemCode: String!): OrderBook!
+  transactions(itemCode: String!, first: Int = 20, after: ID): ActivityConnection!
 
   # --- time-series / derived roots ---
   itemCandles(itemCode: String!, from: DateTime!, to: DateTime!): [ItemCandle!]!

@@ -214,6 +214,56 @@ func (r *queryResolver) OrderBook(ctx context.Context, itemCode string) (*model.
 	return &model.OrderBook{ItemCode: itemCode}, nil
 }
 
+// Transactions is the resolver for the transactions field.
+func (r *queryResolver) Transactions(ctx context.Context, itemCode string, first *int32, after *string) (*model.ActivityConnection, error) {
+	limit := limitOf(first, 20)
+	before, err := cursorPtr(after)
+	if err != nil {
+		return nil, err
+	}
+
+	type edge struct {
+		id  string
+		act model.Activity
+	}
+	var edges []edge
+
+	trades, err := r.Colls.Transactions.TradeTransaction.ByItemCodePaged(ctx, itemCode, before, limit)
+	if err != nil {
+		return nil, err
+	}
+	for _, t := range trades {
+		edges = append(edges, edge{t.ID.Hex(), toTrade(t)})
+	}
+
+	markets, err := r.Colls.Transactions.MarketTransaction.ByItemCodePaged(ctx, itemCode, before, limit)
+	if err != nil {
+		return nil, err
+	}
+	for _, t := range markets {
+		edges = append(edges, edge{t.ID.Hex(), toMarket(t)})
+	}
+
+	sort.Slice(edges, func(i, j int) bool { return edges[i].id > edges[j].id })
+
+	more := len(edges) > limit
+	if more {
+		edges = edges[:limit]
+	}
+	conn := &model.ActivityConnection{
+		Edges:       make([]model.Activity, len(edges)),
+		HasNextPage: more,
+	}
+	for i, e := range edges {
+		conn.Edges[i] = e.act
+	}
+	if len(edges) > 0 {
+		cur := edges[len(edges)-1].id
+		conn.EndCursor = &cur
+	}
+	return conn, nil
+}
+
 // ItemCandles is the resolver for the itemCandles field.
 func (r *queryResolver) ItemCandles(ctx context.Context, itemCode string, from time.Time, to time.Time) ([]*model.ItemCandle, error) {
 	if err := enforceTimeWindow(ctx, from, to, reportTimeWindowDays); err != nil {
