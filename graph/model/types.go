@@ -1025,3 +1025,50 @@ type OrderBookLevel struct {
 type OrderBook struct {
 	ItemCode string `json:"itemCode"`
 }
+
+type PartyMoneyFlowCounterpart struct {
+	InEquipment  float64 `json:"inEquipment"`
+	OutEquipment float64 `json:"outEquipment"`
+	InItems      float64 `json:"inItems"`
+	OutItems     float64 `json:"outItems"`
+	InWages      float64 `json:"inWages"`
+	OutWages     float64 `json:"outWages"`
+	CountryID    string
+}
+
+type PartyMoneyFlowReport struct {
+	ID                                  string                       `json:"id"`
+	DayStart                            time.Time                    `json:"dayStart"`
+	InEquipment                         float64                      `json:"inEquipment"`
+	OutEquipment                        float64                      `json:"outEquipment"`
+	InItems                             float64                      `json:"inItems"`
+	OutItems                            float64                      `json:"outItems"`
+	InWages                             float64                      `json:"inWages"`
+	OutWages                            float64                      `json:"outWages"`
+	InEquipmentInsideParty              float64                      `json:"inEquipmentInsideParty"`
+	OutEquipmentInsideParty             float64                      `json:"outEquipmentInsideParty"`
+	InItemsInsideParty                  float64                      `json:"inItemsInsideParty"`
+	OutItemsInsideParty                 float64                      `json:"outItemsInsideParty"`
+	InWagesInsideParty                  float64                      `json:"inWagesInsideParty"`
+	OutWagesInsideParty                 float64                      `json:"outWagesInsideParty"`
+	InEquipmentSameCountryOutsideParty  float64                      `json:"inEquipmentSameCountryOutsideParty"`
+	OutEquipmentSameCountryOutsideParty float64                      `json:"outEquipmentSameCountryOutsideParty"`
+	InItemsSameCountryOutsideParty      float64                      `json:"inItemsSameCountryOutsideParty"`
+	OutItemsSameCountryOutsideParty     float64                      `json:"outItemsSameCountryOutsideParty"`
+	InWagesSameCountryOutsideParty      float64                      `json:"inWagesSameCountryOutsideParty"`
+	OutWagesSameCountryOutsideParty     float64                      `json:"outWagesSameCountryOutsideParty"`
+	InEquipmentSameAllianceCrossBorder  float64                      `json:"inEquipmentSameAllianceCrossBorder"`
+	OutEquipmentSameAllianceCrossBorder float64                      `json:"outEquipmentSameAllianceCrossBorder"`
+	InItemsSameAllianceCrossBorder      float64                      `json:"inItemsSameAllianceCrossBorder"`
+	OutItemsSameAllianceCrossBorder     float64                      `json:"outItemsSameAllianceCrossBorder"`
+	InWagesSameAllianceCrossBorder      float64                      `json:"inWagesSameAllianceCrossBorder"`
+	OutWagesSameAllianceCrossBorder     float64                      `json:"outWagesSameAllianceCrossBorder"`
+	InEquipmentOutsideAlliance          float64                      `json:"inEquipmentOutsideAlliance"`
+	OutEquipmentOutsideAlliance         float64                      `json:"outEquipmentOutsideAlliance"`
+	InItemsOutsideAlliance              float64                      `json:"inItemsOutsideAlliance"`
+	OutItemsOutsideAlliance             float64                      `json:"outItemsOutsideAlliance"`
+	InWagesOutsideAlliance              float64                      `json:"inWagesOutsideAlliance"`
+	OutWagesOutsideAlliance             float64                      `json:"outWagesOutsideAlliance"`
+	Counterparts                        []*PartyMoneyFlowCounterpart `json:"counterparts"`
+	PartyID                             string
+}

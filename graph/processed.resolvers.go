@@ -116,6 +116,16 @@ func (r *muCountryMoneyFlowReportResolver) Mu(ctx context.Context, obj *model.Mu
 }
 
 // Country is the resolver for the country field.
+func (r *partyMoneyFlowCounterpartResolver) Country(ctx context.Context, obj *model.PartyMoneyFlowCounterpart) (*model.Country, error) {
+	return loadCountry(ctx, obj.CountryID)
+}
+
+// Party is the resolver for the party field.
+func (r *partyMoneyFlowReportResolver) Party(ctx context.Context, obj *model.PartyMoneyFlowReport) (*model.Party, error) {
+	return loadParty(ctx, obj.PartyID)
+}
+
+// Country is the resolver for the country field.
 func (r *taxHijackResolver) Country(ctx context.Context, obj *model.TaxHijack) (*model.Country, error) {
 	return loadCountry(ctx, obj.CountryID)
 }
@@ -249,6 +259,16 @@ func (r *Resolver) MuCountryMoneyFlowReport() MuCountryMoneyFlowReportResolver {
 	return &muCountryMoneyFlowReportResolver{r}
 }
 
+// PartyMoneyFlowCounterpart returns PartyMoneyFlowCounterpartResolver implementation.
+func (r *Resolver) PartyMoneyFlowCounterpart() PartyMoneyFlowCounterpartResolver {
+	return &partyMoneyFlowCounterpartResolver{r}
+}
+
+// PartyMoneyFlowReport returns PartyMoneyFlowReportResolver implementation.
+func (r *Resolver) PartyMoneyFlowReport() PartyMoneyFlowReportResolver {
+	return &partyMoneyFlowReportResolver{r}
+}
+
 // TaxHijack returns TaxHijackResolver implementation.
 func (r *Resolver) TaxHijack() TaxHijackResolver { return &taxHijackResolver{r} }
 
@@ -294,6 +314,8 @@ type muAllianceMoneyFlowCounterpartResolver struct{ *Resolver }
 type muAllianceMoneyFlowReportResolver struct{ *Resolver }
 type muCountryMoneyFlowCounterpartResolver struct{ *Resolver }
 type muCountryMoneyFlowReportResolver struct{ *Resolver }
+type partyMoneyFlowCounterpartResolver struct{ *Resolver }
+type partyMoneyFlowReportResolver struct{ *Resolver }
 type taxHijackResolver struct{ *Resolver }
 type taxSourceResolver struct{ *Resolver }
 type userBattleParticipationResolver struct{ *Resolver }

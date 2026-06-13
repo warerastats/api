@@ -668,6 +668,57 @@ func toMuCountryMoneyFlowReport(r processedreports.MuCountryMoneyFlowReport) *mo
 	}
 }
 
+func toPartyMoneyFlowReport(r processedreports.PartyMoneyFlowReport) *model.PartyMoneyFlowReport {
+	counterparts := make([]*model.PartyMoneyFlowCounterpart, len(r.Counterparts))
+	for i, cp := range r.Counterparts {
+		counterparts[i] = &model.PartyMoneyFlowCounterpart{
+			InEquipment:  cp.InEquipment,
+			OutEquipment: cp.OutEquipment,
+			InItems:      cp.InItems,
+			OutItems:     cp.OutItems,
+			InWages:      cp.InWages,
+			OutWages:     cp.OutWages,
+			CountryID:    cp.CountryID.Hex(),
+		}
+	}
+	return &model.PartyMoneyFlowReport{
+		ID:                                  r.ID,
+		DayStart:                            r.DayStart,
+		InEquipment:                         r.InEquipment,
+		OutEquipment:                        r.OutEquipment,
+		InItems:                             r.InItems,
+		OutItems:                            r.OutItems,
+		InWages:                             r.InWages,
+		OutWages:                            r.OutWages,
+		InEquipmentInsideParty:              r.InEquipmentInsideParty,
+		OutEquipmentInsideParty:             r.OutEquipmentInsideParty,
+		InItemsInsideParty:                  r.InItemsInsideParty,
+		OutItemsInsideParty:                 r.OutItemsInsideParty,
+		InWagesInsideParty:                  r.InWagesInsideParty,
+		OutWagesInsideParty:                 r.OutWagesInsideParty,
+		InEquipmentSameCountryOutsideParty:  r.InEquipmentSameCountryOutsideParty,
+		OutEquipmentSameCountryOutsideParty: r.OutEquipmentSameCountryOutsideParty,
+		InItemsSameCountryOutsideParty:      r.InItemsSameCountryOutsideParty,
+		OutItemsSameCountryOutsideParty:     r.OutItemsSameCountryOutsideParty,
+		InWagesSameCountryOutsideParty:      r.InWagesSameCountryOutsideParty,
+		OutWagesSameCountryOutsideParty:     r.OutWagesSameCountryOutsideParty,
+		InEquipmentSameAllianceCrossBorder:  r.InEquipmentSameAllianceCrossBorder,
+		OutEquipmentSameAllianceCrossBorder: r.OutEquipmentSameAllianceCrossBorder,
+		InItemsSameAllianceCrossBorder:      r.InItemsSameAllianceCrossBorder,
+		OutItemsSameAllianceCrossBorder:     r.OutItemsSameAllianceCrossBorder,
+		InWagesSameAllianceCrossBorder:      r.InWagesSameAllianceCrossBorder,
+		OutWagesSameAllianceCrossBorder:     r.OutWagesSameAllianceCrossBorder,
+		InEquipmentOutsideAlliance:          r.InEquipmentOutsideAlliance,
+		OutEquipmentOutsideAlliance:         r.OutEquipmentOutsideAlliance,
+		InItemsOutsideAlliance:              r.InItemsOutsideAlliance,
+		OutItemsOutsideAlliance:             r.OutItemsOutsideAlliance,
+		InWagesOutsideAlliance:              r.InWagesOutsideAlliance,
+		OutWagesOutsideAlliance:             r.OutWagesOutsideAlliance,
+		Counterparts:                        counterparts,
+		PartyID:                             r.PartyID.Hex(),
+	}
+}
+
 func toCountryFlipEvent(e processedestimators.CountryFlipEvent) *model.CountryFlipEvent {
 	return &model.CountryFlipEvent{
 		ID: e.ID.Hex(), ItemCode: e.ItemCode, Quantity: int32(e.Quantity), BuyCost: e.BuyCost,

@@ -8,7 +8,6 @@ package graph
 import (
 	"context"
 	"errors"
-	"fmt"
 	"sort"
 	"time"
 
@@ -1036,9 +1035,20 @@ func (r *partyResolver) WealthReports(ctx context.Context, obj *model.Party, fro
 	return mapVal(rows, toEntityWealthReport), nil
 }
 
-// MoneyCountryFlows is the resolver for the moneyCountryFlows field.
-func (r *partyResolver) MoneyCountryFlows(ctx context.Context, obj *model.Party, from time.Time, to time.Time) ([]*model.MuCountryMoneyFlowReport, error) {
-	panic(fmt.Errorf("not implemented: MoneyCountryFlows - moneyCountryFlows"))
+// MoneyFlows is the resolver for the moneyFlows field.
+func (r *partyResolver) MoneyFlows(ctx context.Context, obj *model.Party, from time.Time, to time.Time) ([]*model.PartyMoneyFlowReport, error) {
+	if err := enforceTimeWindow(ctx, from, to, reportTimeWindowDays); err != nil {
+		return nil, err
+	}
+	pid, err := oidOf(obj.ID)
+	if err != nil {
+		return nil, err
+	}
+	rows, err := r.Colls.Processed.Reports.PartyMoneyFlow.GetByPartyRange(ctx, pid, from, to)
+	if err != nil {
+		return nil, err
+	}
+	return mapVal(rows, toPartyMoneyFlowReport), nil
 }
 
 // Country is the resolver for the country field.
@@ -1696,23 +1706,6 @@ func (r *Resolver) TradeOffer() TradeOfferResolver { return &tradeOfferResolver{
 
 // User returns UserResolver implementation.
 func (r *Resolver) User() UserResolver { return &userResolver{r} }
-
-// allianceCountryIDs returns the ObjectIDs of the countries currently in an alliance.
-func (r *allianceResolver) allianceCountryIDs(ctx context.Context, allianceID string) ([]bson.ObjectID, error) {
-	aid, err := oidOf(allianceID)
-	if err != nil {
-		return nil, err
-	}
-	countries, err := r.Colls.Trackers.Country.GetByAlliance(ctx, aid)
-	if err != nil {
-		return nil, err
-	}
-	ids := make([]bson.ObjectID, len(countries))
-	for i := range countries {
-		ids[i] = countries[i].ID
-	}
-	return ids, nil
-}
 
 type allianceResolver struct{ *Resolver }
 type allianceBattleParticipationResolver struct{ *Resolver }

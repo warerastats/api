@@ -79,6 +79,8 @@ type ResolverRoot interface {
 	PartyDescriptionChange() PartyDescriptionChangeResolver
 	PartyEthicsChange() PartyEthicsChangeResolver
 	PartyLeaderChange() PartyLeaderChangeResolver
+	PartyMoneyFlowCounterpart() PartyMoneyFlowCounterpartResolver
+	PartyMoneyFlowReport() PartyMoneyFlowReportResolver
 	PartyNameChange() PartyNameChangeResolver
 	Query() QueryResolver
 	Region() RegionResolver
@@ -797,7 +799,7 @@ type ComplexityRoot struct {
 		Leader             func(childComplexity int) int
 		LeaderHistory      func(childComplexity int, first *int32, after *string) int
 		Members            func(childComplexity int) int
-		MoneyCountryFlows  func(childComplexity int, from time.Time, to time.Time) int
+		MoneyFlows         func(childComplexity int, from time.Time, to time.Time) int
 		Name               func(childComplexity int) int
 		NameHistory        func(childComplexity int, first *int32, after *string) int
 		Participation      func(childComplexity int) int
@@ -831,6 +833,53 @@ type ComplexityRoot struct {
 		ID     func(childComplexity int) int
 		Leader func(childComplexity int) int
 		Party  func(childComplexity int) int
+	}
+
+	PartyMoneyFlowCounterpart struct {
+		Country      func(childComplexity int) int
+		InEquipment  func(childComplexity int) int
+		InItems      func(childComplexity int) int
+		InWages      func(childComplexity int) int
+		OutEquipment func(childComplexity int) int
+		OutItems     func(childComplexity int) int
+		OutWages     func(childComplexity int) int
+	}
+
+	PartyMoneyFlowReport struct {
+		Counterparts                        func(childComplexity int) int
+		DayStart                            func(childComplexity int) int
+		ID                                  func(childComplexity int) int
+		InEquipment                         func(childComplexity int) int
+		InEquipmentInsideParty              func(childComplexity int) int
+		InEquipmentOutsideAlliance          func(childComplexity int) int
+		InEquipmentSameAllianceCrossBorder  func(childComplexity int) int
+		InEquipmentSameCountryOutsideParty  func(childComplexity int) int
+		InItems                             func(childComplexity int) int
+		InItemsInsideParty                  func(childComplexity int) int
+		InItemsOutsideAlliance              func(childComplexity int) int
+		InItemsSameAllianceCrossBorder      func(childComplexity int) int
+		InItemsSameCountryOutsideParty      func(childComplexity int) int
+		InWages                             func(childComplexity int) int
+		InWagesInsideParty                  func(childComplexity int) int
+		InWagesOutsideAlliance              func(childComplexity int) int
+		InWagesSameAllianceCrossBorder      func(childComplexity int) int
+		InWagesSameCountryOutsideParty      func(childComplexity int) int
+		OutEquipment                        func(childComplexity int) int
+		OutEquipmentInsideParty             func(childComplexity int) int
+		OutEquipmentOutsideAlliance         func(childComplexity int) int
+		OutEquipmentSameAllianceCrossBorder func(childComplexity int) int
+		OutEquipmentSameCountryOutsideParty func(childComplexity int) int
+		OutItems                            func(childComplexity int) int
+		OutItemsInsideParty                 func(childComplexity int) int
+		OutItemsOutsideAlliance             func(childComplexity int) int
+		OutItemsSameAllianceCrossBorder     func(childComplexity int) int
+		OutItemsSameCountryOutsideParty     func(childComplexity int) int
+		OutWages                            func(childComplexity int) int
+		OutWagesInsideParty                 func(childComplexity int) int
+		OutWagesOutsideAlliance             func(childComplexity int) int
+		OutWagesSameAllianceCrossBorder     func(childComplexity int) int
+		OutWagesSameCountryOutsideParty     func(childComplexity int) int
+		Party                               func(childComplexity int) int
 	}
 
 	PartyNameChange struct {
@@ -1393,7 +1442,7 @@ type PartyResolver interface {
 	DescriptionHistory(ctx context.Context, obj *model.Party, first *int32, after *string) ([]*model.PartyDescriptionChange, error)
 	EthicsHistory(ctx context.Context, obj *model.Party, first *int32, after *string) ([]*model.PartyEthicsChange, error)
 	WealthReports(ctx context.Context, obj *model.Party, from time.Time, to time.Time) ([]*model.EntityWealthReport, error)
-	MoneyCountryFlows(ctx context.Context, obj *model.Party, from time.Time, to time.Time) ([]*model.MuCountryMoneyFlowReport, error)
+	MoneyFlows(ctx context.Context, obj *model.Party, from time.Time, to time.Time) ([]*model.PartyMoneyFlowReport, error)
 }
 type PartyDescriptionChangeResolver interface {
 	Party(ctx context.Context, obj *model.PartyDescriptionChange) (*model.Party, error)
@@ -1404,6 +1453,12 @@ type PartyEthicsChangeResolver interface {
 type PartyLeaderChangeResolver interface {
 	Party(ctx context.Context, obj *model.PartyLeaderChange) (*model.Party, error)
 	Leader(ctx context.Context, obj *model.PartyLeaderChange) (*model.User, error)
+}
+type PartyMoneyFlowCounterpartResolver interface {
+	Country(ctx context.Context, obj *model.PartyMoneyFlowCounterpart) (*model.Country, error)
+}
+type PartyMoneyFlowReportResolver interface {
+	Party(ctx context.Context, obj *model.PartyMoneyFlowReport) (*model.Party, error)
 }
 type PartyNameChangeResolver interface {
 	Party(ctx context.Context, obj *model.PartyNameChange) (*model.Party, error)
@@ -4771,17 +4826,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Party.Members(childComplexity), true
-	case "Party.moneyCountryFlows":
-		if e.ComplexityRoot.Party.MoneyCountryFlows == nil {
+	case "Party.moneyFlows":
+		if e.ComplexityRoot.Party.MoneyFlows == nil {
 			break
 		}
 
-		args, err := ec.field_Party_moneyCountryFlows_args(ctx, rawArgs)
+		args, err := ec.field_Party_moneyFlows_args(ctx, rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.ComplexityRoot.Party.MoneyCountryFlows(childComplexity, args["from"].(time.Time), args["to"].(time.Time)), true
+		return e.ComplexityRoot.Party.MoneyFlows(childComplexity, args["from"].(time.Time), args["to"].(time.Time)), true
 	case "Party.name":
 		if e.ComplexityRoot.Party.Name == nil {
 			break
@@ -4922,6 +4977,254 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.PartyLeaderChange.Party(childComplexity), true
+
+	case "PartyMoneyFlowCounterpart.country":
+		if e.ComplexityRoot.PartyMoneyFlowCounterpart.Country == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PartyMoneyFlowCounterpart.Country(childComplexity), true
+	case "PartyMoneyFlowCounterpart.inEquipment":
+		if e.ComplexityRoot.PartyMoneyFlowCounterpart.InEquipment == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PartyMoneyFlowCounterpart.InEquipment(childComplexity), true
+	case "PartyMoneyFlowCounterpart.inItems":
+		if e.ComplexityRoot.PartyMoneyFlowCounterpart.InItems == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PartyMoneyFlowCounterpart.InItems(childComplexity), true
+	case "PartyMoneyFlowCounterpart.inWages":
+		if e.ComplexityRoot.PartyMoneyFlowCounterpart.InWages == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PartyMoneyFlowCounterpart.InWages(childComplexity), true
+	case "PartyMoneyFlowCounterpart.outEquipment":
+		if e.ComplexityRoot.PartyMoneyFlowCounterpart.OutEquipment == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PartyMoneyFlowCounterpart.OutEquipment(childComplexity), true
+	case "PartyMoneyFlowCounterpart.outItems":
+		if e.ComplexityRoot.PartyMoneyFlowCounterpart.OutItems == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PartyMoneyFlowCounterpart.OutItems(childComplexity), true
+	case "PartyMoneyFlowCounterpart.outWages":
+		if e.ComplexityRoot.PartyMoneyFlowCounterpart.OutWages == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PartyMoneyFlowCounterpart.OutWages(childComplexity), true
+
+	case "PartyMoneyFlowReport.counterparts":
+		if e.ComplexityRoot.PartyMoneyFlowReport.Counterparts == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PartyMoneyFlowReport.Counterparts(childComplexity), true
+	case "PartyMoneyFlowReport.dayStart":
+		if e.ComplexityRoot.PartyMoneyFlowReport.DayStart == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PartyMoneyFlowReport.DayStart(childComplexity), true
+	case "PartyMoneyFlowReport.id":
+		if e.ComplexityRoot.PartyMoneyFlowReport.ID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PartyMoneyFlowReport.ID(childComplexity), true
+	case "PartyMoneyFlowReport.inEquipment":
+		if e.ComplexityRoot.PartyMoneyFlowReport.InEquipment == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PartyMoneyFlowReport.InEquipment(childComplexity), true
+	case "PartyMoneyFlowReport.inEquipmentInsideParty":
+		if e.ComplexityRoot.PartyMoneyFlowReport.InEquipmentInsideParty == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PartyMoneyFlowReport.InEquipmentInsideParty(childComplexity), true
+	case "PartyMoneyFlowReport.inEquipmentOutsideAlliance":
+		if e.ComplexityRoot.PartyMoneyFlowReport.InEquipmentOutsideAlliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PartyMoneyFlowReport.InEquipmentOutsideAlliance(childComplexity), true
+	case "PartyMoneyFlowReport.inEquipmentSameAllianceCrossBorder":
+		if e.ComplexityRoot.PartyMoneyFlowReport.InEquipmentSameAllianceCrossBorder == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PartyMoneyFlowReport.InEquipmentSameAllianceCrossBorder(childComplexity), true
+	case "PartyMoneyFlowReport.inEquipmentSameCountryOutsideParty":
+		if e.ComplexityRoot.PartyMoneyFlowReport.InEquipmentSameCountryOutsideParty == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PartyMoneyFlowReport.InEquipmentSameCountryOutsideParty(childComplexity), true
+	case "PartyMoneyFlowReport.inItems":
+		if e.ComplexityRoot.PartyMoneyFlowReport.InItems == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PartyMoneyFlowReport.InItems(childComplexity), true
+	case "PartyMoneyFlowReport.inItemsInsideParty":
+		if e.ComplexityRoot.PartyMoneyFlowReport.InItemsInsideParty == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PartyMoneyFlowReport.InItemsInsideParty(childComplexity), true
+	case "PartyMoneyFlowReport.inItemsOutsideAlliance":
+		if e.ComplexityRoot.PartyMoneyFlowReport.InItemsOutsideAlliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PartyMoneyFlowReport.InItemsOutsideAlliance(childComplexity), true
+	case "PartyMoneyFlowReport.inItemsSameAllianceCrossBorder":
+		if e.ComplexityRoot.PartyMoneyFlowReport.InItemsSameAllianceCrossBorder == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PartyMoneyFlowReport.InItemsSameAllianceCrossBorder(childComplexity), true
+	case "PartyMoneyFlowReport.inItemsSameCountryOutsideParty":
+		if e.ComplexityRoot.PartyMoneyFlowReport.InItemsSameCountryOutsideParty == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PartyMoneyFlowReport.InItemsSameCountryOutsideParty(childComplexity), true
+	case "PartyMoneyFlowReport.inWages":
+		if e.ComplexityRoot.PartyMoneyFlowReport.InWages == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PartyMoneyFlowReport.InWages(childComplexity), true
+	case "PartyMoneyFlowReport.inWagesInsideParty":
+		if e.ComplexityRoot.PartyMoneyFlowReport.InWagesInsideParty == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PartyMoneyFlowReport.InWagesInsideParty(childComplexity), true
+	case "PartyMoneyFlowReport.inWagesOutsideAlliance":
+		if e.ComplexityRoot.PartyMoneyFlowReport.InWagesOutsideAlliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PartyMoneyFlowReport.InWagesOutsideAlliance(childComplexity), true
+	case "PartyMoneyFlowReport.inWagesSameAllianceCrossBorder":
+		if e.ComplexityRoot.PartyMoneyFlowReport.InWagesSameAllianceCrossBorder == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PartyMoneyFlowReport.InWagesSameAllianceCrossBorder(childComplexity), true
+	case "PartyMoneyFlowReport.inWagesSameCountryOutsideParty":
+		if e.ComplexityRoot.PartyMoneyFlowReport.InWagesSameCountryOutsideParty == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PartyMoneyFlowReport.InWagesSameCountryOutsideParty(childComplexity), true
+	case "PartyMoneyFlowReport.outEquipment":
+		if e.ComplexityRoot.PartyMoneyFlowReport.OutEquipment == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PartyMoneyFlowReport.OutEquipment(childComplexity), true
+	case "PartyMoneyFlowReport.outEquipmentInsideParty":
+		if e.ComplexityRoot.PartyMoneyFlowReport.OutEquipmentInsideParty == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PartyMoneyFlowReport.OutEquipmentInsideParty(childComplexity), true
+	case "PartyMoneyFlowReport.outEquipmentOutsideAlliance":
+		if e.ComplexityRoot.PartyMoneyFlowReport.OutEquipmentOutsideAlliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PartyMoneyFlowReport.OutEquipmentOutsideAlliance(childComplexity), true
+	case "PartyMoneyFlowReport.outEquipmentSameAllianceCrossBorder":
+		if e.ComplexityRoot.PartyMoneyFlowReport.OutEquipmentSameAllianceCrossBorder == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PartyMoneyFlowReport.OutEquipmentSameAllianceCrossBorder(childComplexity), true
+	case "PartyMoneyFlowReport.outEquipmentSameCountryOutsideParty":
+		if e.ComplexityRoot.PartyMoneyFlowReport.OutEquipmentSameCountryOutsideParty == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PartyMoneyFlowReport.OutEquipmentSameCountryOutsideParty(childComplexity), true
+	case "PartyMoneyFlowReport.outItems":
+		if e.ComplexityRoot.PartyMoneyFlowReport.OutItems == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PartyMoneyFlowReport.OutItems(childComplexity), true
+	case "PartyMoneyFlowReport.outItemsInsideParty":
+		if e.ComplexityRoot.PartyMoneyFlowReport.OutItemsInsideParty == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PartyMoneyFlowReport.OutItemsInsideParty(childComplexity), true
+	case "PartyMoneyFlowReport.outItemsOutsideAlliance":
+		if e.ComplexityRoot.PartyMoneyFlowReport.OutItemsOutsideAlliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PartyMoneyFlowReport.OutItemsOutsideAlliance(childComplexity), true
+	case "PartyMoneyFlowReport.outItemsSameAllianceCrossBorder":
+		if e.ComplexityRoot.PartyMoneyFlowReport.OutItemsSameAllianceCrossBorder == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PartyMoneyFlowReport.OutItemsSameAllianceCrossBorder(childComplexity), true
+	case "PartyMoneyFlowReport.outItemsSameCountryOutsideParty":
+		if e.ComplexityRoot.PartyMoneyFlowReport.OutItemsSameCountryOutsideParty == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PartyMoneyFlowReport.OutItemsSameCountryOutsideParty(childComplexity), true
+	case "PartyMoneyFlowReport.outWages":
+		if e.ComplexityRoot.PartyMoneyFlowReport.OutWages == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PartyMoneyFlowReport.OutWages(childComplexity), true
+	case "PartyMoneyFlowReport.outWagesInsideParty":
+		if e.ComplexityRoot.PartyMoneyFlowReport.OutWagesInsideParty == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PartyMoneyFlowReport.OutWagesInsideParty(childComplexity), true
+	case "PartyMoneyFlowReport.outWagesOutsideAlliance":
+		if e.ComplexityRoot.PartyMoneyFlowReport.OutWagesOutsideAlliance == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PartyMoneyFlowReport.OutWagesOutsideAlliance(childComplexity), true
+	case "PartyMoneyFlowReport.outWagesSameAllianceCrossBorder":
+		if e.ComplexityRoot.PartyMoneyFlowReport.OutWagesSameAllianceCrossBorder == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PartyMoneyFlowReport.OutWagesSameAllianceCrossBorder(childComplexity), true
+	case "PartyMoneyFlowReport.outWagesSameCountryOutsideParty":
+		if e.ComplexityRoot.PartyMoneyFlowReport.OutWagesSameCountryOutsideParty == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PartyMoneyFlowReport.OutWagesSameCountryOutsideParty(childComplexity), true
+	case "PartyMoneyFlowReport.party":
+		if e.ComplexityRoot.PartyMoneyFlowReport.Party == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PartyMoneyFlowReport.Party(childComplexity), true
 
 	case "PartyNameChange.at":
 		if e.ComplexityRoot.PartyNameChange.At == nil {
@@ -7870,68 +8173,6 @@ func (ec *executionContext) childFields_MuCountryMoneyFlowCounterpart(ctx contex
 	return nil, fmt.Errorf("no field named %q was found under type MuCountryMoneyFlowCounterpart", field.Name)
 }
 
-func (ec *executionContext) childFields_MuCountryMoneyFlowReport(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-	switch field.Name {
-	case "id":
-		return ec.fieldContext_MuCountryMoneyFlowReport_id(ctx, field)
-	case "dayStart":
-		return ec.fieldContext_MuCountryMoneyFlowReport_dayStart(ctx, field)
-	case "inEquipment":
-		return ec.fieldContext_MuCountryMoneyFlowReport_inEquipment(ctx, field)
-	case "outEquipment":
-		return ec.fieldContext_MuCountryMoneyFlowReport_outEquipment(ctx, field)
-	case "inItems":
-		return ec.fieldContext_MuCountryMoneyFlowReport_inItems(ctx, field)
-	case "outItems":
-		return ec.fieldContext_MuCountryMoneyFlowReport_outItems(ctx, field)
-	case "inWages":
-		return ec.fieldContext_MuCountryMoneyFlowReport_inWages(ctx, field)
-	case "outWages":
-		return ec.fieldContext_MuCountryMoneyFlowReport_outWages(ctx, field)
-	case "inEquipmentInsideMu":
-		return ec.fieldContext_MuCountryMoneyFlowReport_inEquipmentInsideMu(ctx, field)
-	case "outEquipmentInsideMu":
-		return ec.fieldContext_MuCountryMoneyFlowReport_outEquipmentInsideMu(ctx, field)
-	case "inItemsInsideMu":
-		return ec.fieldContext_MuCountryMoneyFlowReport_inItemsInsideMu(ctx, field)
-	case "outItemsInsideMu":
-		return ec.fieldContext_MuCountryMoneyFlowReport_outItemsInsideMu(ctx, field)
-	case "inWagesInsideMu":
-		return ec.fieldContext_MuCountryMoneyFlowReport_inWagesInsideMu(ctx, field)
-	case "outWagesInsideMu":
-		return ec.fieldContext_MuCountryMoneyFlowReport_outWagesInsideMu(ctx, field)
-	case "inEquipmentSameCountryOutsideMu":
-		return ec.fieldContext_MuCountryMoneyFlowReport_inEquipmentSameCountryOutsideMu(ctx, field)
-	case "outEquipmentSameCountryOutsideMu":
-		return ec.fieldContext_MuCountryMoneyFlowReport_outEquipmentSameCountryOutsideMu(ctx, field)
-	case "inItemsSameCountryOutsideMu":
-		return ec.fieldContext_MuCountryMoneyFlowReport_inItemsSameCountryOutsideMu(ctx, field)
-	case "outItemsSameCountryOutsideMu":
-		return ec.fieldContext_MuCountryMoneyFlowReport_outItemsSameCountryOutsideMu(ctx, field)
-	case "inWagesSameCountryOutsideMu":
-		return ec.fieldContext_MuCountryMoneyFlowReport_inWagesSameCountryOutsideMu(ctx, field)
-	case "outWagesSameCountryOutsideMu":
-		return ec.fieldContext_MuCountryMoneyFlowReport_outWagesSameCountryOutsideMu(ctx, field)
-	case "inEquipmentCrossBorderOutsideMuCountry":
-		return ec.fieldContext_MuCountryMoneyFlowReport_inEquipmentCrossBorderOutsideMuCountry(ctx, field)
-	case "outEquipmentCrossBorderOutsideMuCountry":
-		return ec.fieldContext_MuCountryMoneyFlowReport_outEquipmentCrossBorderOutsideMuCountry(ctx, field)
-	case "inItemsCrossBorderOutsideMuCountry":
-		return ec.fieldContext_MuCountryMoneyFlowReport_inItemsCrossBorderOutsideMuCountry(ctx, field)
-	case "outItemsCrossBorderOutsideMuCountry":
-		return ec.fieldContext_MuCountryMoneyFlowReport_outItemsCrossBorderOutsideMuCountry(ctx, field)
-	case "inWagesCrossBorderOutsideMuCountry":
-		return ec.fieldContext_MuCountryMoneyFlowReport_inWagesCrossBorderOutsideMuCountry(ctx, field)
-	case "outWagesCrossBorderOutsideMuCountry":
-		return ec.fieldContext_MuCountryMoneyFlowReport_outWagesCrossBorderOutsideMuCountry(ctx, field)
-	case "counterparts":
-		return ec.fieldContext_MuCountryMoneyFlowReport_counterparts(ctx, field)
-	case "mu":
-		return ec.fieldContext_MuCountryMoneyFlowReport_mu(ctx, field)
-	}
-	return nil, fmt.Errorf("no field named %q was found under type MuCountryMoneyFlowReport", field.Name)
-}
-
 func (ec *executionContext) childFields_MuMercenaryReputationChange(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 	switch field.Name {
 	case "id":
@@ -8044,8 +8285,8 @@ func (ec *executionContext) childFields_Party(ctx context.Context, field graphql
 		return ec.fieldContext_Party_ethicsHistory(ctx, field)
 	case "wealthReports":
 		return ec.fieldContext_Party_wealthReports(ctx, field)
-	case "moneyCountryFlows":
-		return ec.fieldContext_Party_moneyCountryFlows(ctx, field)
+	case "moneyFlows":
+		return ec.fieldContext_Party_moneyFlows(ctx, field)
 	}
 	return nil, fmt.Errorf("no field named %q was found under type Party", field.Name)
 }
@@ -8102,6 +8343,100 @@ func (ec *executionContext) childFields_PartyLeaderChange(ctx context.Context, f
 		return ec.fieldContext_PartyLeaderChange_leader(ctx, field)
 	}
 	return nil, fmt.Errorf("no field named %q was found under type PartyLeaderChange", field.Name)
+}
+
+func (ec *executionContext) childFields_PartyMoneyFlowCounterpart(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "inEquipment":
+		return ec.fieldContext_PartyMoneyFlowCounterpart_inEquipment(ctx, field)
+	case "outEquipment":
+		return ec.fieldContext_PartyMoneyFlowCounterpart_outEquipment(ctx, field)
+	case "inItems":
+		return ec.fieldContext_PartyMoneyFlowCounterpart_inItems(ctx, field)
+	case "outItems":
+		return ec.fieldContext_PartyMoneyFlowCounterpart_outItems(ctx, field)
+	case "inWages":
+		return ec.fieldContext_PartyMoneyFlowCounterpart_inWages(ctx, field)
+	case "outWages":
+		return ec.fieldContext_PartyMoneyFlowCounterpart_outWages(ctx, field)
+	case "country":
+		return ec.fieldContext_PartyMoneyFlowCounterpart_country(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type PartyMoneyFlowCounterpart", field.Name)
+}
+
+func (ec *executionContext) childFields_PartyMoneyFlowReport(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "id":
+		return ec.fieldContext_PartyMoneyFlowReport_id(ctx, field)
+	case "dayStart":
+		return ec.fieldContext_PartyMoneyFlowReport_dayStart(ctx, field)
+	case "inEquipment":
+		return ec.fieldContext_PartyMoneyFlowReport_inEquipment(ctx, field)
+	case "outEquipment":
+		return ec.fieldContext_PartyMoneyFlowReport_outEquipment(ctx, field)
+	case "inItems":
+		return ec.fieldContext_PartyMoneyFlowReport_inItems(ctx, field)
+	case "outItems":
+		return ec.fieldContext_PartyMoneyFlowReport_outItems(ctx, field)
+	case "inWages":
+		return ec.fieldContext_PartyMoneyFlowReport_inWages(ctx, field)
+	case "outWages":
+		return ec.fieldContext_PartyMoneyFlowReport_outWages(ctx, field)
+	case "inEquipmentInsideParty":
+		return ec.fieldContext_PartyMoneyFlowReport_inEquipmentInsideParty(ctx, field)
+	case "outEquipmentInsideParty":
+		return ec.fieldContext_PartyMoneyFlowReport_outEquipmentInsideParty(ctx, field)
+	case "inItemsInsideParty":
+		return ec.fieldContext_PartyMoneyFlowReport_inItemsInsideParty(ctx, field)
+	case "outItemsInsideParty":
+		return ec.fieldContext_PartyMoneyFlowReport_outItemsInsideParty(ctx, field)
+	case "inWagesInsideParty":
+		return ec.fieldContext_PartyMoneyFlowReport_inWagesInsideParty(ctx, field)
+	case "outWagesInsideParty":
+		return ec.fieldContext_PartyMoneyFlowReport_outWagesInsideParty(ctx, field)
+	case "inEquipmentSameCountryOutsideParty":
+		return ec.fieldContext_PartyMoneyFlowReport_inEquipmentSameCountryOutsideParty(ctx, field)
+	case "outEquipmentSameCountryOutsideParty":
+		return ec.fieldContext_PartyMoneyFlowReport_outEquipmentSameCountryOutsideParty(ctx, field)
+	case "inItemsSameCountryOutsideParty":
+		return ec.fieldContext_PartyMoneyFlowReport_inItemsSameCountryOutsideParty(ctx, field)
+	case "outItemsSameCountryOutsideParty":
+		return ec.fieldContext_PartyMoneyFlowReport_outItemsSameCountryOutsideParty(ctx, field)
+	case "inWagesSameCountryOutsideParty":
+		return ec.fieldContext_PartyMoneyFlowReport_inWagesSameCountryOutsideParty(ctx, field)
+	case "outWagesSameCountryOutsideParty":
+		return ec.fieldContext_PartyMoneyFlowReport_outWagesSameCountryOutsideParty(ctx, field)
+	case "inEquipmentSameAllianceCrossBorder":
+		return ec.fieldContext_PartyMoneyFlowReport_inEquipmentSameAllianceCrossBorder(ctx, field)
+	case "outEquipmentSameAllianceCrossBorder":
+		return ec.fieldContext_PartyMoneyFlowReport_outEquipmentSameAllianceCrossBorder(ctx, field)
+	case "inItemsSameAllianceCrossBorder":
+		return ec.fieldContext_PartyMoneyFlowReport_inItemsSameAllianceCrossBorder(ctx, field)
+	case "outItemsSameAllianceCrossBorder":
+		return ec.fieldContext_PartyMoneyFlowReport_outItemsSameAllianceCrossBorder(ctx, field)
+	case "inWagesSameAllianceCrossBorder":
+		return ec.fieldContext_PartyMoneyFlowReport_inWagesSameAllianceCrossBorder(ctx, field)
+	case "outWagesSameAllianceCrossBorder":
+		return ec.fieldContext_PartyMoneyFlowReport_outWagesSameAllianceCrossBorder(ctx, field)
+	case "inEquipmentOutsideAlliance":
+		return ec.fieldContext_PartyMoneyFlowReport_inEquipmentOutsideAlliance(ctx, field)
+	case "outEquipmentOutsideAlliance":
+		return ec.fieldContext_PartyMoneyFlowReport_outEquipmentOutsideAlliance(ctx, field)
+	case "inItemsOutsideAlliance":
+		return ec.fieldContext_PartyMoneyFlowReport_inItemsOutsideAlliance(ctx, field)
+	case "outItemsOutsideAlliance":
+		return ec.fieldContext_PartyMoneyFlowReport_outItemsOutsideAlliance(ctx, field)
+	case "inWagesOutsideAlliance":
+		return ec.fieldContext_PartyMoneyFlowReport_inWagesOutsideAlliance(ctx, field)
+	case "outWagesOutsideAlliance":
+		return ec.fieldContext_PartyMoneyFlowReport_outWagesOutsideAlliance(ctx, field)
+	case "counterparts":
+		return ec.fieldContext_PartyMoneyFlowReport_counterparts(ctx, field)
+	case "party":
+		return ec.fieldContext_PartyMoneyFlowReport_party(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type PartyMoneyFlowReport", field.Name)
 }
 
 func (ec *executionContext) childFields_PartyNameChange(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
@@ -9632,7 +9967,7 @@ func (ec *executionContext) field_Party_leaderHistory_args(ctx context.Context, 
 	return args, nil
 }
 
-func (ec *executionContext) field_Party_moneyCountryFlows_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+func (ec *executionContext) field_Party_moneyFlows_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "from",
@@ -24109,34 +24444,34 @@ func (ec *executionContext) fieldContext_Party_wealthReports(ctx context.Context
 	return fc, nil
 }
 
-func (ec *executionContext) _Party_moneyCountryFlows(ctx context.Context, field graphql.CollectedField, obj *model.Party) (ret graphql.Marshaler) {
+func (ec *executionContext) _Party_moneyFlows(ctx context.Context, field graphql.CollectedField, obj *model.Party) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
 		field,
 		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return ec.fieldContext_Party_moneyCountryFlows(ctx, field)
+			return ec.fieldContext_Party_moneyFlows(ctx, field)
 		},
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.Resolvers.Party().MoneyCountryFlows(ctx, obj, fc.Args["from"].(time.Time), fc.Args["to"].(time.Time))
+			return ec.Resolvers.Party().MoneyFlows(ctx, obj, fc.Args["from"].(time.Time), fc.Args["to"].(time.Time))
 		},
 		nil,
-		func(ctx context.Context, selections ast.SelectionSet, v []*model.MuCountryMoneyFlowReport) graphql.Marshaler {
-			return ec.marshalNMuCountryMoneyFlowReport2ᚕᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐMuCountryMoneyFlowReportᚄ(ctx, selections, v)
+		func(ctx context.Context, selections ast.SelectionSet, v []*model.PartyMoneyFlowReport) graphql.Marshaler {
+			return ec.marshalNPartyMoneyFlowReport2ᚕᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐPartyMoneyFlowReportᚄ(ctx, selections, v)
 		},
 		true,
 		true,
 	)
 }
-func (ec *executionContext) fieldContext_Party_moneyCountryFlows(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Party_moneyFlows(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Party",
 		Field:      field,
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return ec.childFields_MuCountryMoneyFlowReport(ctx, field)
+			return ec.childFields_PartyMoneyFlowReport(ctx, field)
 		},
 	}
 	defer func() {
@@ -24146,7 +24481,7 @@ func (ec *executionContext) fieldContext_Party_moneyCountryFlows(ctx context.Con
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Party_moneyCountryFlows_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Party_moneyFlows_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -24547,6 +24882,976 @@ func (ec *executionContext) fieldContext_PartyLeaderChange_leader(_ context.Cont
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return ec.childFields_User(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PartyMoneyFlowCounterpart_inEquipment(ctx context.Context, field graphql.CollectedField, obj *model.PartyMoneyFlowCounterpart) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PartyMoneyFlowCounterpart_inEquipment(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InEquipment, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PartyMoneyFlowCounterpart_inEquipment(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PartyMoneyFlowCounterpart", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _PartyMoneyFlowCounterpart_outEquipment(ctx context.Context, field graphql.CollectedField, obj *model.PartyMoneyFlowCounterpart) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PartyMoneyFlowCounterpart_outEquipment(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutEquipment, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PartyMoneyFlowCounterpart_outEquipment(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PartyMoneyFlowCounterpart", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _PartyMoneyFlowCounterpart_inItems(ctx context.Context, field graphql.CollectedField, obj *model.PartyMoneyFlowCounterpart) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PartyMoneyFlowCounterpart_inItems(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InItems, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PartyMoneyFlowCounterpart_inItems(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PartyMoneyFlowCounterpart", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _PartyMoneyFlowCounterpart_outItems(ctx context.Context, field graphql.CollectedField, obj *model.PartyMoneyFlowCounterpart) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PartyMoneyFlowCounterpart_outItems(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutItems, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PartyMoneyFlowCounterpart_outItems(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PartyMoneyFlowCounterpart", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _PartyMoneyFlowCounterpart_inWages(ctx context.Context, field graphql.CollectedField, obj *model.PartyMoneyFlowCounterpart) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PartyMoneyFlowCounterpart_inWages(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InWages, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PartyMoneyFlowCounterpart_inWages(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PartyMoneyFlowCounterpart", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _PartyMoneyFlowCounterpart_outWages(ctx context.Context, field graphql.CollectedField, obj *model.PartyMoneyFlowCounterpart) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PartyMoneyFlowCounterpart_outWages(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutWages, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PartyMoneyFlowCounterpart_outWages(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PartyMoneyFlowCounterpart", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _PartyMoneyFlowCounterpart_country(ctx context.Context, field graphql.CollectedField, obj *model.PartyMoneyFlowCounterpart) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PartyMoneyFlowCounterpart_country(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.PartyMoneyFlowCounterpart().Country(ctx, obj)
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.Country) graphql.Marshaler {
+			return ec.marshalNCountry2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐCountry(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PartyMoneyFlowCounterpart_country(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PartyMoneyFlowCounterpart",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_Country(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PartyMoneyFlowReport_id(ctx context.Context, field graphql.CollectedField, obj *model.PartyMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PartyMoneyFlowReport_id(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNID2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PartyMoneyFlowReport_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PartyMoneyFlowReport", field, false, false, errors.New("field of type ID does not have child fields"))
+}
+
+func (ec *executionContext) _PartyMoneyFlowReport_dayStart(ctx context.Context, field graphql.CollectedField, obj *model.PartyMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PartyMoneyFlowReport_dayStart(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.DayStart, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PartyMoneyFlowReport_dayStart(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PartyMoneyFlowReport", field, false, false, errors.New("field of type DateTime does not have child fields"))
+}
+
+func (ec *executionContext) _PartyMoneyFlowReport_inEquipment(ctx context.Context, field graphql.CollectedField, obj *model.PartyMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PartyMoneyFlowReport_inEquipment(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InEquipment, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PartyMoneyFlowReport_inEquipment(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PartyMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _PartyMoneyFlowReport_outEquipment(ctx context.Context, field graphql.CollectedField, obj *model.PartyMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PartyMoneyFlowReport_outEquipment(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutEquipment, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PartyMoneyFlowReport_outEquipment(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PartyMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _PartyMoneyFlowReport_inItems(ctx context.Context, field graphql.CollectedField, obj *model.PartyMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PartyMoneyFlowReport_inItems(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InItems, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PartyMoneyFlowReport_inItems(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PartyMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _PartyMoneyFlowReport_outItems(ctx context.Context, field graphql.CollectedField, obj *model.PartyMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PartyMoneyFlowReport_outItems(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutItems, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PartyMoneyFlowReport_outItems(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PartyMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _PartyMoneyFlowReport_inWages(ctx context.Context, field graphql.CollectedField, obj *model.PartyMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PartyMoneyFlowReport_inWages(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InWages, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PartyMoneyFlowReport_inWages(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PartyMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _PartyMoneyFlowReport_outWages(ctx context.Context, field graphql.CollectedField, obj *model.PartyMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PartyMoneyFlowReport_outWages(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutWages, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PartyMoneyFlowReport_outWages(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PartyMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _PartyMoneyFlowReport_inEquipmentInsideParty(ctx context.Context, field graphql.CollectedField, obj *model.PartyMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PartyMoneyFlowReport_inEquipmentInsideParty(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InEquipmentInsideParty, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PartyMoneyFlowReport_inEquipmentInsideParty(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PartyMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _PartyMoneyFlowReport_outEquipmentInsideParty(ctx context.Context, field graphql.CollectedField, obj *model.PartyMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PartyMoneyFlowReport_outEquipmentInsideParty(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutEquipmentInsideParty, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PartyMoneyFlowReport_outEquipmentInsideParty(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PartyMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _PartyMoneyFlowReport_inItemsInsideParty(ctx context.Context, field graphql.CollectedField, obj *model.PartyMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PartyMoneyFlowReport_inItemsInsideParty(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InItemsInsideParty, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PartyMoneyFlowReport_inItemsInsideParty(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PartyMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _PartyMoneyFlowReport_outItemsInsideParty(ctx context.Context, field graphql.CollectedField, obj *model.PartyMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PartyMoneyFlowReport_outItemsInsideParty(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutItemsInsideParty, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PartyMoneyFlowReport_outItemsInsideParty(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PartyMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _PartyMoneyFlowReport_inWagesInsideParty(ctx context.Context, field graphql.CollectedField, obj *model.PartyMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PartyMoneyFlowReport_inWagesInsideParty(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InWagesInsideParty, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PartyMoneyFlowReport_inWagesInsideParty(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PartyMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _PartyMoneyFlowReport_outWagesInsideParty(ctx context.Context, field graphql.CollectedField, obj *model.PartyMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PartyMoneyFlowReport_outWagesInsideParty(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutWagesInsideParty, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PartyMoneyFlowReport_outWagesInsideParty(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PartyMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _PartyMoneyFlowReport_inEquipmentSameCountryOutsideParty(ctx context.Context, field graphql.CollectedField, obj *model.PartyMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PartyMoneyFlowReport_inEquipmentSameCountryOutsideParty(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InEquipmentSameCountryOutsideParty, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PartyMoneyFlowReport_inEquipmentSameCountryOutsideParty(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PartyMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _PartyMoneyFlowReport_outEquipmentSameCountryOutsideParty(ctx context.Context, field graphql.CollectedField, obj *model.PartyMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PartyMoneyFlowReport_outEquipmentSameCountryOutsideParty(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutEquipmentSameCountryOutsideParty, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PartyMoneyFlowReport_outEquipmentSameCountryOutsideParty(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PartyMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _PartyMoneyFlowReport_inItemsSameCountryOutsideParty(ctx context.Context, field graphql.CollectedField, obj *model.PartyMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PartyMoneyFlowReport_inItemsSameCountryOutsideParty(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InItemsSameCountryOutsideParty, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PartyMoneyFlowReport_inItemsSameCountryOutsideParty(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PartyMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _PartyMoneyFlowReport_outItemsSameCountryOutsideParty(ctx context.Context, field graphql.CollectedField, obj *model.PartyMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PartyMoneyFlowReport_outItemsSameCountryOutsideParty(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutItemsSameCountryOutsideParty, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PartyMoneyFlowReport_outItemsSameCountryOutsideParty(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PartyMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _PartyMoneyFlowReport_inWagesSameCountryOutsideParty(ctx context.Context, field graphql.CollectedField, obj *model.PartyMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PartyMoneyFlowReport_inWagesSameCountryOutsideParty(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InWagesSameCountryOutsideParty, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PartyMoneyFlowReport_inWagesSameCountryOutsideParty(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PartyMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _PartyMoneyFlowReport_outWagesSameCountryOutsideParty(ctx context.Context, field graphql.CollectedField, obj *model.PartyMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PartyMoneyFlowReport_outWagesSameCountryOutsideParty(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutWagesSameCountryOutsideParty, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PartyMoneyFlowReport_outWagesSameCountryOutsideParty(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PartyMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _PartyMoneyFlowReport_inEquipmentSameAllianceCrossBorder(ctx context.Context, field graphql.CollectedField, obj *model.PartyMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PartyMoneyFlowReport_inEquipmentSameAllianceCrossBorder(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InEquipmentSameAllianceCrossBorder, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PartyMoneyFlowReport_inEquipmentSameAllianceCrossBorder(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PartyMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _PartyMoneyFlowReport_outEquipmentSameAllianceCrossBorder(ctx context.Context, field graphql.CollectedField, obj *model.PartyMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PartyMoneyFlowReport_outEquipmentSameAllianceCrossBorder(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutEquipmentSameAllianceCrossBorder, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PartyMoneyFlowReport_outEquipmentSameAllianceCrossBorder(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PartyMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _PartyMoneyFlowReport_inItemsSameAllianceCrossBorder(ctx context.Context, field graphql.CollectedField, obj *model.PartyMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PartyMoneyFlowReport_inItemsSameAllianceCrossBorder(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InItemsSameAllianceCrossBorder, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PartyMoneyFlowReport_inItemsSameAllianceCrossBorder(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PartyMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _PartyMoneyFlowReport_outItemsSameAllianceCrossBorder(ctx context.Context, field graphql.CollectedField, obj *model.PartyMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PartyMoneyFlowReport_outItemsSameAllianceCrossBorder(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutItemsSameAllianceCrossBorder, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PartyMoneyFlowReport_outItemsSameAllianceCrossBorder(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PartyMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _PartyMoneyFlowReport_inWagesSameAllianceCrossBorder(ctx context.Context, field graphql.CollectedField, obj *model.PartyMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PartyMoneyFlowReport_inWagesSameAllianceCrossBorder(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InWagesSameAllianceCrossBorder, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PartyMoneyFlowReport_inWagesSameAllianceCrossBorder(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PartyMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _PartyMoneyFlowReport_outWagesSameAllianceCrossBorder(ctx context.Context, field graphql.CollectedField, obj *model.PartyMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PartyMoneyFlowReport_outWagesSameAllianceCrossBorder(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutWagesSameAllianceCrossBorder, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PartyMoneyFlowReport_outWagesSameAllianceCrossBorder(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PartyMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _PartyMoneyFlowReport_inEquipmentOutsideAlliance(ctx context.Context, field graphql.CollectedField, obj *model.PartyMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PartyMoneyFlowReport_inEquipmentOutsideAlliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InEquipmentOutsideAlliance, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PartyMoneyFlowReport_inEquipmentOutsideAlliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PartyMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _PartyMoneyFlowReport_outEquipmentOutsideAlliance(ctx context.Context, field graphql.CollectedField, obj *model.PartyMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PartyMoneyFlowReport_outEquipmentOutsideAlliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutEquipmentOutsideAlliance, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PartyMoneyFlowReport_outEquipmentOutsideAlliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PartyMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _PartyMoneyFlowReport_inItemsOutsideAlliance(ctx context.Context, field graphql.CollectedField, obj *model.PartyMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PartyMoneyFlowReport_inItemsOutsideAlliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InItemsOutsideAlliance, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PartyMoneyFlowReport_inItemsOutsideAlliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PartyMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _PartyMoneyFlowReport_outItemsOutsideAlliance(ctx context.Context, field graphql.CollectedField, obj *model.PartyMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PartyMoneyFlowReport_outItemsOutsideAlliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutItemsOutsideAlliance, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PartyMoneyFlowReport_outItemsOutsideAlliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PartyMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _PartyMoneyFlowReport_inWagesOutsideAlliance(ctx context.Context, field graphql.CollectedField, obj *model.PartyMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PartyMoneyFlowReport_inWagesOutsideAlliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.InWagesOutsideAlliance, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PartyMoneyFlowReport_inWagesOutsideAlliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PartyMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _PartyMoneyFlowReport_outWagesOutsideAlliance(ctx context.Context, field graphql.CollectedField, obj *model.PartyMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PartyMoneyFlowReport_outWagesOutsideAlliance(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutWagesOutsideAlliance, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PartyMoneyFlowReport_outWagesOutsideAlliance(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PartyMoneyFlowReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _PartyMoneyFlowReport_counterparts(ctx context.Context, field graphql.CollectedField, obj *model.PartyMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PartyMoneyFlowReport_counterparts(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Counterparts, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []*model.PartyMoneyFlowCounterpart) graphql.Marshaler {
+			return ec.marshalNPartyMoneyFlowCounterpart2ᚕᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐPartyMoneyFlowCounterpartᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PartyMoneyFlowReport_counterparts(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PartyMoneyFlowReport",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_PartyMoneyFlowCounterpart(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PartyMoneyFlowReport_party(ctx context.Context, field graphql.CollectedField, obj *model.PartyMoneyFlowReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PartyMoneyFlowReport_party(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.PartyMoneyFlowReport().Party(ctx, obj)
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.Party) graphql.Marshaler {
+			return ec.marshalNParty2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐParty(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PartyMoneyFlowReport_party(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PartyMoneyFlowReport",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_Party(ctx, field)
 		},
 	}
 	return fc, nil
@@ -41868,7 +43173,7 @@ func (ec *executionContext) _Party(ctx context.Context, sel ast.SelectionSet, ob
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-		case "moneyCountryFlows":
+		case "moneyFlows":
 			field := field
 
 			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
@@ -41877,7 +43182,7 @@ func (ec *executionContext) _Party(ctx context.Context, sel ast.SelectionSet, ob
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Party_moneyCountryFlows(ctx, field, obj)
+				res = ec._Party_moneyFlows(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -42213,6 +43518,341 @@ func (ec *executionContext) _PartyLeaderChange(ctx context.Context, sel ast.Sele
 					}
 				}()
 				res = ec._PartyLeaderChange_leader(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var partyMoneyFlowCounterpartImplementors = []string{"PartyMoneyFlowCounterpart"}
+
+func (ec *executionContext) _PartyMoneyFlowCounterpart(ctx context.Context, sel ast.SelectionSet, obj *model.PartyMoneyFlowCounterpart) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, partyMoneyFlowCounterpartImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PartyMoneyFlowCounterpart")
+		case "inEquipment":
+			out.Values[i] = ec._PartyMoneyFlowCounterpart_inEquipment(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outEquipment":
+			out.Values[i] = ec._PartyMoneyFlowCounterpart_outEquipment(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inItems":
+			out.Values[i] = ec._PartyMoneyFlowCounterpart_inItems(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outItems":
+			out.Values[i] = ec._PartyMoneyFlowCounterpart_outItems(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inWages":
+			out.Values[i] = ec._PartyMoneyFlowCounterpart_inWages(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outWages":
+			out.Values[i] = ec._PartyMoneyFlowCounterpart_outWages(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "country":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._PartyMoneyFlowCounterpart_country(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var partyMoneyFlowReportImplementors = []string{"PartyMoneyFlowReport"}
+
+func (ec *executionContext) _PartyMoneyFlowReport(ctx context.Context, sel ast.SelectionSet, obj *model.PartyMoneyFlowReport) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, partyMoneyFlowReportImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PartyMoneyFlowReport")
+		case "id":
+			out.Values[i] = ec._PartyMoneyFlowReport_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "dayStart":
+			out.Values[i] = ec._PartyMoneyFlowReport_dayStart(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inEquipment":
+			out.Values[i] = ec._PartyMoneyFlowReport_inEquipment(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outEquipment":
+			out.Values[i] = ec._PartyMoneyFlowReport_outEquipment(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inItems":
+			out.Values[i] = ec._PartyMoneyFlowReport_inItems(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outItems":
+			out.Values[i] = ec._PartyMoneyFlowReport_outItems(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inWages":
+			out.Values[i] = ec._PartyMoneyFlowReport_inWages(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outWages":
+			out.Values[i] = ec._PartyMoneyFlowReport_outWages(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inEquipmentInsideParty":
+			out.Values[i] = ec._PartyMoneyFlowReport_inEquipmentInsideParty(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outEquipmentInsideParty":
+			out.Values[i] = ec._PartyMoneyFlowReport_outEquipmentInsideParty(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inItemsInsideParty":
+			out.Values[i] = ec._PartyMoneyFlowReport_inItemsInsideParty(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outItemsInsideParty":
+			out.Values[i] = ec._PartyMoneyFlowReport_outItemsInsideParty(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inWagesInsideParty":
+			out.Values[i] = ec._PartyMoneyFlowReport_inWagesInsideParty(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outWagesInsideParty":
+			out.Values[i] = ec._PartyMoneyFlowReport_outWagesInsideParty(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inEquipmentSameCountryOutsideParty":
+			out.Values[i] = ec._PartyMoneyFlowReport_inEquipmentSameCountryOutsideParty(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outEquipmentSameCountryOutsideParty":
+			out.Values[i] = ec._PartyMoneyFlowReport_outEquipmentSameCountryOutsideParty(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inItemsSameCountryOutsideParty":
+			out.Values[i] = ec._PartyMoneyFlowReport_inItemsSameCountryOutsideParty(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outItemsSameCountryOutsideParty":
+			out.Values[i] = ec._PartyMoneyFlowReport_outItemsSameCountryOutsideParty(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inWagesSameCountryOutsideParty":
+			out.Values[i] = ec._PartyMoneyFlowReport_inWagesSameCountryOutsideParty(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outWagesSameCountryOutsideParty":
+			out.Values[i] = ec._PartyMoneyFlowReport_outWagesSameCountryOutsideParty(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inEquipmentSameAllianceCrossBorder":
+			out.Values[i] = ec._PartyMoneyFlowReport_inEquipmentSameAllianceCrossBorder(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outEquipmentSameAllianceCrossBorder":
+			out.Values[i] = ec._PartyMoneyFlowReport_outEquipmentSameAllianceCrossBorder(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inItemsSameAllianceCrossBorder":
+			out.Values[i] = ec._PartyMoneyFlowReport_inItemsSameAllianceCrossBorder(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outItemsSameAllianceCrossBorder":
+			out.Values[i] = ec._PartyMoneyFlowReport_outItemsSameAllianceCrossBorder(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inWagesSameAllianceCrossBorder":
+			out.Values[i] = ec._PartyMoneyFlowReport_inWagesSameAllianceCrossBorder(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outWagesSameAllianceCrossBorder":
+			out.Values[i] = ec._PartyMoneyFlowReport_outWagesSameAllianceCrossBorder(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inEquipmentOutsideAlliance":
+			out.Values[i] = ec._PartyMoneyFlowReport_inEquipmentOutsideAlliance(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outEquipmentOutsideAlliance":
+			out.Values[i] = ec._PartyMoneyFlowReport_outEquipmentOutsideAlliance(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inItemsOutsideAlliance":
+			out.Values[i] = ec._PartyMoneyFlowReport_inItemsOutsideAlliance(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outItemsOutsideAlliance":
+			out.Values[i] = ec._PartyMoneyFlowReport_outItemsOutsideAlliance(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inWagesOutsideAlliance":
+			out.Values[i] = ec._PartyMoneyFlowReport_inWagesOutsideAlliance(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "outWagesOutsideAlliance":
+			out.Values[i] = ec._PartyMoneyFlowReport_outWagesOutsideAlliance(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "counterparts":
+			out.Values[i] = ec._PartyMoneyFlowReport_counterparts(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "party":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._PartyMoneyFlowReport_party(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -49100,32 +50740,6 @@ func (ec *executionContext) marshalNMuCountryMoneyFlowCounterpart2ᚖgithubᚗco
 	return ec._MuCountryMoneyFlowCounterpart(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNMuCountryMoneyFlowReport2ᚕᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐMuCountryMoneyFlowReportᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.MuCountryMoneyFlowReport) graphql.Marshaler {
-	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
-		fc := graphql.GetFieldContext(ctx)
-		fc.Result = &v[i]
-		return ec.marshalNMuCountryMoneyFlowReport2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐMuCountryMoneyFlowReport(ctx, sel, v[i])
-	})
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
-func (ec *executionContext) marshalNMuCountryMoneyFlowReport2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐMuCountryMoneyFlowReport(ctx context.Context, sel ast.SelectionSet, v *model.MuCountryMoneyFlowReport) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._MuCountryMoneyFlowReport(ctx, sel, v)
-}
-
 func (ec *executionContext) marshalNMuMercenaryReputationChange2ᚕᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐMuMercenaryReputationChangeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.MuMercenaryReputationChange) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
@@ -49376,6 +50990,58 @@ func (ec *executionContext) marshalNPartyLeaderChange2ᚖgithubᚗcomᚋwarerast
 		return graphql.Null
 	}
 	return ec._PartyLeaderChange(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNPartyMoneyFlowCounterpart2ᚕᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐPartyMoneyFlowCounterpartᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PartyMoneyFlowCounterpart) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNPartyMoneyFlowCounterpart2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐPartyMoneyFlowCounterpart(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNPartyMoneyFlowCounterpart2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐPartyMoneyFlowCounterpart(ctx context.Context, sel ast.SelectionSet, v *model.PartyMoneyFlowCounterpart) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._PartyMoneyFlowCounterpart(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNPartyMoneyFlowReport2ᚕᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐPartyMoneyFlowReportᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PartyMoneyFlowReport) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNPartyMoneyFlowReport2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐPartyMoneyFlowReport(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNPartyMoneyFlowReport2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐPartyMoneyFlowReport(ctx context.Context, sel ast.SelectionSet, v *model.PartyMoneyFlowReport) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._PartyMoneyFlowReport(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNPartyNameChange2ᚕᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐPartyNameChangeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PartyNameChange) graphql.Marshaler {

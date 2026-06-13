@@ -141,7 +141,7 @@ type Party {
 
   # derived
   wealthReports(from: DateTime!, to: DateTime!): [EntityWealthReport!]!
-  moneyCountryFlows(from: DateTime!, to: DateTime!): [MuCountryMoneyFlowReport!]!
+  moneyFlows(from: DateTime!, to: DateTime!): [PartyMoneyFlowReport!]!
 }
 
 type Ethics {

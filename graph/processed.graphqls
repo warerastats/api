@@ -170,6 +170,53 @@ type MuCountryMoneyFlowReport {
   mu: Mu!
 }
 
+type PartyMoneyFlowCounterpart {
+  inEquipment: Float!
+  outEquipment: Float!
+  inItems: Float!
+  outItems: Float!
+  inWages: Float!
+  outWages: Float!
+  country: Country!
+}
+
+type PartyMoneyFlowReport {
+  id: ID!
+  dayStart: DateTime!
+  inEquipment: Float!
+  outEquipment: Float!
+  inItems: Float!
+  outItems: Float!
+  inWages: Float!
+  outWages: Float!
+  inEquipmentInsideParty: Float!
+  outEquipmentInsideParty: Float!
+  inItemsInsideParty: Float!
+  outItemsInsideParty: Float!
+  inWagesInsideParty: Float!
+  outWagesInsideParty: Float!
+  inEquipmentSameCountryOutsideParty: Float!
+  outEquipmentSameCountryOutsideParty: Float!
+  inItemsSameCountryOutsideParty: Float!
+  outItemsSameCountryOutsideParty: Float!
+  inWagesSameCountryOutsideParty: Float!
+  outWagesSameCountryOutsideParty: Float!
+  inEquipmentSameAllianceCrossBorder: Float!
+  outEquipmentSameAllianceCrossBorder: Float!
+  inItemsSameAllianceCrossBorder: Float!
+  outItemsSameAllianceCrossBorder: Float!
+  inWagesSameAllianceCrossBorder: Float!
+  outWagesSameAllianceCrossBorder: Float!
+  inEquipmentOutsideAlliance: Float!
+  outEquipmentOutsideAlliance: Float!
+  inItemsOutsideAlliance: Float!
+  outItemsOutsideAlliance: Float!
+  inWagesOutsideAlliance: Float!
+  outWagesOutsideAlliance: Float!
+  counterparts: [PartyMoneyFlowCounterpart!]!
+  party: Party!
+}
+
 type CountryAllianceMoneyFlowCounterpart {
   inEquipment: Float!
   outEquipment: Float!

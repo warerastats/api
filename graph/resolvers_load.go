@@ -272,3 +272,20 @@ func loadEntity(ctx context.Context, typ, id string) (model.Entity, error) {
 		return nil, nil
 	}
 }
+
+// allianceCountryIDs returns the ObjectIDs of countries belonging to an alliance.
+func (r *allianceResolver) allianceCountryIDs(ctx context.Context, allianceID string) ([]bson.ObjectID, error) {
+	aid, err := oidOf(allianceID)
+	if err != nil {
+		return nil, err
+	}
+	countries, err := r.Colls.Trackers.Country.GetByAlliance(ctx, aid)
+	if err != nil {
+		return nil, err
+	}
+	ids := make([]bson.ObjectID, len(countries))
+	for i := range countries {
+		ids[i] = countries[i].ID
+	}
+	return ids, nil
+}
