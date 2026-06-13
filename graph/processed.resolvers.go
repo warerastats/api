@@ -90,6 +90,11 @@ func (r *entityWealthReportResolver) Entity(ctx context.Context, obj *model.Enti
 	return loadEntity(ctx, obj.EntityType, obj.EntityID)
 }
 
+// Country is the resolver for the country field.
+func (r *foreignTaxRecipientResolver) Country(ctx context.Context, obj *model.ForeignTaxRecipient) (*model.Country, error) {
+	return loadCountry(ctx, obj.CountryID)
+}
+
 // PctChange24h is the resolver for the pctChange24h field.
 func (r *inflationPointResolver) PctChange24h(ctx context.Context, obj *model.InflationPoint) (float64, error) {
 	return obj.PctChange, nil
@@ -236,6 +241,11 @@ func (r *Resolver) EntityWealthReport() EntityWealthReportResolver {
 	return &entityWealthReportResolver{r}
 }
 
+// ForeignTaxRecipient returns ForeignTaxRecipientResolver implementation.
+func (r *Resolver) ForeignTaxRecipient() ForeignTaxRecipientResolver {
+	return &foreignTaxRecipientResolver{r}
+}
+
 // InflationPoint returns InflationPointResolver implementation.
 func (r *Resolver) InflationPoint() InflationPointResolver { return &inflationPointResolver{r} }
 
@@ -309,6 +319,7 @@ type countryMoneyFlowCounterpartResolver struct{ *Resolver }
 type countryMoneyFlowReportResolver struct{ *Resolver }
 type countryTaxFlowResolver struct{ *Resolver }
 type entityWealthReportResolver struct{ *Resolver }
+type foreignTaxRecipientResolver struct{ *Resolver }
 type inflationPointResolver struct{ *Resolver }
 type muAllianceMoneyFlowCounterpartResolver struct{ *Resolver }
 type muAllianceMoneyFlowReportResolver struct{ *Resolver }

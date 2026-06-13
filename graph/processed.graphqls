@@ -74,10 +74,16 @@ type TaxHijack {
   country: Country
 }
 
+type ForeignTaxRecipient {
+  amount: Float!
+  country: Country
+}
+
 type TaxSource {
   total: Float!
   hijacked: Float!
   corePct: Float!
+  foreignTaxRedirected: Float!
   country: Country
 }
 
@@ -90,6 +96,9 @@ type CountryTaxFlow {
   nonCoreEarned: Float!
   hijackedOut: Float!
   hijackers: [TaxHijack!]!
+  foreignTaxIn: Float!
+  foreignTaxOut: Float!
+  foreignTaxRecipients: [ForeignTaxRecipient!]!
   sources: [TaxSource!]!
   country: Country!
 }

@@ -598,24 +598,33 @@ type TaxHijack struct {
 	CountryID string
 }
 
-type TaxSource struct {
-	Total     float64 `json:"total"`
-	Hijacked  float64 `json:"hijacked"`
-	CorePct   float64 `json:"corePct"`
+type ForeignTaxRecipient struct {
+	Amount    float64 `json:"amount"`
 	CountryID string
 }
 
+type TaxSource struct {
+	Total                float64 `json:"total"`
+	Hijacked             float64 `json:"hijacked"`
+	CorePct              float64 `json:"corePct"`
+	ForeignTaxRedirected float64 `json:"foreignTaxRedirected"`
+	CountryID            string
+}
+
 type CountryTaxFlow struct {
-	ID            string       `json:"id"`
-	HourStart     time.Time    `json:"hourStart"`
-	TotalTax      float64      `json:"totalTax"`
-	HijackedIn    float64      `json:"hijackedIn"`
-	CoreEarned    float64      `json:"coreEarned"`
-	NonCoreEarned float64      `json:"nonCoreEarned"`
-	HijackedOut   float64      `json:"hijackedOut"`
-	Hijackers     []*TaxHijack `json:"hijackers"`
-	Sources       []*TaxSource `json:"sources"`
-	CountryID     string
+	ID                   string                 `json:"id"`
+	HourStart            time.Time              `json:"hourStart"`
+	TotalTax             float64                `json:"totalTax"`
+	HijackedIn           float64                `json:"hijackedIn"`
+	CoreEarned           float64                `json:"coreEarned"`
+	NonCoreEarned        float64                `json:"nonCoreEarned"`
+	HijackedOut          float64                `json:"hijackedOut"`
+	Hijackers            []*TaxHijack           `json:"hijackers"`
+	ForeignTaxIn         float64                `json:"foreignTaxIn"`
+	ForeignTaxOut        float64                `json:"foreignTaxOut"`
+	ForeignTaxRecipients []*ForeignTaxRecipient `json:"foreignTaxRecipients"`
+	Sources              []*TaxSource           `json:"sources"`
+	CountryID            string
 }
 
 type CountryMoneyFlowCounterpart struct {

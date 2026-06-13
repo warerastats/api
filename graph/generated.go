@@ -62,6 +62,7 @@ type ResolverRoot interface {
 	Employee() EmployeeResolver
 	EmployeeWageChange() EmployeeWageChangeResolver
 	EntityWealthReport() EntityWealthReportResolver
+	ForeignTaxRecipient() ForeignTaxRecipientResolver
 	InflationPoint() InflationPointResolver
 	Item() ItemResolver
 	LootTransaction() LootTransactionResolver
@@ -414,16 +415,19 @@ type ComplexityRoot struct {
 	}
 
 	CountryTaxFlow struct {
-		CoreEarned    func(childComplexity int) int
-		Country       func(childComplexity int) int
-		HijackedIn    func(childComplexity int) int
-		HijackedOut   func(childComplexity int) int
-		Hijackers     func(childComplexity int) int
-		HourStart     func(childComplexity int) int
-		ID            func(childComplexity int) int
-		NonCoreEarned func(childComplexity int) int
-		Sources       func(childComplexity int) int
-		TotalTax      func(childComplexity int) int
+		CoreEarned           func(childComplexity int) int
+		Country              func(childComplexity int) int
+		ForeignTaxIn         func(childComplexity int) int
+		ForeignTaxOut        func(childComplexity int) int
+		ForeignTaxRecipients func(childComplexity int) int
+		HijackedIn           func(childComplexity int) int
+		HijackedOut          func(childComplexity int) int
+		Hijackers            func(childComplexity int) int
+		HourStart            func(childComplexity int) int
+		ID                   func(childComplexity int) int
+		NonCoreEarned        func(childComplexity int) int
+		Sources              func(childComplexity int) int
+		TotalTax             func(childComplexity int) int
 	}
 
 	CraftTransaction struct {
@@ -564,6 +568,11 @@ type ComplexityRoot struct {
 	FloatEntry struct {
 		Key   func(childComplexity int) int
 		Value func(childComplexity int) int
+	}
+
+	ForeignTaxRecipient struct {
+		Amount  func(childComplexity int) int
+		Country func(childComplexity int) int
 	}
 
 	InflationPoint struct {
@@ -1002,10 +1011,11 @@ type ComplexityRoot struct {
 	}
 
 	TaxSource struct {
-		CorePct  func(childComplexity int) int
-		Country  func(childComplexity int) int
-		Hijacked func(childComplexity int) int
-		Total    func(childComplexity int) int
+		CorePct              func(childComplexity int) int
+		Country              func(childComplexity int) int
+		ForeignTaxRedirected func(childComplexity int) int
+		Hijacked             func(childComplexity int) int
+		Total                func(childComplexity int) int
 	}
 
 	Taxes struct {
@@ -1374,6 +1384,9 @@ type EmployeeWageChangeResolver interface {
 }
 type EntityWealthReportResolver interface {
 	Entity(ctx context.Context, obj *model.EntityWealthReport) (model.Entity, error)
+}
+type ForeignTaxRecipientResolver interface {
+	Country(ctx context.Context, obj *model.ForeignTaxRecipient) (*model.Country, error)
 }
 type InflationPointResolver interface {
 	PctChange24h(ctx context.Context, obj *model.InflationPoint) (float64, error)
@@ -3131,6 +3144,24 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.CountryTaxFlow.Country(childComplexity), true
+	case "CountryTaxFlow.foreignTaxIn":
+		if e.ComplexityRoot.CountryTaxFlow.ForeignTaxIn == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CountryTaxFlow.ForeignTaxIn(childComplexity), true
+	case "CountryTaxFlow.foreignTaxOut":
+		if e.ComplexityRoot.CountryTaxFlow.ForeignTaxOut == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CountryTaxFlow.ForeignTaxOut(childComplexity), true
+	case "CountryTaxFlow.foreignTaxRecipients":
+		if e.ComplexityRoot.CountryTaxFlow.ForeignTaxRecipients == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CountryTaxFlow.ForeignTaxRecipients(childComplexity), true
 	case "CountryTaxFlow.hijackedIn":
 		if e.ComplexityRoot.CountryTaxFlow.HijackedIn == nil {
 			break
@@ -3735,6 +3766,19 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.FloatEntry.Value(childComplexity), true
+
+	case "ForeignTaxRecipient.amount":
+		if e.ComplexityRoot.ForeignTaxRecipient.Amount == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ForeignTaxRecipient.Amount(childComplexity), true
+	case "ForeignTaxRecipient.country":
+		if e.ComplexityRoot.ForeignTaxRecipient.Country == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ForeignTaxRecipient.Country(childComplexity), true
 
 	case "InflationPoint.dayStart":
 		if e.ComplexityRoot.InflationPoint.DayStart == nil {
@@ -5970,6 +6014,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.TaxSource.Country(childComplexity), true
+	case "TaxSource.foreignTaxRedirected":
+		if e.ComplexityRoot.TaxSource.ForeignTaxRedirected == nil {
+			break
+		}
+
+		return e.ComplexityRoot.TaxSource.ForeignTaxRedirected(childComplexity), true
 	case "TaxSource.hijacked":
 		if e.ComplexityRoot.TaxSource.Hijacked == nil {
 			break
@@ -7671,6 +7721,12 @@ func (ec *executionContext) childFields_CountryTaxFlow(ctx context.Context, fiel
 		return ec.fieldContext_CountryTaxFlow_hijackedOut(ctx, field)
 	case "hijackers":
 		return ec.fieldContext_CountryTaxFlow_hijackers(ctx, field)
+	case "foreignTaxIn":
+		return ec.fieldContext_CountryTaxFlow_foreignTaxIn(ctx, field)
+	case "foreignTaxOut":
+		return ec.fieldContext_CountryTaxFlow_foreignTaxOut(ctx, field)
+	case "foreignTaxRecipients":
+		return ec.fieldContext_CountryTaxFlow_foreignTaxRecipients(ctx, field)
 	case "sources":
 		return ec.fieldContext_CountryTaxFlow_sources(ctx, field)
 	case "country":
@@ -7929,6 +7985,16 @@ func (ec *executionContext) childFields_FloatEntry(ctx context.Context, field gr
 		return ec.fieldContext_FloatEntry_value(ctx, field)
 	}
 	return nil, fmt.Errorf("no field named %q was found under type FloatEntry", field.Name)
+}
+
+func (ec *executionContext) childFields_ForeignTaxRecipient(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "amount":
+		return ec.fieldContext_ForeignTaxRecipient_amount(ctx, field)
+	case "country":
+		return ec.fieldContext_ForeignTaxRecipient_country(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type ForeignTaxRecipient", field.Name)
 }
 
 func (ec *executionContext) childFields_InflationPoint(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
@@ -8607,6 +8673,8 @@ func (ec *executionContext) childFields_TaxSource(ctx context.Context, field gra
 		return ec.fieldContext_TaxSource_hijacked(ctx, field)
 	case "corePct":
 		return ec.fieldContext_TaxSource_corePct(ctx, field)
+	case "foreignTaxRedirected":
+		return ec.fieldContext_TaxSource_foreignTaxRedirected(ctx, field)
 	case "country":
 		return ec.fieldContext_TaxSource_country(ctx, field)
 	}
@@ -17447,6 +17515,84 @@ func (ec *executionContext) fieldContext_CountryTaxFlow_hijackers(_ context.Cont
 	return fc, nil
 }
 
+func (ec *executionContext) _CountryTaxFlow_foreignTaxIn(ctx context.Context, field graphql.CollectedField, obj *model.CountryTaxFlow) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CountryTaxFlow_foreignTaxIn(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ForeignTaxIn, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CountryTaxFlow_foreignTaxIn(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CountryTaxFlow", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _CountryTaxFlow_foreignTaxOut(ctx context.Context, field graphql.CollectedField, obj *model.CountryTaxFlow) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CountryTaxFlow_foreignTaxOut(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ForeignTaxOut, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CountryTaxFlow_foreignTaxOut(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CountryTaxFlow", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _CountryTaxFlow_foreignTaxRecipients(ctx context.Context, field graphql.CollectedField, obj *model.CountryTaxFlow) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CountryTaxFlow_foreignTaxRecipients(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ForeignTaxRecipients, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []*model.ForeignTaxRecipient) graphql.Marshaler {
+			return ec.marshalNForeignTaxRecipient2ᚕᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐForeignTaxRecipientᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CountryTaxFlow_foreignTaxRecipients(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CountryTaxFlow",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_ForeignTaxRecipient(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _CountryTaxFlow_sources(ctx context.Context, field graphql.CollectedField, obj *model.CountryTaxFlow) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -19829,6 +19975,61 @@ func (ec *executionContext) _FloatEntry_value(ctx context.Context, field graphql
 }
 func (ec *executionContext) fieldContext_FloatEntry_value(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	return graphql.NewScalarFieldContext("FloatEntry", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _ForeignTaxRecipient_amount(ctx context.Context, field graphql.CollectedField, obj *model.ForeignTaxRecipient) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_ForeignTaxRecipient_amount(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Amount, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_ForeignTaxRecipient_amount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("ForeignTaxRecipient", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _ForeignTaxRecipient_country(ctx context.Context, field graphql.CollectedField, obj *model.ForeignTaxRecipient) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_ForeignTaxRecipient_country(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.ForeignTaxRecipient().Country(ctx, obj)
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.Country) graphql.Marshaler {
+			return ec.marshalOCountry2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐCountry(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_ForeignTaxRecipient_country(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ForeignTaxRecipient",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_Country(ctx, field)
+		},
+	}
+	return fc, nil
 }
 
 func (ec *executionContext) _InflationPoint_id(ctx context.Context, field graphql.CollectedField, obj *model.InflationPoint) (ret graphql.Marshaler) {
@@ -29018,6 +29219,29 @@ func (ec *executionContext) _TaxSource_corePct(ctx context.Context, field graphq
 	)
 }
 func (ec *executionContext) fieldContext_TaxSource_corePct(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("TaxSource", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _TaxSource_foreignTaxRedirected(ctx context.Context, field graphql.CollectedField, obj *model.TaxSource) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_TaxSource_foreignTaxRedirected(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ForeignTaxRedirected, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_TaxSource_foreignTaxRedirected(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	return graphql.NewScalarFieldContext("TaxSource", field, false, false, errors.New("field of type Float does not have child fields"))
 }
 
@@ -38561,6 +38785,21 @@ func (ec *executionContext) _CountryTaxFlow(ctx context.Context, sel ast.Selecti
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "foreignTaxIn":
+			out.Values[i] = ec._CountryTaxFlow_foreignTaxIn(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "foreignTaxOut":
+			out.Values[i] = ec._CountryTaxFlow_foreignTaxOut(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "foreignTaxRecipients":
+			out.Values[i] = ec._CountryTaxFlow_foreignTaxRecipients(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		case "sources":
 			out.Values[i] = ec._CountryTaxFlow_sources(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -40337,6 +40576,78 @@ func (ec *executionContext) _FloatEntry(ctx context.Context, sel ast.SelectionSe
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var foreignTaxRecipientImplementors = []string{"ForeignTaxRecipient"}
+
+func (ec *executionContext) _ForeignTaxRecipient(ctx context.Context, sel ast.SelectionSet, obj *model.ForeignTaxRecipient) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, foreignTaxRecipientImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ForeignTaxRecipient")
+		case "amount":
+			out.Values[i] = ec._ForeignTaxRecipient_amount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "country":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ForeignTaxRecipient_country(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -45802,6 +46113,11 @@ func (ec *executionContext) _TaxSource(ctx context.Context, sel ast.SelectionSet
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "foreignTaxRedirected":
+			out.Values[i] = ec._TaxSource_foreignTaxRedirected(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		case "country":
 			field := field
 
@@ -50367,6 +50683,32 @@ func (ec *executionContext) marshalNFloatEntry2ᚖgithubᚗcomᚋwarerastatsᚋa
 		return graphql.Null
 	}
 	return ec._FloatEntry(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNForeignTaxRecipient2ᚕᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐForeignTaxRecipientᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ForeignTaxRecipient) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNForeignTaxRecipient2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐForeignTaxRecipient(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNForeignTaxRecipient2ᚖgithubᚗcomᚋwarerastatsᚋapiᚋgraphᚋmodelᚐForeignTaxRecipient(ctx context.Context, sel ast.SelectionSet, v *model.ForeignTaxRecipient) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ForeignTaxRecipient(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNID2string(ctx context.Context, v any) (string, error) {

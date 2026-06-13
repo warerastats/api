@@ -573,14 +573,19 @@ func toCountryTaxFlow(f processedreports.CountryTaxFlow) *model.CountryTaxFlow {
 	for i, h := range f.Hijackers {
 		hijackers[i] = &model.TaxHijack{Amount: h.Amount, CountryID: h.CountryID.Hex()}
 	}
+	foreignRecipients := make([]*model.ForeignTaxRecipient, len(f.ForeignTaxRecipients))
+	for i, r := range f.ForeignTaxRecipients {
+		foreignRecipients[i] = &model.ForeignTaxRecipient{Amount: r.Amount, CountryID: r.CountryID.Hex()}
+	}
 	sources := make([]*model.TaxSource, len(f.Sources))
 	for i, s := range f.Sources {
-		sources[i] = &model.TaxSource{Total: s.Total, Hijacked: s.Hijacked, CorePct: s.CorePct, CountryID: s.CountryID.Hex()}
+		sources[i] = &model.TaxSource{Total: s.Total, Hijacked: s.Hijacked, CorePct: s.CorePct, ForeignTaxRedirected: s.ForeignTaxRedirected, CountryID: s.CountryID.Hex()}
 	}
 	return &model.CountryTaxFlow{
 		ID: f.ID, HourStart: f.HourStart, TotalTax: f.TotalTax, HijackedIn: f.HijackedIn,
 		CoreEarned: f.CoreEarned, NonCoreEarned: f.NonCoreEarned, HijackedOut: f.HijackedOut,
-		Hijackers: hijackers, Sources: sources, CountryID: f.CountryID.Hex(),
+		Hijackers: hijackers, ForeignTaxIn: f.ForeignTaxIn, ForeignTaxOut: f.ForeignTaxOut,
+		ForeignTaxRecipients: foreignRecipients, Sources: sources, CountryID: f.CountryID.Hex(),
 	}
 }
 

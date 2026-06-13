@@ -8,7 +8,7 @@ require (
 	github.com/99designs/gqlgen v0.17.90
 	github.com/vektah/gqlparser/v2 v2.5.33
 	github.com/vikstrous/dataloadgen v0.0.10
-	github.com/warerastats/models v0.0.0-20260613125150-8124a3b96f29
+	github.com/warerastats/models v0.0.0-20260613215610-400967f752fa
 	go.mongodb.org/mongo-driver/v2 v2.6.0
 	golang.org/x/sync v0.20.0
 	golang.org/x/time v0.15.0
