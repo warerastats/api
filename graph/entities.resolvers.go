@@ -777,14 +777,15 @@ func (r *muResolver) Battles(ctx context.Context, obj *model.Mu, first *int32, a
 	if err != nil {
 		return nil, err
 	}
+	rows, err := r.Colls.Trackers.Battle.GetMany(ctx, ids)
+	if err != nil {
+		return nil, err
+	}
 	want := toBattleFilter(filter)
-	out := make([]*model.Battle, 0, len(ids))
-	for _, id := range ids {
-		b, err := loadBattle(ctx, id.Hex())
-		if err != nil {
-			return nil, err
-		}
-		if b == nil || !battleMatchesFilter(b, want) {
+	out := make([]*model.Battle, 0, len(rows))
+	for i := range rows {
+		b := toBattle(&rows[i])
+		if !battleMatchesFilter(b, want) {
 			continue
 		}
 		out = append(out, b)
@@ -923,15 +924,13 @@ func (r *partyResolver) Battles(ctx context.Context, obj *model.Party, first *in
 	if err != nil {
 		return nil, err
 	}
-	out := make([]*model.Battle, 0, len(ids))
-	for _, id := range ids {
-		b, err := loadBattle(ctx, id.Hex())
-		if err != nil {
-			return nil, err
-		}
-		if b != nil {
-			out = append(out, b)
-		}
+	rows, err := r.Colls.Trackers.Battle.GetMany(ctx, ids)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]*model.Battle, 0, len(rows))
+	for i := range rows {
+		out = append(out, toBattle(&rows[i]))
 	}
 	return out, nil
 }
