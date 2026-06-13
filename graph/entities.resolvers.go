@@ -50,11 +50,11 @@ func (r *allianceResolver) Battles(ctx context.Context, obj *model.Alliance, fir
 
 // Participation is the resolver for the participation field.
 func (r *allianceResolver) Participation(ctx context.Context, obj *model.Alliance) (*model.AllianceBattleParticipation, error) {
-	aid, err := oidOf(obj.ID)
+	countryIDs, err := r.allianceCountryIDs(ctx, obj.ID)
 	if err != nil {
 		return nil, err
 	}
-	agg, err := r.Colls.Trackers.Damage.AggregateAllianceParticipation(ctx, aid)
+	agg, err := r.Colls.Trackers.Damage.AggregateAllianceParticipation(ctx, countryIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -67,11 +67,11 @@ func (r *allianceResolver) Participation(ctx context.Context, obj *model.Allianc
 
 // TopDamage is the resolver for the topDamage field.
 func (r *allianceResolver) TopDamage(ctx context.Context, obj *model.Alliance, limit *int32) ([]*model.DamageRanking, error) {
-	aid, err := oidOf(obj.ID)
+	countryIDs, err := r.allianceCountryIDs(ctx, obj.ID)
 	if err != nil {
 		return nil, err
 	}
-	rows, err := r.Colls.Trackers.Damage.AggregateAllianceDamage(ctx, aid, limitOf(limit, 10))
+	rows, err := r.Colls.Trackers.Damage.AggregateAllianceDamage(ctx, countryIDs, limitOf(limit, 10))
 	if err != nil {
 		return nil, err
 	}
@@ -116,12 +116,12 @@ func (r *allianceResolver) MoneyFlows(ctx context.Context, obj *model.Alliance, 
 
 // DamageReports is the resolver for the damageReports field.
 func (r *allianceResolver) DamageReports(ctx context.Context, obj *model.Alliance, from *time.Time, to *time.Time, entityKind *model.EntityKind, entityIds []string) ([]*model.BattleDamageReport, error) {
-	// Alliance damage reports: find battles the alliance participated in, then query those.
-	aid, err := oidOf(obj.ID)
+	// Alliance damage reports: find battles the alliance's countries participated in, then query those.
+	countryIDs, err := r.allianceCountryIDs(ctx, obj.ID)
 	if err != nil {
 		return nil, err
 	}
-	battleIDs, err := r.Colls.Trackers.Damage.GetBattleIDsByAlliancePaged(ctx, aid, nil, 200)
+	battleIDs, err := r.Colls.Trackers.Damage.GetBattleIDsByCountries(ctx, countryIDs, nil, 200)
 	if err != nil {
 		return nil, err
 	}
@@ -1697,6 +1697,23 @@ func (r *Resolver) TradeOffer() TradeOfferResolver { return &tradeOfferResolver{
 
 // User returns UserResolver implementation.
 func (r *Resolver) User() UserResolver { return &userResolver{r} }
+
+// allianceCountryIDs returns the ObjectIDs of the countries currently in an alliance.
+func (r *allianceResolver) allianceCountryIDs(ctx context.Context, allianceID string) ([]bson.ObjectID, error) {
+	aid, err := oidOf(allianceID)
+	if err != nil {
+		return nil, err
+	}
+	countries, err := r.Colls.Trackers.Country.GetByAlliance(ctx, aid)
+	if err != nil {
+		return nil, err
+	}
+	ids := make([]bson.ObjectID, len(countries))
+	for i := range countries {
+		ids[i] = countries[i].ID
+	}
+	return ids, nil
+}
 
 type allianceResolver struct{ *Resolver }
 type allianceBattleParticipationResolver struct{ *Resolver }
