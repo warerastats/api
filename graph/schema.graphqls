@@ -109,13 +109,13 @@ type IntEntry {
 }
 
 type DamageRanking {
-  user: User!
+  user: User
   totalDamage: Int64!
   battleCount: Int!
 }
 
 type WageRanking {
-  user: User!
+  user: User
   total: Float!
   count: Int!
 }

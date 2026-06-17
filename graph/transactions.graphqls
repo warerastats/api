@@ -18,8 +18,8 @@ type ActivityConnection {
 type MarketTransaction {
   id: ID!
   money: Float!
-  seller: User!
-  buyer: User!
+  seller: User
+  buyer: User
   item: Item
 }
 
@@ -27,14 +27,14 @@ type WageTransaction {
   id: ID!
   money: Float!
   productionPoints: Int!
-  employee: User!
-  employer: User!
+  employee: User
+  employer: User
 }
 
 type CaseTransaction {
   id: ID!
   case: String!
-  user: User!
+  user: User
   item: Item
 }
 
@@ -44,8 +44,8 @@ type TradeTransaction {
   money: Float!
   quantity: Int!
   timeTillSale: Int64!
-  seller: User!
-  buyer: User!
+  seller: User
+  buyer: User
   sellerMu: Mu
   buyerMu: Mu
   sellerCountry: Country
@@ -55,19 +55,19 @@ type TradeTransaction {
 type CraftTransaction {
   id: ID!
   scrapsCost: Int!
-  user: User!
+  user: User
   item: Item
 }
 
 type DismantleTransaction {
   id: ID!
   scrapsReceived: Int!
-  user: User!
+  user: User
   item: Item
 }
 
 type LootTransaction {
   id: ID!
-  user: User!
+  user: User
   item: Item
 }

@@ -5,41 +5,41 @@ type UserNameChange {
   id: ID!
   at: DateTime!
   username: String!
-  user: User!
+  user: User
 }
 
 type UserCountryChange {
   id: ID!
   at: DateTime!
-  user: User!
+  user: User
   country: Country
 }
 
 type UserPartyChange {
   id: ID!
   at: DateTime!
-  user: User!
+  user: User
   party: Party
 }
 
 type UserCompanyChange {
   id: ID!
   at: DateTime!
-  user: User!
+  user: User
   company: Company
 }
 
 type UserMuChange {
   id: ID!
   at: DateTime!
-  user: User!
+  user: User
   mu: Mu
 }
 
 type UserSkillChange {
   id: ID!
   at: DateTime!
-  user: User!
+  user: User
   skills: [IntEntry!]!
 }
 
@@ -47,34 +47,34 @@ type PartyNameChange {
   id: ID!
   at: DateTime!
   name: String!
-  party: Party!
+  party: Party
 }
 
 type PartyLeaderChange {
   id: ID!
   at: DateTime!
-  party: Party!
-  leader: User!
+  party: Party
+  leader: User
 }
 
 type PartyDescriptionChange {
   id: ID!
   at: DateTime!
   description: String!
-  party: Party!
+  party: Party
 }
 
 type PartyEthicsChange {
   id: ID!
   at: DateTime!
   ethics: Ethics!
-  party: Party!
+  party: Party
 }
 
 type CountryRulingPartyChange {
   id: ID!
   at: DateTime!
-  country: Country!
+  country: Country
   party: Party
 }
 
@@ -82,28 +82,28 @@ type CountrySpecialisationChange {
   id: ID!
   at: DateTime!
   itemCode: String
-  country: Country!
+  country: Country
 }
 
 type CountryAllianceJoin {
   id: ID!
   at: DateTime!
-  country: Country!
-  alliance: Alliance!
+  country: Country
+  alliance: Alliance
 }
 
 type CountryAllianceLeave {
   id: ID!
   at: DateTime!
-  country: Country!
+  country: Country
   prevAlliance: Alliance
 }
 
 type RegionOwnerChange {
   id: ID!
   at: DateTime!
-  region: Region!
-  country: Country!
+  region: Region
+  country: Country
 }
 
 type RegionDeposit {
@@ -113,57 +113,57 @@ type RegionDeposit {
   startsAt: DateTime
   endsAt: DateTime
   bonusPercent: Float
-  region: Region!
+  region: Region
 }
 
 type RegionStrategicResource {
   id: ID!
   at: DateTime!
   resource: String
-  region: Region!
+  region: Region
 }
 
 type CompanyRegionChange {
   id: ID!
   at: DateTime!
-  company: Company!
-  region: Region!
+  company: Company
+  region: Region
 }
 
 type CompanyItemCodeChange {
   id: ID!
   at: DateTime!
   itemCode: String!
-  company: Company!
+  company: Company
 }
 
 type EmployeeWageChange {
   id: ID!
   at: DateTime!
   wage: Float!
-  user: User!
-  company: Company!
+  user: User
+  company: Company
 }
 
 type MuNameChange {
   id: ID!
   at: DateTime!
   name: String!
-  mu: Mu!
+  mu: Mu
 }
 
 type MuOwnerChange {
   id: ID!
   at: DateTime!
-  mu: Mu!
-  owner: User!
+  mu: Mu
+  owner: User
 }
 
 type MuMercenaryReputationChange {
   id: ID!
   at: DateTime!
   mercRep: Float!
-  mu: Mu!
+  mu: Mu
 }
 
 type BattleOrderChange {
@@ -172,6 +172,6 @@ type BattleOrderChange {
   side: String!
   kind: String!
   action: String!
-  battle: Battle!
+  battle: Battle
   entity: Entity
 }

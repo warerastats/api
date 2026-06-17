@@ -14,7 +14,7 @@ type UserFinanceReport {
   valueDismantled: Float!
   casesOpened: Int!
   casesNet: Float!
-  user: User!
+  user: User
 }
 
 type UserFlipEvent {
@@ -26,7 +26,7 @@ type UserFlipEvent {
   profit: Float!
   heldMs: Int64!
   at: DateTime!
-  user: User!
+  user: User
 }
 
 type FlipLot {
@@ -46,13 +46,13 @@ type UserFlipState {
   totalProfit: Float!
   updatedAt: DateTime!
   openLots: [FlipLotGroup!]!
-  user: User!
+  user: User
 }
 
 type UserInventory {
   updatedAt: DateTime!
   items: [IntEntry!]!
-  user: User!
+  user: User
 }
 
 type UserBattleParticipation {
@@ -64,7 +64,7 @@ type UserBattleParticipation {
   muOrderBattles: Int!
   muOrderParticipated: Int!
   updatedAt: DateTime!
-  user: User!
+  user: User
 }
 
 # ---- country ----
@@ -100,7 +100,7 @@ type CountryTaxFlow {
   foreignTaxOut: Float!
   foreignTaxRecipients: [ForeignTaxRecipient!]!
   sources: [TaxSource!]!
-  country: Country!
+  country: Country
 }
 
 type CountryMoneyFlowCounterpart {
@@ -110,7 +110,7 @@ type CountryMoneyFlowCounterpart {
   outItems: Float!
   inWages: Float!
   outWages: Float!
-  country: Country!
+  country: Country
 }
 
 type CountryMoneyFlowReport {
@@ -135,7 +135,7 @@ type CountryMoneyFlowReport {
   inWagesCrossBorder: Float!
   outWagesCrossBorder: Float!
   counterparts: [CountryMoneyFlowCounterpart!]!
-  country: Country!
+  country: Country
 }
 
 type MuCountryMoneyFlowCounterpart {
@@ -145,7 +145,7 @@ type MuCountryMoneyFlowCounterpart {
   outItems: Float!
   inWages: Float!
   outWages: Float!
-  country: Country!
+  country: Country
 }
 
 type MuCountryMoneyFlowReport {
@@ -176,7 +176,7 @@ type MuCountryMoneyFlowReport {
   inWagesCrossBorderOutsideMuCountry: Float!
   outWagesCrossBorderOutsideMuCountry: Float!
   counterparts: [MuCountryMoneyFlowCounterpart!]!
-  mu: Mu!
+  mu: Mu
 }
 
 type PartyMoneyFlowCounterpart {
@@ -186,7 +186,7 @@ type PartyMoneyFlowCounterpart {
   outItems: Float!
   inWages: Float!
   outWages: Float!
-  country: Country!
+  country: Country
 }
 
 type PartyMoneyFlowReport {
@@ -223,7 +223,7 @@ type PartyMoneyFlowReport {
   inWagesOutsideAlliance: Float!
   outWagesOutsideAlliance: Float!
   counterparts: [PartyMoneyFlowCounterpart!]!
-  party: Party!
+  party: Party
 }
 
 type CountryAllianceMoneyFlowCounterpart {
@@ -233,7 +233,7 @@ type CountryAllianceMoneyFlowCounterpart {
   outItems: Float!
   inWages: Float!
   outWages: Float!
-  alliance: Alliance!
+  alliance: Alliance
 }
 
 type CountryAllianceMoneyFlowReport {
@@ -258,7 +258,7 @@ type CountryAllianceMoneyFlowReport {
   inWagesOutsideAlliance: Float!
   outWagesOutsideAlliance: Float!
   counterparts: [CountryAllianceMoneyFlowCounterpart!]!
-  country: Country!
+  country: Country
 }
 
 type AllianceMoneyFlowCounterpart {
@@ -268,7 +268,7 @@ type AllianceMoneyFlowCounterpart {
   outItems: Float!
   inWages: Float!
   outWages: Float!
-  alliance: Alliance!
+  alliance: Alliance
 }
 
 type AllianceMoneyFlowReport {
@@ -293,7 +293,7 @@ type AllianceMoneyFlowReport {
   inWagesOutsideAlliance: Float!
   outWagesOutsideAlliance: Float!
   counterparts: [AllianceMoneyFlowCounterpart!]!
-  alliance: Alliance!
+  alliance: Alliance
 }
 
 type MuAllianceMoneyFlowCounterpart {
@@ -303,7 +303,7 @@ type MuAllianceMoneyFlowCounterpart {
   outItems: Float!
   inWages: Float!
   outWages: Float!
-  alliance: Alliance!
+  alliance: Alliance
 }
 
 type MuAllianceMoneyFlowReport {
@@ -328,7 +328,7 @@ type MuAllianceMoneyFlowReport {
   inWagesOutsideMuAlliance: Float!
   outWagesOutsideMuAlliance: Float!
   counterparts: [MuAllianceMoneyFlowCounterpart!]!
-  mu: Mu!
+  mu: Mu
 }
 
 type CountryFlipEvent {
@@ -339,7 +339,7 @@ type CountryFlipEvent {
   sellRevenue: Float!
   profit: Float!
   at: DateTime!
-  country: Country!
+  country: Country
 }
 
 type CountryFlipState {
@@ -347,7 +347,7 @@ type CountryFlipState {
   profitable: Int!
   totalProfit: Float!
   updatedAt: DateTime!
-  country: Country!
+  country: Country
 }
 
 type InventoryLot {
@@ -365,7 +365,7 @@ type InventoryLotGroup {
 type CountryInventory {
   updatedAt: DateTime!
   lots: [InventoryLotGroup!]!
-  country: Country!
+  country: Country
 }
 
 # ---- entity / battle ----
@@ -394,7 +394,7 @@ type BattleDamageReport {
   damage: Int64!
   damagePct: Float!
   equipment: [EquipmentUsage!]!
-  battle: Battle!
+  battle: Battle
   entity: Entity
 }
 
@@ -488,7 +488,7 @@ type MarketState {
 
 type WagePaidUser {
   totalPaid: Float!
-  user: User!
+  user: User
 }
 
 type WageMarketState {
